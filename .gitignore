@@ -6,3 +6,9 @@ __pycache__/
 manutencao/browser-tools/
 manutencao/testes/verify_*
 *.bak-*
+manutencao/deploy-temp.json
+manutencao/wf-export-server.json
+manutencao/wf-verificacao.json
+manutencao/final-check.json
+manutencao/check_*.js
+manutencao/check_*.py

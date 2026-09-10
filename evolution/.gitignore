@@ -1,0 +1,7 @@
+.env
+.env-*
+tenants/
+__pycache__/
+*.secret.json
+manager/
+*.before-manager-fix

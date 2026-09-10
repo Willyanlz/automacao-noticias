@@ -1,0 +1,8 @@
+.env
+.env-*
+evolution/tenants/
+*.secret.json
+__pycache__/
+manutencao/browser-tools/
+manutencao/testes/verify_*
+*.bak-*

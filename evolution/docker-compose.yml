@@ -1,0 +1,97 @@
+name: evolution
+services:
+  api:
+    image: evoapicloud/evolution-api:v2.3.7
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "SEU_IP_LAN:8080:8080"
+    volumes:
+      - instances:/evolution/instances
+      - ./manager:/evolution/manager/dist:ro
+    networks:
+      internal:
+      n8n:
+        aliases: [evolution-api]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    mem_limit: 768m
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:8080/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 5
+  noticias-estado:
+    build: ./noticias-estado
+    image: SEU_USUARIO/noticias-estado:1
+    restart: unless-stopped
+    env_file: .env-news
+    volumes:
+      - noticias_history:/data
+    networks: [n8n]
+    mem_limit: 128m
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: evolution
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks: [internal]
+    mem_limit: 256m
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U evolution -d evolution"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: [redis-server, --appendonly, 'yes', --maxmemory, 96mb, --maxmemory-policy, noeviction]
+    volumes:
+      - redis:/data
+    networks: [internal]
+    mem_limit: 160m
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+volumes:
+  noticias_history:
+  instances:
+  postgres:
+  redis:
+networks:
+  internal:
+    internal: true
+  n8n:
+    external: true
+    name: n8n_default

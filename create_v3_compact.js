@@ -368,14 +368,20 @@ return [{ json: { enviado: true, titulo: item.titulo, link: item.link, messageId
 const idsPrepCode = `
 const form = $input.first().json;
 const config = $('Configurar Cliente').first().json;
-const choice = String(form.opcao ?? form['O que vocÃƒÂª quer consultar?'] ?? '').trim();
+const choice = String(form.opcao ?? form['O que voc???? quer consultar?'] ?? '').trim();
 const filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();
-const map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'InstÃƒÂ¢ncia e conexÃƒÂ£o': 'instancia' };
+const map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'Broadcasts / listas de transmissao': 'broadcasts', 'Inst????ncia e conex????o': 'instancia' };
 const tipo = map[choice] || 'todos';
 const base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');
 const instancia = String(config.instancia || '').trim();
-const url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=true';
-return [{ json: { tipo, filtro: filter, url, config } }];
+const consultas = tipo === 'instancia'
+  ? [{ nome: 'instancia', method: 'GET', url: base + '/instance/connectionState/' + encodeURIComponent(instancia) }]
+  : [
+      { nome: 'grupos', method: 'GET', url: base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=false' },
+      { nome: 'chats', method: 'POST', url: base + '/chat/findChats/' + encodeURIComponent(instancia), body: {} },
+      { nome: 'contatos', method: 'POST', url: base + '/chat/findContacts/' + encodeURIComponent(instancia), body: {} },
+    ];
+return [{ json: { tipo, filtro: filter, url: consultas[0]?.url || '', consultas, config } }];
 `.trim();
 
 const idsFetchCode = `
@@ -397,53 +403,76 @@ const http = async ({ method = 'GET', url, headers = {}, body, json = false, tim
   return text;
 };
 // ids helper inserted
-const rows = await http({ method: 'GET', url: q.url, headers: { apikey: q.config.evolutionApiKey || q.config.apikey || '' }, json: true, timeout: 30000 });
-return [{ json: { ...q, rows } }];
+const headers = { apikey: q.config.evolutionApiKey || q.config.apikey || '' };
+const consultas = Array.isArray(q.consultas) && q.consultas.length ? q.consultas : [{ nome: 'principal', method: 'GET', url: q.url }];
+const resultados = {};
+const erros = [];
+for (const consulta of consultas) {
+  try {
+    resultados[consulta.nome] = await http({ method: consulta.method || 'GET', url: consulta.url, headers, body: consulta.body, json: true, timeout: 30000 });
+  } catch (error) {
+    erros.push({ consulta: consulta.nome, erro: error.message });
+    resultados[consulta.nome] = [];
+  }
+}
+const rows = resultados.grupos ?? resultados.instancia ?? resultados.principal ?? [];
+return [{ json: { ...q, rows, resultados, erros } }];
 `.trim();
 
 const idsFormatCode = `
 const data = $input.first().json;
-const normalize = text => String(text || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+const normalize = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const listFrom = value => Array.isArray(value) ? value : Array.isArray(value?.groups) ? value.groups : Array.isArray(value?.contacts) ? value.contacts : Array.isArray(value?.chats) ? value.chats : value ? [value] : [];
 if (data.tipo === 'instancia') {
   const info = data.rows?.instance || data.rows || {};
-  return [{ json: { nome: info.instanceName || 'Instancia', id: info.instanceName || '', tipo: 'Instancia', estado: info.state || '' } }];
+  return [{ json: { total: 1, tabela: 'INSTANCIA | ' + (info.instanceName || 'Instancia') + ' | estado: ' + (info.state || ''), registros: [{ nome: info.instanceName || 'Instancia', id: info.instanceName || '', tipo: 'Instancia', estado: info.state || '' }], erros: data.erros || [] } }];
 }
-const source = Array.isArray(data.rows) ? data.rows : Array.isArray(data.rows?.groups) ? data.rows.groups : [data.rows];
-const groups = source.filter(group => group?.id?.endsWith?.('@g.us'));
-const meCandidates = [
-  data.config?.numero,
-  data.config?.numeroNoticias,
-  data.config?.numeroResumao,
-  data.config?.numeroHistorico,
-].map(v => String(v || '').replace(/[^0-9]/g, '')).filter(Boolean);
-const participantRole = group => {
-  const participants = Array.isArray(group.participants) ? group.participants : [];
-  const mine = participants.find(p => {
-    const id = String(p.id || p.jid || p.phoneNumber || '');
-    const phone = String(p.phoneNumber || '').replace(/[^0-9]/g, '');
-    return meCandidates.some(n => id.includes(n) || phone.endsWith(n) || n.endsWith(phone));
+const groupSource = listFrom(data.resultados?.grupos ?? data.rows);
+const groups = groupSource.filter(group => String(group?.id || group?.jid || '').endsWith('@g.us'));
+const rawBroadcasts = [...listFrom(data.resultados?.chats), ...listFrom(data.resultados?.contatos)];
+const broadcastMap = new Map();
+const jidOf = item => String(item?.id || item?.remoteJid || item?.jid || item?.chatId || item?.key?.remoteJid || '').trim();
+for (const item of rawBroadcasts) {
+  const jid = jidOf(item);
+  if (!jid || (!jid.endsWith('@broadcast') && jid !== 'status@broadcast')) continue;
+  if (!broadcastMap.has(jid)) {
+    broadcastMap.set(jid, {
+      nome: item.name || item.pushName || item.subject || (jid === 'status@broadcast' ? 'Status do WhatsApp' : 'Lista de transmissao'),
+      id: jid,
+      tipo: jid === 'status@broadcast' ? 'Status/Broadcast' : 'Broadcast',
+      detalhes: item.unreadCount != null ? 'unread=' + item.unreadCount : '',
+    });
+  }
+}
+const linhas = [];
+for (const group of groups) {
+  linhas.push({
+    nome: group.subject || group.name || 'Sem nome',
+    id: group.id || group.jid || '',
+    tipo: group.isCommunity ? 'Comunidade' : group.isCommunityAnnounce ? 'Grupo de avisos' : group.announce ? 'Grupo comum (somente admins)' : 'Grupo comum',
+    participantes: group.size ?? '',
   });
-  const admin = mine?.admin || '';
-  if (admin === 'superadmin') return 'Dono';
-  if (admin === 'admin') return 'Admin';
-  if (mine) return 'Membro';
-  return participants.length ? 'Nao identificado' : 'Participantes nao carregados';
-};
-const result = groups.filter(group => {
-  if (data.tipo === 'grupos' && (group.isCommunity || group.isCommunityAnnounce)) return false;
-  if (data.tipo === 'comunidades' && !group.isCommunity) return false;
-  if (data.tipo === 'avisos' && !group.isCommunityAnnounce && !group.announce) return false;
-  return !data.filtro || normalize(group.subject).includes(normalize(data.filtro));
-}).map(group => ({ json: {
-  nome: group.subject || 'Sem nome',
-  id: group.id,
-  tipo: group.isCommunity ? 'Comunidade' : group.isCommunityAnnounce ? 'Grupo de avisos' : group.announce ? 'Somente administradores' : 'Grupo comum',
-  permissao: participantRole(group),
-  participantes: group.size ?? (Array.isArray(group.participants) ? group.participants.length : null),
-  donoId: group.owner || group.subjectOwner || '',
-  somenteAdmins: Boolean(group.announce),
-} }));
-return result.length ? result : [{ json: { nome: 'Nenhum resultado', id: '', tipo: data.tipo } }];
+}
+for (const broadcast of broadcastMap.values()) linhas.push(broadcast);
+const filtered = linhas.filter(row => {
+  if (data.tipo === 'grupos' && row.tipo !== 'Grupo comum' && row.tipo !== 'Grupo comum (somente admins)') return false;
+  if (data.tipo === 'comunidades' && row.tipo !== 'Comunidade') return false;
+  if (data.tipo === 'avisos' && row.tipo !== 'Grupo de avisos' && row.tipo !== 'Grupo comum (somente admins)') return false;
+  if (data.tipo === 'broadcasts' && row.tipo !== 'Broadcast' && row.tipo !== 'Status/Broadcast') return false;
+  return !data.filtro || normalize(row.nome).includes(normalize(data.filtro));
+});
+filtered.sort((a, b) => String(a.tipo).localeCompare(String(b.tipo), 'pt-BR') || String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+const header = '# | Tipo | Nome | ID | Participantes/Detalhes';
+const body = filtered.map((row, index) => [
+  String(index + 1).padStart(2, '0'),
+  row.tipo || '',
+  String(row.nome || '').replace(/\s+/g, ' ').trim(),
+  row.id || '',
+  row.participantes || row.detalhes || '',
+].join(' | ')).join(String.fromCharCode(10));
+const avisoBroadcast = broadcastMap.size ? '' : String.fromCharCode(10) + String.fromCharCode(10) + 'Obs.: nenhum @broadcast foi retornado pelos endpoints de chats/contatos da Evolution. Broadcasts so aparecem aqui quando a API expoe esses IDs.';
+const tabela = filtered.length ? header + String.fromCharCode(10) + body + avisoBroadcast : 'Nenhum resultado para o filtro selecionado.' + avisoBroadcast;
+return [{ json: { total: filtered.length, tipoConsulta: data.tipo, filtro: data.filtro || '', tabela, registros: filtered, erros: data.erros || [] } }];
 `.trim();
 
 const trigger = add('Agenda - Verificar a cada minuto', 'n8n-nodes-base.scheduleTrigger', 1.2, [-1600, 120], { rule: { interval: [{ field: 'cronExpression', expression: '* * * * *' }] } });

@@ -1,8 +1,9 @@
 {
+  "id": "noticiasV3Compacta",
   "name": "Noticias de Investimento -> IA -> WhatsApp v3 compacta",
   "nodes": [
     {
-      "id": "scheduleTrigger-94d65ba8e8",
+      "id": "scheduleTrigger-50b7e2942d",
       "name": "Agenda - Verificar a cada minuto",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -22,7 +23,7 @@
       }
     },
     {
-      "id": "manualTrigger-98dae1707e",
+      "id": "manualTrigger-669c68b7db",
       "name": "Noticias - Rodar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -33,7 +34,7 @@
       "parameters": {}
     },
     {
-      "id": "set-c0fd9b89ea",
+      "id": "set-00e4938736",
       "name": "Configurar Cliente",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -45,121 +46,121 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-97f338d8c5",
+              "id": "field-3f7e9b3c45",
               "name": "cliente",
               "value": "Iguera",
               "type": "string"
             },
             {
-              "id": "field-c13b10c161",
+              "id": "field-ddd722ddbf",
               "name": "numero",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-16d9a129d4",
+              "id": "field-a682bbe626",
               "name": "instancia",
               "value": "iguera",
               "type": "string"
             },
             {
-              "id": "field-092b49fabe",
+              "id": "field-771e4be709",
               "name": "evolutionUrl",
               "value": "http://evolution-api:8080",
               "type": "string"
             },
             {
-              "id": "field-15349559b4",
+              "id": "field-e407d4026d",
               "name": "evolutionApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-4bef812ea4",
+              "id": "field-4b55e7e040",
               "name": "geminiApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-91f578ee69",
+              "id": "field-206edbc250",
               "name": "modeloGemini",
               "value": "gemini-2.0-flash",
               "type": "string"
             },
             {
-              "id": "field-b8a5da80ee",
+              "id": "field-f65171105e",
               "name": "historicoUrl",
               "value": "http://historico:8090",
               "type": "string"
             },
             {
-              "id": "field-c4f4b83fa3",
+              "id": "field-e1c265f278",
               "name": "periodicidade",
               "value": "intervalo",
               "type": "string"
             },
             {
-              "id": "field-4dcfad2b03",
+              "id": "field-8ab34e33e3",
               "name": "intervaloMinutos",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "field-6b49221f4d",
+              "id": "field-a67c085385",
               "name": "inicioEnvios",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-1f13d321f1",
+              "id": "field-4ee1018690",
               "name": "fimEnvios",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-7786bb7a06",
+              "id": "field-d38929e0ff",
               "name": "horarioEnvioDiario",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-772177bab7",
+              "id": "field-d6907a4e6c",
               "name": "horarioResumao",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-f1f69ec322",
+              "id": "field-7d3715a126",
               "name": "resumaoAtivo",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-9aa9613602",
+              "id": "field-c5bc26d2f4",
               "name": "maxNoticias",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "field-485f62b878",
+              "id": "field-97d24aeba0",
               "name": "janelaHoras",
               "value": 24,
               "type": "number"
             },
             {
-              "id": "field-59cf4b8e7f",
+              "id": "field-71f9da546b",
               "name": "usarImagem",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-a77d139fdc",
+              "id": "field-f1c234cbd5",
               "name": "enviar",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-5b92b1aaf2",
+              "id": "field-7715373bbe",
               "name": "enviarLinksFontes",
               "value": false,
               "type": "boolean"
@@ -170,7 +171,7 @@
       }
     },
     {
-      "id": "code-ae225c225a",
+      "id": "code-ae890bdf3e",
       "name": "Decidir Acao",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -184,7 +185,7 @@
       }
     },
     {
-      "id": "code-3096e685c1",
+      "id": "code-889fed955e",
       "name": "Coletar Fontes e Historico",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -198,7 +199,7 @@
       }
     },
     {
-      "id": "code-4a55be2066",
+      "id": "code-b24f98122f",
       "name": "Montar Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -212,7 +213,7 @@
       }
     },
     {
-      "id": "code-8d57862a1d",
+      "id": "code-bfb0c98261",
       "name": "Gemini com Retry",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -226,7 +227,7 @@
       }
     },
     {
-      "id": "code-251bbe2859",
+      "id": "code-dc29f08b4d",
       "name": "Preparar Mensagens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -240,7 +241,7 @@
       }
     },
     {
-      "id": "splitInBatches-ba082292a6",
+      "id": "splitInBatches-b20abe7c4a",
       "name": "Uma mensagem por vez",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -254,7 +255,7 @@
       }
     },
     {
-      "id": "code-fcc0825b43",
+      "id": "code-9fd424da14",
       "name": "Enviar e Registrar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -268,7 +269,7 @@
       }
     },
     {
-      "id": "wait-3731577256",
+      "id": "wait-ac13bf0f46",
       "name": "Aguardar 8-10s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -281,7 +282,7 @@
       }
     },
     {
-      "id": "noOp-ba14bd8e0d",
+      "id": "noOp-68d758ecb7",
       "name": "Fim",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
@@ -292,7 +293,7 @@
       "parameters": {}
     },
     {
-      "id": "manualTrigger-a56f4de8ba",
+      "id": "manualTrigger-839063b6ed",
       "name": "IDs - Iniciar Consulta",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -303,7 +304,7 @@
       "parameters": {}
     },
     {
-      "id": "set-b01887d48b",
+      "id": "set-a711845aee",
       "name": "Configurar Cliente - IDs",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -315,121 +316,121 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-a28ef9707c",
+              "id": "field-4862e4575c",
               "name": "cliente",
               "value": "Iguera",
               "type": "string"
             },
             {
-              "id": "field-802a43bc9a",
+              "id": "field-d85bde2f24",
               "name": "numero",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-7979ed2f0c",
+              "id": "field-20a084baed",
               "name": "instancia",
               "value": "iguera",
               "type": "string"
             },
             {
-              "id": "field-4ae01ad354",
+              "id": "field-219b313e6e",
               "name": "evolutionUrl",
               "value": "http://evolution-api:8080",
               "type": "string"
             },
             {
-              "id": "field-d610717a18",
+              "id": "field-2b8cd5012d",
               "name": "evolutionApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-8af8294d79",
+              "id": "field-6408849ad1",
               "name": "geminiApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-cc7d8115f9",
+              "id": "field-3fe426cb1f",
               "name": "modeloGemini",
               "value": "gemini-2.0-flash",
               "type": "string"
             },
             {
-              "id": "field-fc3cdc40c4",
+              "id": "field-54e3fa9b21",
               "name": "historicoUrl",
               "value": "http://historico:8090",
               "type": "string"
             },
             {
-              "id": "field-86dd1d4843",
+              "id": "field-feb02bd9af",
               "name": "periodicidade",
               "value": "intervalo",
               "type": "string"
             },
             {
-              "id": "field-63a24681b8",
+              "id": "field-6948979a33",
               "name": "intervaloMinutos",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "field-e7efbc0323",
+              "id": "field-296458a9f4",
               "name": "inicioEnvios",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-426bd0bb82",
+              "id": "field-f3d8e7032c",
               "name": "fimEnvios",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-2d28f589de",
+              "id": "field-212a3b2175",
               "name": "horarioEnvioDiario",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-6c20991da6",
+              "id": "field-1e140f280a",
               "name": "horarioResumao",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-0ca2ab4d54",
+              "id": "field-61aeceaa54",
               "name": "resumaoAtivo",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-640e02c4c3",
+              "id": "field-ce8d88f06c",
               "name": "maxNoticias",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "field-a385265a57",
+              "id": "field-bd27fa6bbf",
               "name": "janelaHoras",
               "value": 24,
               "type": "number"
             },
             {
-              "id": "field-d407caa6a2",
+              "id": "field-bc482feb4c",
               "name": "usarImagem",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-348a3b6ef5",
+              "id": "field-043daae575",
               "name": "enviar",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-2f4d8d8f22",
+              "id": "field-e22e0bf86e",
               "name": "enviarLinksFontes",
               "value": false,
               "type": "boolean"
@@ -440,7 +441,7 @@
       }
     },
     {
-      "id": "wait-5a27a68a0c",
+      "id": "wait-9340bad2eb",
       "name": "IDs - O que Consultar?",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -494,7 +495,7 @@
       "webhookId": "ids-v3-compact-form"
     },
     {
-      "id": "code-ccc845dd32",
+      "id": "code-b28a28bca9",
       "name": "IDs - Preparar Consulta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -508,7 +509,7 @@
       }
     },
     {
-      "id": "code-be169230ec",
+      "id": "code-cd41d8db4e",
       "name": "IDs - Consultar Evolution",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -522,7 +523,7 @@
       }
     },
     {
-      "id": "code-6a6de925a6",
+      "id": "code-33c3c407aa",
       "name": "IDs - Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -536,7 +537,7 @@
       }
     },
     {
-      "id": "stickyNote-1cfe16ee07",
+      "id": "stickyNote-992786c3a0",
       "name": "V3 - Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,

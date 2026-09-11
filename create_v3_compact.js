@@ -343,6 +343,7 @@ link(idsPrep, idsFetch);
 link(idsFetch, idsResult);
 
 const workflow = {
+  id: 'noticiasV3Compacta',
   name: 'Noticias de Investimento -> IA -> WhatsApp v3 compacta',
   nodes,
   connections,

@@ -1,13 +1,23 @@
-"""Histórico mínimo de notícias. Apenas registra e consulta."""
-import sqlite3
+﻿import html
 import json
 import os
+import sqlite3
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 
 DB = os.environ.get('HISTORICO_DB', '/data/historico.sqlite')
 PORT = int(os.environ.get('HISTORICO_PORT', 8090))
+RETENCAO_DIAS = int(os.environ.get('HISTORICO_RETENCAO_DIAS', 60))
+
+
+def hoje():
+    return datetime.now().strftime('%Y-%m-%d')
+
+
+def agora_ts():
+    return datetime.now().timestamp()
 
 
 def init_db():
@@ -26,53 +36,102 @@ def init_db():
             CREATE INDEX IF NOT EXISTS idx_envios_dia ON envios(dia);
             CREATE INDEX IF NOT EXISTS idx_envios_link ON envios(link);
         ''')
-        # Limpar dados com mais de 30 dias
-        limite = (datetime.now() - timedelta(days=30)).timestamp()
+        cols = {r[1] for r in db.execute('PRAGMA table_info(envios)').fetchall()}
+        for name, ddl in {
+            'resumo': 'ALTER TABLE envios ADD COLUMN resumo TEXT',
+            'tipo': 'ALTER TABLE envios ADD COLUMN tipo TEXT DEFAULT "noticia"',
+            'message_id': 'ALTER TABLE envios ADD COLUMN message_id TEXT',
+        }.items():
+            if name not in cols:
+                db.execute(ddl)
+        limite = (datetime.now() - timedelta(days=RETENCAO_DIAS)).timestamp()
         db.execute('DELETE FROM envios WHERE criado_em < ?', (limite,))
 
 
 def registrar(dados):
-    link = dados.get('link', '')
-    if not link:
+    link = str(dados.get('link') or '').strip()
+    titulo = str(dados.get('titulo') or '').strip()
+    resumo = str(dados.get('resumo') or '').strip()
+    tipo = str(dados.get('tipo') or 'noticia').strip() or 'noticia'
+    dia = str(dados.get('dia') or hoje())[:10]
+    job_id = str(dados.get('jobId') or '')
+    message_id = str(dados.get('messageId') or '')
+    if not link and tipo != 'resumao':
         return {'erro': 'link obrigatorio'}
-    dia = dados.get('dia', datetime.now().strftime('%Y-%m-%d'))
-    titulo = dados.get('titulo', '')
-    job_id = dados.get('jobId', '')
-    id_registro = hashlib.sha256(f"{dia}:{link}".encode()).hexdigest()[:16]
-    try:
-        with sqlite3.connect(DB) as db:
-            db.execute(
-                'INSERT OR IGNORE INTO envios VALUES (?,?,?,?,?,?)',
-                (id_registro, link, titulo, dia, job_id, datetime.now().timestamp())
-            )
-        return {'registrado': True, 'id': id_registro}
-    except Exception as e:
-        return {'erro': str(e)}
+    chave = link or f'resumao:{dia}:{message_id or job_id or agora_ts()}'
+    id_registro = hashlib.sha256(f'{dia}:{chave}'.encode()).hexdigest()[:16]
+    with sqlite3.connect(DB) as db:
+        db.execute('''
+            INSERT INTO envios (id, link, titulo, dia, job_id, criado_em, resumo, tipo, message_id)
+            VALUES (?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(id) DO UPDATE SET
+                titulo=excluded.titulo,
+                resumo=excluded.resumo,
+                tipo=excluded.tipo,
+                message_id=excluded.message_id,
+                job_id=excluded.job_id
+        ''', (id_registro, link, titulo, dia, job_id, agora_ts(), resumo, tipo, message_id))
+    return {'registrado': True, 'id': id_registro}
 
 
 def listar_dia(data):
     with sqlite3.connect(DB) as db:
-        rows = db.execute(
-            'SELECT link, titulo, job_id FROM envios WHERE dia=? ORDER BY criado_em',
-            (data,)
-        ).fetchall()
-    return [{'link': r[0], 'titulo': r[1], 'jobId': r[2]} for r in rows]
+        rows = db.execute('''
+            SELECT link, titulo, job_id, criado_em, resumo, tipo, message_id
+            FROM envios WHERE dia=? ORDER BY criado_em
+        ''', (data,)).fetchall()
+    return [
+        {
+            'link': r[0],
+            'titulo': r[1] or '',
+            'jobId': r[2] or '',
+            'hora': datetime.fromtimestamp(r[3]).strftime('%H:%M:%S'),
+            'criadoEm': datetime.fromtimestamp(r[3]).isoformat(),
+            'resumo': r[4] or '',
+            'tipo': r[5] or 'noticia',
+            'messageId': r[6] or '',
+        }
+        for r in rows
+    ]
 
 
 def verificar(links):
-    """Retorna links que NAO foram enviados hoje (para deduplicacao)."""
     if not links:
         return []
-    dia = datetime.now().strftime('%Y-%m-%d')
+    dia = hoje()
     placeholders = ','.join('?' * len(links))
     with sqlite3.connect(DB) as db:
-        enviados = set(
-            r[0] for r in db.execute(
-                f'SELECT link FROM envios WHERE dia=? AND link IN ({placeholders})',
-                (dia, *links)
-            ).fetchall()
-        )
+        enviados = set(r[0] for r in db.execute(
+            f'SELECT link FROM envios WHERE dia=? AND link IN ({placeholders})',
+            (dia, *links)
+        ).fetchall())
     return [l for l in links if l not in enviados]
+
+
+def pagina_dia(data):
+    rows = listar_dia(data)
+    cards = []
+    for r in rows:
+        title = html.escape(r['titulo'] or '(sem titulo)')
+        resumo = html.escape(r['resumo'] or '').replace('\n', '<br>')
+        link = html.escape(r['link'] or '')
+        tipo = html.escape(r['tipo'])
+        hora = html.escape(r['hora'])
+        url = f'<a href="{link}" target="_blank" rel="noopener">abrir fonte</a>' if link else ''
+        cards.append(f'''
+        <article class="card">
+          <div class="meta"><span>{hora}</span><span>{tipo}</span></div>
+          <h2>{title}</h2>
+          <p>{resumo}</p>
+          {url}
+        </article>''')
+    corpo = '\n'.join(cards) or '<p class="empty">Nenhuma notícia registrada neste dia.</p>'
+    return f'''<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Histórico de notícias - {html.escape(data)}</title>
+<style>
+body{{font-family:Arial,sans-serif;background:#f6f7f9;color:#16202a;margin:0;padding:24px}}.wrap{{max-width:900px;margin:auto}}h1{{margin:0 0 8px}}.sub{{color:#667085;margin-bottom:24px}}.card{{background:white;border:1px solid #e5e7eb;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 1px 2px #0001}}.meta{{display:flex;gap:10px;color:#667085;font-size:13px;text-transform:uppercase}}h2{{font-size:20px;margin:10px 0}}p{{line-height:1.5}}a{{color:#0b65c2}}.empty{{background:white;padding:18px;border-radius:12px}}</style>
+</head><body><main class="wrap"><h1>Histórico de notícias</h1><div class="sub">Dia {html.escape(data)} · {len(rows)} registro(s)</div>{corpo}</main></body></html>'''
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -81,8 +140,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         length = int(self.headers.get('Content-Length', 0))
-        dados = json.loads(self.rfile.read(length)) if length else {}
-
+        try:
+            dados = json.loads(self.rfile.read(length)) if length else {}
+        except Exception:
+            return self.responder({'erro': 'JSON invalido'}, 400)
         if self.path == '/registrar':
             self.responder(registrar(dados))
         elif self.path == '/verifica':
@@ -91,18 +152,32 @@ class Handler(BaseHTTPRequestHandler):
             self.responder({'erro': 'Endpoint invalido'}, 404)
 
     def do_GET(self):
-        if self.path.startswith('/dia/'):
-            data = self.path.split('/dia/')[1]
-            self.responder(listar_dia(data))
-        elif self.path == '/health':
-            self.responder({'status': 'ok'})
-        else:
-            self.responder({'erro': 'Endpoint invalido'}, 404)
+        path = urlparse(self.path).path
+        if path == '/health':
+            return self.responder({'status': 'ok'})
+        if path == '/hoje':
+            return self.responder_html(pagina_dia(hoje()))
+        if path.startswith('/dia/'):
+            rest = path.split('/dia/', 1)[1].strip('/')
+            parts = rest.split('/')
+            data = parts[0]
+            if len(parts) > 1 and parts[1] == 'html':
+                return self.responder_html(pagina_dia(data))
+            return self.responder(listar_dia(data))
+        self.responder({'erro': 'Endpoint invalido'}, 404)
 
     def responder(self, dados, status=200):
         body = json.dumps(dados, ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def responder_html(self, html_text, status=200):
+        body = html_text.encode('utf-8')
+        self.send_response(status)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.send_header('Content-Length', str(len(body)))
         self.end_headers()
         self.wfile.write(body)

@@ -3,7 +3,7 @@
   "name": "Noticias de Investimento -> IA -> WhatsApp v3 compacta",
   "nodes": [
     {
-      "id": "scheduleTrigger-42d3576cca",
+      "id": "scheduleTrigger-a87f3a5929",
       "name": "Agenda - Verificar a cada minuto",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "manualTrigger-7c45c6739e",
+      "id": "manualTrigger-829456a80f",
       "name": "Noticias - Rodar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       "parameters": {}
     },
     {
-      "id": "set-3e742b9621",
+      "id": "set-f62a527105",
       "name": "Marcar Envio Manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -46,7 +46,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-d2122554ad",
+              "id": "field-2f06a25656",
               "name": "forcarAgora",
               "value": true,
               "type": "boolean"
@@ -57,7 +57,126 @@
       }
     },
     {
-      "id": "set-e22ea7daf9",
+      "id": "webhook-32296c4df2",
+      "name": "Webhook - Noticias Agora",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        440
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "noticias-agora",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "webhookId": "noticias-agora-v3"
+    },
+    {
+      "id": "manualTrigger-4cd2e342dd",
+      "name": "Resumao - Rodar Manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        560
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "set-c60b49911b",
+      "name": "Marcar Resumao Manual",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1460,
+        560
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-3976ae9dd8",
+              "name": "forcarResumao",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "webhook-d6231623d2",
+      "name": "Webhook - Resumao Agora",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        680
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "resumao-agora",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "webhookId": "resumao-agora-v3"
+    },
+    {
+      "id": "manualTrigger-8f5539fa47",
+      "name": "Historico - Enviar Manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        800
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "set-e78d49229d",
+      "name": "Marcar Historico Manual",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1460,
+        800
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-1ea3b17f68",
+              "name": "forcarHistorico",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "webhook-e89ec85c9c",
+      "name": "Webhook - Historico Agora",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        920
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "historico-agora",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "webhookId": "historico-agora-v3"
+    },
+    {
+      "id": "set-e7a54d07b2",
       "name": "Configurar Cliente",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -69,133 +188,163 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-928b4010be",
+              "id": "field-a2027efc93",
               "name": "cliente",
               "value": "Iguera",
               "type": "string"
             },
             {
-              "id": "field-18bd09578b",
+              "id": "field-0d28de6fc0",
               "name": "numero",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-93352e56a2",
+              "id": "field-dda036cfd5",
               "name": "instancia",
               "value": "iguera",
               "type": "string"
             },
             {
-              "id": "field-3c38aa51c0",
+              "id": "field-7026d2fe21",
               "name": "evolutionUrl",
               "value": "http://evolution-api:8080",
               "type": "string"
             },
             {
-              "id": "field-e62eee1dc1",
+              "id": "field-2f91194c80",
               "name": "evolutionApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-35a0f65c04",
+              "id": "field-2e15b26cf2",
               "name": "geminiApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-b7b6176799",
+              "id": "field-83bb93a41f",
               "name": "modeloGemini",
               "value": "gemini-2.0-flash",
               "type": "string"
             },
             {
-              "id": "field-8be210e8f4",
+              "id": "field-13e78107cb",
               "name": "historicoUrl",
               "value": "http://historico:8090",
               "type": "string"
             },
             {
-              "id": "field-a5726b225b",
+              "id": "field-0f1a3fd919",
               "name": "periodicidade",
               "value": "intervalo",
               "type": "string"
             },
             {
-              "id": "field-88d091f552",
+              "id": "field-b2b0719b1f",
               "name": "intervaloMinutos",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "field-9713d23890",
+              "id": "field-3a1d9413a0",
               "name": "inicioEnvios",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-bd65492db2",
+              "id": "field-3fb01e3af2",
               "name": "fimEnvios",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-b5cb420196",
+              "id": "field-76ded2d036",
               "name": "horarioEnvioDiario",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-48ea99bbdd",
+              "id": "field-f155a9547c",
               "name": "horarioResumao",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-3df7b8ede3",
+              "id": "field-3ce7207c48",
               "name": "resumaoAtivo",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-de6eb4158f",
+              "id": "field-02f8768060",
               "name": "maxNoticias",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "field-198f632b65",
+              "id": "field-e708b59383",
               "name": "janelaHoras",
               "value": 24,
               "type": "number"
             },
             {
-              "id": "field-14d7a1cc02",
+              "id": "field-02fa0881bd",
               "name": "usarImagem",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-a787b0ee3b",
+              "id": "field-35d9d5d8bb",
               "name": "enviar",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-00da47ab38",
+              "id": "field-00eb1e39dc",
               "name": "enviarLinksFontes",
               "value": false,
               "type": "boolean"
             },
             {
-              "id": "field-9d775d36c3",
+              "id": "field-c62bb8f6c7",
+              "name": "numeroNoticias",
+              "value": "={{ $json.numeroNoticias || $json.numero || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "field-38be3c7b9e",
+              "name": "numeroResumao",
+              "value": "={{ $json.numeroResumao || $json.numero || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "field-a2f117f803",
+              "name": "numeroHistorico",
+              "value": "={{ $json.numeroHistorico || $json.numero || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "field-ade05b81d8",
               "name": "forcarAgora",
               "value": "={{ Boolean($json.forcarAgora) }}",
               "type": "boolean"
             },
             {
-              "id": "field-f7e7a26a0b",
+              "id": "field-620556e920",
+              "name": "forcarResumao",
+              "value": "={{ Boolean($json.forcarResumao) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "field-8cdac06531",
+              "name": "forcarHistorico",
+              "value": "={{ Boolean($json.forcarHistorico) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "field-0e391206b9",
               "name": "fluxo",
               "value": "={{ $json.fluxo || \"noticias\" }}",
               "type": "string"
@@ -206,7 +355,7 @@
       }
     },
     {
-      "id": "if-fac10981e5",
+      "id": "if-02981659d8",
       "name": "Rota - Consulta IDs?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -224,7 +373,7 @@
           },
           "conditions": [
             {
-              "id": "cond-0bae9ea295",
+              "id": "cond-b328751202",
               "leftValue": "={{ $json.fluxo }}",
               "rightValue": "ids",
               "operator": {
@@ -239,7 +388,7 @@
       }
     },
     {
-      "id": "code-59828a3353",
+      "id": "code-4d8e748499",
       "name": "Decidir Acao",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -249,11 +398,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const config = $input.first().json;\nconst now = new Date();\nconst hm = value => {\n  const [h, m] = String(value || '00:00').split(':').map(Number);\n  if (!Number.isInteger(h) || !Number.isInteger(m)) throw new Error('Horario invalido: ' + value);\n  return h * 60 + m;\n};\nconst current = now.getHours() * 60 + now.getMinutes();\nconst manual = config.forcarAgora === true || $execution.mode === 'manual';\nconst start = hm(config.inicioEnvios || '08:00');\nconst end = hm(config.fimEnvios || '19:00');\nconst digestAt = hm(config.horarioResumao || '19:00');\nconst dailyAt = hm(config.horarioEnvioDiario || '08:00');\nconst interval = Math.max(5, Number(config.intervaloMinutos || 60));\nlet acao = 'nada';\nif (manual) acao = 'noticias';\nelse if (config.resumaoAtivo !== false && current >= digestAt && current < digestAt + 5) acao = 'resumao';\nelse if (current >= start && current <= end && current < digestAt) {\n  if (config.periodicidade === 'diario') acao = current >= dailyAt && current < dailyAt + 5 ? 'noticias' : 'nada';\n  else acao = ((current - start) % interval) < 5 ? 'noticias' : 'nada';\n}\nreturn [{ json: { acao, config, manual, jobId: $execution.id, dia: now.toISOString().slice(0, 10) } }];"
+        "jsCode": "const config = $input.first().json;\nconst now = new Date();\nconst hm = value => {\n  const [h, m] = String(value || '00:00').split(':').map(Number);\n  if (!Number.isInteger(h) || !Number.isInteger(m)) throw new Error('Horario invalido: ' + value);\n  return h * 60 + m;\n};\nconst current = now.getHours() * 60 + now.getMinutes();\nconst manualNoticias = config.forcarAgora === true || ($execution.mode === 'manual' && config.forcarResumao !== true && config.forcarHistorico !== true);\nconst start = hm(config.inicioEnvios || '08:00');\nconst end = hm(config.fimEnvios || '19:00');\nconst digestAt = hm(config.horarioResumao || '19:00');\nconst dailyAt = hm(config.horarioEnvioDiario || '08:00');\nconst interval = Math.max(5, Number(config.intervaloMinutos || 60));\nlet acao = 'nada';\nif (config.forcarHistorico === true) acao = 'historico';\nelse if (config.forcarResumao === true) acao = 'resumao';\nelse if (manualNoticias) acao = 'noticias';\nelse if (config.resumaoAtivo !== false && current >= digestAt && current < digestAt + 5) acao = 'resumao';\nelse if (current >= start && current <= end && current < digestAt) {\n  if (config.periodicidade === 'diario') acao = current >= dailyAt && current < dailyAt + 5 ? 'noticias' : 'nada';\n  else acao = ((current - start) % interval) < 5 ? 'noticias' : 'nada';\n}\nreturn [{ json: { acao, config, manual: manualNoticias || config.forcarResumao === true || config.forcarHistorico === true, jobId: $execution.id, dia: now.toISOString().slice(0, 10) } }];"
       }
     },
     {
-      "id": "code-c1f3f82fb7",
+      "id": "code-365a7026dc",
       "name": "Coletar Fontes e Historico",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -263,11 +412,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const plano = $('Decidir Acao').first().json;\nconst config = plano.config;\nconst baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');\nconst strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\nconst tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');\nconst attr = (html, pattern) => (html.match(pattern) || [])[1] || '';\nconst normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nconst http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {\n  if (this && this.helpers && this.helpers.httpRequest) {\n    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });\n  }\n  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');\n  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };\n  if (body !== undefined) {\n    init.body = typeof body === 'string' ? body : JSON.stringify(body);\n    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';\n  }\n  const response = await fetch(url, init);\n  const text = await response.text();\n  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));\n  if (json) return text ? JSON.parse(text) : null;\n  return text;\n};\n// collect helper inserted\nif (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];\nif (plano.acao === 'resumao') {\n  const rows = await http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia, json: true });\n  const noticias = (Array.isArray(rows) ? rows : []).filter(row => row.link).map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.titulo || row.link, imagemUrl: '' }));\n  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];\n}\nconst feeds = [\n  'https://braziljournal.com/feed/',\n  'https://veja.abril.com.br/feed/',\n];\nlet candidates = [];\nlet feedErrors = [];\nfor (const feed of feeds) {\n  try {\n    const xml = await http({ method: 'GET', url: feed, timeout: 20000 });\n    const blocks = String(xml).match(/<item[\\s\\S]*?<\\/item>/gi) || [];\n    for (const block of blocks) {\n      const link = tag(block, 'link') || tag(block, 'guid');\n      const date = Date.parse(tag(block, 'pubDate') || tag(block, 'dc:date') || tag(block, 'updated') || '');\n      candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=[\"']([^\"']+)[\"']/i) });\n    }\n  } catch (error) {\n    feedErrors.push(feed + ': ' + error.message);\n    console.log('Falha no RSS ' + feed + ': ' + error.message);\n  }\n}\nif (!candidates.length && feedErrors.length) throw new Error('Nenhum RSS lido: ' + feedErrors.join(' | '));\nconst allowedDomains = /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//i;\nconst keywords = ['banco','itau','bradesco','santander','btg','nubank','xp','fed','banco central','copom','selic','juros','ipca','inflacao','pib','dolar','cambio','ibovespa','bolsa','acoes','b3','dividendos','jcp','resultado','lucro','receita','ebitda','guidance','fato relevante','petrobras','vale','commodities','petroleo','minerio','tesouro','cdb','lci','lca','fii','fundos','renda fixa','credito','china','eua','s&p 500','nasdaq'];\nconst seen = new Set();\ncandidates = candidates.filter(item => {\n  if (!allowedDomains.test(item.link)) return false;\n  if (Number.isFinite(item.data) && Date.now() - item.data > Number(config.janelaHoras || 24) * 3600000) return false;\n  const key = normalize(item.titulo) + '|' + item.link;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n}).map(item => {\n  const text = normalize(item.titulo + ' ' + item.trecho);\n  const score = keywords.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0);\n  return { ...item, score };\n});\nconst scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);\nconst withScore = scored.filter(item => item.score > 0);\ncandidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));\nif (!plano.manual && candidates.length) {\n  try {\n    const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });\n    const allowed = new Set(response.links || []);\n    candidates = candidates.filter(item => allowed.has(item.link));\n  } catch (error) {\n    console.log('Historico indisponivel em /verifica: ' + error.message);\n  }\n}\nconst noticias = [];\nfor (const item of candidates) {\n  try {\n    const html = await http({ method: 'GET', url: item.link, timeout: 20000 });\n    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eé]m|^veja tamb[eé]m/i.test(text));\n    const image = attr(String(html), /<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || attr(String(html), /<meta[^>]+name=[\"']twitter:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || item.imagemUrl;\n    const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;\n    if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });\n  } catch (error) {\n    console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);\n  }\n}\nreturn noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias novas com texto suficiente', plano, config } }];"
+        "jsCode": "const plano = $('Decidir Acao').first().json;\nconst config = plano.config;\nconst baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');\nconst strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\nconst tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');\nconst attr = (html, pattern) => (html.match(pattern) || [])[1] || '';\nconst normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nconst http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {\n  if (this && this.helpers && this.helpers.httpRequest) {\n    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });\n  }\n  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');\n  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };\n  if (body !== undefined) {\n    init.body = typeof body === 'string' ? body : JSON.stringify(body);\n    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';\n  }\n  const response = await fetch(url, init);\n  const text = await response.text();\n  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));\n  if (json) return text ? JSON.parse(text) : null;\n  return text;\n};\n// collect helper inserted\nif (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];\nif (plano.acao === 'resumao' || plano.acao === 'historico') {\n  const rows = await http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia, json: true });\n  const noticias = (Array.isArray(rows) ? rows : [])\n    .filter(row => row.link && row.tipo !== 'resumao' && row.tipo !== 'historico')\n    .map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.resumo || row.titulo || row.link, resumo: row.resumo || '', hora: row.hora || '', imagemUrl: '' }));\n  if (plano.acao === 'historico') return noticias.length ? [{ json: { plano, config, noticias, historico: true } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias enviadas hoje no historico', plano, config } }];\n  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];\n}\nconst feeds = [\n  'https://www.infomoney.com.br/feed/',\n  'https://www.moneytimes.com.br/feed/',\n  'https://braziljournal.com/feed/',\n  'https://veja.abril.com.br/feed/',\n];\nlet candidates = [];\nlet feedErrors = [];\nfor (const feed of feeds) {\n  try {\n    const xml = await http({ method: 'GET', url: feed, timeout: 20000 });\n    const blocks = String(xml).match(/<item[\\s\\S]*?<\\/item>/gi) || [];\n    for (const block of blocks) {\n      const link = tag(block, 'link') || tag(block, 'guid');\n      const date = Date.parse(tag(block, 'pubDate') || tag(block, 'dc:date') || tag(block, 'updated') || '');\n      candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=[\"']([^\"']+)[\"']/i) });\n    }\n  } catch (error) {\n    feedErrors.push(feed + ': ' + error.message);\n    console.log('Falha no RSS ' + feed + ': ' + error.message);\n  }\n}\nif (!candidates.length && feedErrors.length) throw new Error('Nenhum RSS lido: ' + feedErrors.join(' | '));\nconst allowedDomains = /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//i;\nconst keywords = ['banco','bancos','itau','bradesco','santander','btg','nubank','inter','caixa','banco do brasil','xp','goldman sachs','jpmorgan','morgan stanley','blackrock','fed','banco central','copom','cmn','open finance','pix','credito','emprestimos','financiamento','inadimplencia','provisoes','basileia','fintech','seguradora','previdencia','cvm','anbima','susep','previc','bacen','empresas','companhia','acoes','b3','ibovespa','ipo','follow-on','oferta secundaria','opa','dividendos','jcp','resultados','balanco','lucro','lucro liquido','receita','receita liquida','ebitda','margem','guidance','ceo','m&a','aquisicao','fusao','venda de participacao','recompra de acoes','fato relevante','comunicado ao mercado','aviso aos acionistas','ri','conselho','capex','divida','endividamento','fluxo de caixa','geracao de caixa','consenso','estimativa','revisao de projecao','recuperacao judicial','falencia','desinvestimento','venda de ativos','mudanca de controle','reestruturacao','bolsa','small caps','blue chips','valuation','recomendacao','upgrade','downgrade','preco-alvo','volatilidade','insider','ifix','idiv','ibovespa futuro','fluxo estrangeiro','renda fixa','cdb','lci','lca','cdi','debentures','credito privado','cra','cri','fidc','tesouro direto','tesouro ipca','tesouro prefixado','ltn','ntn-b','ntn-f','ipca','igp-m','spread de credito','rating','default','emissao','resgate antecipado','duration','marcacao a mercado','covenant','curva de juros','di futuro','ima-b','ima-geral','fundos de investimento','fundos imobiliarios','fiis','etfs','bdrs','asset','gestora','corretora','fundos de credito','fundos de acoes','fundos multimercado','selic','juros','ipca-15','inflacao','taxa real','pib','desemprego','fiscal','politica fiscal','politica monetaria','deficit','superavit','divida publica','arrecadacao','impostos','reforma tributaria','arcabouco fiscal','gastos publicos','contingenciamento','orcamento','meta fiscal','fazenda','privatizacao','concessao','leilao','desoneracao','subsidios','risco-pais','cds','embi','ibc-br','boletim focus','producao industrial','varejo','balanca comercial','atividade economica','stf','stj','congresso','camara','senado','governo','planalto','presidente','ministro','pec','projeto de lei','medida provisoria','julgamento','decisao','liminar','marco regulatorio','eleicoes','bce','china','eua','estados unidos','europa','japao','hong kong','taiwan','russia','ucrania','oriente medio','guerra','sancoes','tarifas','comercio exterior','recessao','payroll','cpi','pce','emprego','juros americanos','treasuries','treasury','yield','s&p 500','nasdaq','dow jones','dax','ftse','nikkei','hang seng','msci','otan','israel','ira','palestina','coreia do norte','guerra comercial','tarifaco','conflitos','cessar-fogo','petroleo','brent','wti','gas natural','minerio de ferro','ouro','cobre','aluminio','litio','niquel','fertilizantes','soja','milho','trigo','cafe','acucar','etanol','celulose','carne','boi gordo','opep','commodities','dolar','dolar comercial','dolar futuro','euro','cambio','real','moeda','fluxo cambial','reservas internacionais','petroleo e gas','energia eletrica','saneamento','utilities','construcao civil','shoppings','agronegocio','mineracao','siderurgia','papel e celulose','telecomunicacoes','tecnologia','saude','educacao','transporte','aviacao','infraestrutura','liquidez','volatilidade implicita','aversao ao risco','apetite ao risco','alta','queda','disparada','colapso','crise','risco','alerta','surpresa','emergencia','intervencao','mudanca','corte','alta de juros','corte de juros','suspensao','investigacao','operacao','fraude','escandalo','rebaixamento','surpresa positiva','surpresa negativa','acima das expectativas','abaixo das expectativas','circuit breaker','estresse financeiro'];\nconst seen = new Set();\ncandidates = candidates.filter(item => {\n  if (!allowedDomains.test(item.link)) return false;\n  if (Number.isFinite(item.data) && Date.now() - item.data > Number(config.janelaHoras || 24) * 3600000) return false;\n  const key = normalize(item.titulo) + '|' + item.link;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n}).map(item => {\n  const text = normalize(item.titulo + ' ' + item.trecho);\n  const score = keywords.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0);\n  return { ...item, score };\n});\nconst scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);\nconst withScore = scored.filter(item => item.score > 0);\ncandidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));\nif (!plano.manual && candidates.length) {\n  try {\n    const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });\n    const allowed = new Set(response.links || []);\n    candidates = candidates.filter(item => allowed.has(item.link));\n  } catch (error) {\n    console.log('Historico indisponivel em /verifica: ' + error.message);\n  }\n}\nconst noticias = [];\nfor (const item of candidates) {\n  try {\n    const html = await http({ method: 'GET', url: item.link, timeout: 20000 });\n    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eé]m|^veja tamb[eé]m/i.test(text));\n    const image = attr(String(html), /<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || attr(String(html), /<meta[^>]+name=[\"']twitter:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || item.imagemUrl;\n    const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;\n    if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });\n  } catch (error) {\n    console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);\n  }\n}\nreturn noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias novas com texto suficiente', plano, config } }];"
       }
     },
     {
-      "id": "code-be030c4e90",
+      "id": "code-aa40091002",
       "name": "Montar Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -277,11 +426,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [input];\nconst diario = input.plano.acao === 'resumao';\nconst fontes = input.noticias.map(item => ({ id: item.id, titulo: item.titulo, texto: String(item.texto || '').slice(0, diario ? 1200 : 5000) }));\nconst prompt = diario\n  ? 'Escreva um unico resumao financeiro para WhatsApp, em portugues brasileiro, com ate tres paragrafos curtos. Use apenas as fontes. Sem links, listas numeradas ou markdown. Retorne {\"tipo\":\"resumao\",\"itens\":[{\"titulo\":\"MERCADO HOJE\",\"resumo\":\"texto\"}]}. FONTES: ' + JSON.stringify(fontes)\n  : 'Selecione noticias relevantes para investidores e explique em linguagem simples. Use apenas as fontes. Retorne {\"tipo\":\"noticias\",\"itens\":[{\"id\":\"copie o id\",\"emoji\":\"emoji\",\"titulo\":\"TITULO CURTO\",\"resumo\":\"75 a 130 palavras\"}]}. Se nada for relevante, retorne itens vazio. FONTES: ' + JSON.stringify(fontes);\nconst schema = {\n  type: 'OBJECT',\n  properties: {\n    tipo: { type: 'STRING' },\n    itens: {\n      type: 'ARRAY',\n      items: {\n        type: 'OBJECT',\n        properties: diario ? { titulo: { type: 'STRING' }, resumo: { type: 'STRING' } } : { id: { type: 'STRING' }, emoji: { type: 'STRING' }, titulo: { type: 'STRING' }, resumo: { type: 'STRING' } },\n        required: diario ? ['titulo', 'resumo'] : ['id', 'emoji', 'titulo', 'resumo'],\n      },\n    },\n  },\n  required: ['tipo', 'itens'],\n};\nreturn [{ json: { ...input, prompt, geminiBody: { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', responseSchema: schema } } } }];"
+        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [input];\nconst diario = input.plano.acao === 'resumao';\nconst fontes = input.noticias.map(item => ({ id: item.id, titulo: item.titulo, texto: String(item.texto || '').slice(0, diario ? 1200 : 5000) }));\nconst prompt = diario\n  ? 'Voce e editor financeiro para WhatsApp. TAREFA: escrever UM UNICO resumao do dia, baseado SOMENTE nas noticias individuais ja enviadas hoje. Escreva em portugues brasileiro, didatico, natural, sem inventar fatos, numeros ou causas. Use ate tres paragrafos curtos, sem links, sem markdown, sem lista numerada e sem emojis por noticia. Diga primeiro quem fez o que e explique o impacto para mercado, empresas, juros, inflacao, cambio, bolsa ou investidores. Retorne apenas JSON no formato {\"tipo\":\"resumao\",\"itens\":[{\"titulo\":\"MERCADO HOJE\",\"resumo\":\"texto corrido\"}]}. FONTES: ' + JSON.stringify(fontes)\n  : 'Voce e editor de noticias financeiras para leitores leigos no WhatsApp. TAREFA: selecionar apenas noticias relevantes e ineditas para investidores. Ignore propaganda, educacao generica, opiniao sem fato e conteudo sem impacto economico, mesmo que tenha palavra-chave. Priorize fatos das ultimas 24 horas com impacto em mercados, investimentos, empresas, juros, inflacao, cambio, bolsa ou decisoes de investidores. Use apenas as fontes, nao invente numeros, causas, cotacoes, recomendacoes ou previsoes. Cada resumo deve ter 75 a 130 palavras, em linguagem simples, explicando quem fez o que, contexto e possivel impacto. Retorne apenas JSON no formato {\"tipo\":\"noticias\",\"itens\":[{\"id\":\"copie o id exatamente\",\"emoji\":\"emoji\",\"titulo\":\"TITULO CURTO\",\"resumo\":\"texto\"}]}. Se nada for relevante, retorne itens vazio. FONTES: ' + JSON.stringify(fontes);\nconst schema = {\n  type: 'OBJECT',\n  properties: {\n    tipo: { type: 'STRING' },\n    itens: {\n      type: 'ARRAY',\n      items: {\n        type: 'OBJECT',\n        properties: diario ? { titulo: { type: 'STRING' }, resumo: { type: 'STRING' } } : { id: { type: 'STRING' }, emoji: { type: 'STRING' }, titulo: { type: 'STRING' }, resumo: { type: 'STRING' } },\n        required: diario ? ['titulo', 'resumo'] : ['id', 'emoji', 'titulo', 'resumo'],\n      },\n    },\n  },\n  required: ['tipo', 'itens'],\n};\nreturn [{ json: { ...input, prompt, geminiBody: { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', responseSchema: schema } } } }];"
       }
     },
     {
-      "id": "code-c6f497eab0",
+      "id": "code-e30ae6416f",
       "name": "Gemini com Retry",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -295,7 +444,7 @@
       }
     },
     {
-      "id": "code-70619f1044",
+      "id": "code-2693932d44",
       "name": "Preparar Mensagens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -305,11 +454,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [{ json: input }];\nconst result = input.ia;\nif (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];\nif (input.plano.acao === 'resumao') {\n  const resumo = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();\n  if (resumo.length < 80 || /https?:\\/\\//i.test(resumo)) throw new Error('Resumao invalido');\n  return [{ json: { tipo: 'resumao', titulo: 'MERCADO HOJE', texto: '🚨 *MERCADO HOJE*\\n\\n' + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano } }];\n}\nconst sources = new Map(input.noticias.map(item => [item.id, item]));\nconst messages = [];\nfor (const item of result.itens) {\n  const source = sources.get(item.id);\n  if (!source) continue;\n  const titulo = String(item.titulo || '').replace(/\\*/g, '').trim().toLocaleUpperCase('pt-BR');\n  const resumo = String(item.resumo || '').trim();\n  if (!titulo || resumo.length < 80 || /https?:\\/\\//i.test(resumo)) continue;\n  const link = source.link || source.id;\n  const texto = (item.emoji || '📰') + ' *' + titulo + '*\\n\\n' + resumo + (input.config.enviarLinksFontes !== false ? '\\n\\n' + link : '');\n  messages.push({ json: { tipo: 'noticia', titulo, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: input.config, plano: input.plano } });\n}\nreturn messages.length ? messages : [{ json: { ...input, semNoticias: true, motivo: 'Nenhuma mensagem valida' } }];"
+        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [{ json: input }];\nif (input.historico) {\n  const linhas = input.noticias.map((n, i) => {\n    const hora = n.hora ? String(n.hora).slice(11, 16) : '--:--';\n    const resumo = String(n.resumo || n.texto || '').replace(/\\s+/g, ' ').trim();\n    return String(i + 1) + '. ' + hora + ' - ' + n.titulo + '\\n' + resumo;\n  }).join('\\n\\n');\n  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: '🗂️ *HISTORICO DE NOTICIAS - ' + input.plano.dia + '*\\n\\n' + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];\n}\nconst result = input.ia;\nif (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];\nif (input.plano.acao === 'resumao') {\n  const resumo = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();\n  if (resumo.length < 80 || /https?:\\/\\//i.test(resumo)) throw new Error('Resumao invalido');\n  return [{ json: { tipo: 'resumao', titulo: 'MERCADO HOJE', resumo, texto: '🚨 *MERCADO HOJE*\\n\\n' + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];\n}\nconst sources = new Map(input.noticias.map(item => [item.id, item]));\nconst messages = [];\nfor (const item of result.itens) {\n  const source = sources.get(item.id);\n  if (!source) continue;\n  const titulo = String(item.titulo || '').replace(/\\*/g, '').trim().toLocaleUpperCase('pt-BR');\n  const resumo = String(item.resumo || '').trim();\n  if (!titulo || resumo.length < 80 || /https?:\\/\\//i.test(resumo)) continue;\n  const link = source.link || source.id;\n  const texto = (item.emoji || '📰') + ' *' + titulo + '*\\n\\n' + resumo + (input.config.enviarLinksFontes !== false ? '\\n\\n' + link : '');\n  messages.push({ json: { tipo: 'noticia', titulo, resumo, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });\n}\nreturn messages.length ? messages : [{ json: { ...input, semNoticias: true, motivo: 'Nenhuma mensagem valida' } }];"
       }
     },
     {
-      "id": "splitInBatches-fa85f173ae",
+      "id": "splitInBatches-ec73bb7c2e",
       "name": "Uma mensagem por vez",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -323,7 +472,7 @@
       }
     },
     {
-      "id": "code-a20a87c2f5",
+      "id": "code-e0308cb2fb",
       "name": "Enviar e Registrar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -333,11 +482,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const item = $input.first().json;\nif (item.semNoticias) return [{ json: item }];\nconst config = { ...item.config };\nif (config.enviar !== true) return [{ json: { preview: true, titulo: item.titulo, texto: item.texto } }];\nconst rawNumber = String(config.numero || '').trim();\nif (/^[0-9]+(?:-[0-9]+)?@g\\.us$/.test(rawNumber)) config.numero = rawNumber;\nelse {\n  config.numero = rawNumber.replace(/\\D/g, '');\n  if (!/^[1-9][0-9]{7,14}$/.test(config.numero)) throw new Error('Numero invalido');\n}\nconst base = String(config.evolutionUrl || '').replace(/\\/$/, '');\nconst http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {\n  if (this && this.helpers && this.helpers.httpRequest) {\n    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });\n  }\n  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');\n  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };\n  if (body !== undefined) {\n    init.body = typeof body === 'string' ? body : JSON.stringify(body);\n    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';\n  }\n  const response = await fetch(url, init);\n  const text = await response.text();\n  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));\n  if (json) return text ? JSON.parse(text) : null;\n  return text;\n};\n// send helper inserted\nif (!base) throw new Error('evolutionUrl nao configurada');\nconst path = item.imagemUrl ? '/message/sendMedia/' : '/message/sendText/';\nconst body = item.imagemUrl\n  ? { number: config.numero, mediatype: 'image', media: item.imagemUrl, caption: item.texto }\n  : { number: config.numero, text: item.texto, linkPreview: false };\nconst response = await http({ method: 'POST', url: base + path + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body, json: true, timeout: 30000 });\nif (response?.status === 'ERROR') throw new Error('Evolution retornou erro');\nif (item.link) {\n  try {\n    await http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { link: item.link, titulo: item.titulo, jobId: item.plano?.jobId }, json: true });\n  } catch (error) {\n    console.log('Falha ao registrar historico: ' + error.message);\n  }\n}\nreturn [{ json: { enviado: true, titulo: item.titulo, link: item.link, messageId: response?.key?.id || '' } }];"
+        "jsCode": "const item = $input.first().json;\nif (item.semNoticias) return [{ json: item }];\nconst config = { ...item.config };\nif (config.enviar !== true) return [{ json: { preview: true, titulo: item.titulo, texto: item.texto } }];\nconst rawNumber = String(item.numeroDestino || config.numero || '').trim();\nlet destino;\nif (/^[0-9]+(?:-[0-9]+)?@g\\.us$/.test(rawNumber)) destino = rawNumber;\nelse {\n  destino = rawNumber.replace(/\\D/g, '');\n  if (!/^[1-9][0-9]{7,14}$/.test(destino)) throw new Error('Numero invalido');\n}\nconst base = String(config.evolutionUrl || '').replace(/\\/$/, '');\nconst http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {\n  if (this && this.helpers && this.helpers.httpRequest) {\n    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });\n  }\n  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');\n  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };\n  if (body !== undefined) {\n    init.body = typeof body === 'string' ? body : JSON.stringify(body);\n    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';\n  }\n  const response = await fetch(url, init);\n  const text = await response.text();\n  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));\n  if (json) return text ? JSON.parse(text) : null;\n  return text;\n};\n// send helper inserted\nif (!base) throw new Error('evolutionUrl nao configurada');\nconst path = item.imagemUrl ? '/message/sendMedia/' : '/message/sendText/';\nconst body = item.imagemUrl\n  ? { number: destino, mediatype: 'image', media: item.imagemUrl, caption: item.texto }\n  : { number: destino, text: item.texto, linkPreview: false };\nconst response = await http({ method: 'POST', url: base + path + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body, json: true, timeout: 30000 });\nif (response?.status === 'ERROR') throw new Error('Evolution retornou erro');\nif (item.link || item.tipo === 'resumao' || item.tipo === 'historico') {\n  try {\n    await http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { link: item.link || (item.tipo + ':' + item.plano?.dia + ':' + item.plano?.jobId), titulo: item.titulo, resumo: item.resumo || item.texto, tipo: item.tipo, dia: item.plano?.dia, jobId: item.plano?.jobId, messageId: response?.key?.id || response?.messageId || '' }, json: true });\n  } catch (error) {\n    console.log('Falha ao registrar historico: ' + error.message);\n  }\n}\nreturn [{ json: { enviado: true, titulo: item.titulo, link: item.link, messageId: response?.key?.id || '' } }];"
       }
     },
     {
-      "id": "wait-378398c022",
+      "id": "wait-b9273e9b97",
       "name": "Aguardar 8-10s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -350,7 +499,7 @@
       }
     },
     {
-      "id": "noOp-ce7b65589a",
+      "id": "noOp-c59f67f791",
       "name": "Fim",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
@@ -361,7 +510,7 @@
       "parameters": {}
     },
     {
-      "id": "manualTrigger-0239d5366c",
+      "id": "manualTrigger-9565e433cf",
       "name": "IDs - Iniciar Consulta",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -372,7 +521,7 @@
       "parameters": {}
     },
     {
-      "id": "set-75eb5cfe1d",
+      "id": "set-f464bb531c",
       "name": "Marcar Consulta IDs",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -384,7 +533,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-1c31c3c1a7",
+              "id": "field-14e6ef3420",
               "name": "fluxo",
               "value": "ids",
               "type": "string"
@@ -395,7 +544,7 @@
       }
     },
     {
-      "id": "wait-c903900c64",
+      "id": "wait-fc496d553d",
       "name": "IDs - O que Consultar?",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -449,7 +598,7 @@
       "webhookId": "ids-v3-compact-form"
     },
     {
-      "id": "code-fd478e0dfa",
+      "id": "code-6e2f82ec38",
       "name": "IDs - Preparar Consulta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -463,7 +612,7 @@
       }
     },
     {
-      "id": "code-9ab874d0ee",
+      "id": "code-f2b3b2eac3",
       "name": "IDs - Consultar Evolution",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -477,7 +626,7 @@
       }
     },
     {
-      "id": "code-ab003d319d",
+      "id": "code-a3c7205112",
       "name": "IDs - Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -491,7 +640,7 @@
       }
     },
     {
-      "id": "stickyNote-a3115c6732",
+      "id": "stickyNote-d05f129007",
       "name": "V3 - Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -502,7 +651,7 @@
       "parameters": {
         "width": 920,
         "height": 260,
-        "content": "V3 compacta: 13 nos no fluxo de noticias e 5 nos no bloco de IDs. Mantem agenda, manual, intervalo/diario, janela de horario, resumao, RSS de 4 fontes, historico, Gemini com retry, imagem/texto, intervalo entre mensagens, registro e consulta de IDs. Configure Configurar Cliente; para Evolution em Code node use evolutionApiKey/apikey no proprio card se quiser enviar sem credencial HTTP."
+        "content": "V3 compacta multitenant. Configure numeroNoticias, numeroResumao e numeroHistorico para separar destinatarios; se vazio, usa numero. Webhooks: noticias-agora, resumao-agora e historico-agora. O resumao e o historico usam somente noticias registradas no dia atual. Mantem agenda, manual, intervalo/diario, janela de horario, RSS de 4 fontes, historico interno, Gemini com retry, imagem/texto, intervalo entre mensagens, registro e consulta de IDs."
       }
     }
   ],
@@ -529,7 +678,84 @@
         ]
       ]
     },
+    "Webhook - Noticias Agora": {
+      "main": [
+        [
+          {
+            "node": "Marcar Envio Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Marcar Envio Manual": {
+      "main": [
+        [
+          {
+            "node": "Configurar Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumao - Rodar Manualmente": {
+      "main": [
+        [
+          {
+            "node": "Marcar Resumao Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Resumao Agora": {
+      "main": [
+        [
+          {
+            "node": "Marcar Resumao Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Resumao Manual": {
+      "main": [
+        [
+          {
+            "node": "Configurar Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Historico - Enviar Manualmente": {
+      "main": [
+        [
+          {
+            "node": "Marcar Historico Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Historico Agora": {
+      "main": [
+        [
+          {
+            "node": "Marcar Historico Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Historico Manual": {
       "main": [
         [
           {

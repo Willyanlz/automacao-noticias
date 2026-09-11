@@ -1,4 +1,4 @@
-name: evolution
+﻿name: evolution
 services:
   api:
     image: evoapicloud/evolution-api:v2.3.7

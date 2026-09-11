@@ -143,10 +143,10 @@ def dispatch(path, data, now=None):
             # Modo manual forçado: executa a qualquer hora e realmente envia (ignora janela/horário).
             if data.get('manual') and c.get('enviar') is True:
                 kind = 'noticias'
-                slot = 'manual:' + day + ':' + str(data.get('executionId', ''))
-                db.execute('DELETE FROM jobs WHERE scope=? AND slot=?', (scope, slot))
+                owner = str(data.get('executionId') or uuid.uuid4())
+                slot = 'manual:' + day + ':' + owner + ':' + str(uuid.uuid4())
                 job_id = str(uuid.uuid4())
-                db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,?,?,?,?,?,?)', (job_id, scope, kind, day, slot, 'active', str(data.get('executionId', '')), json.dumps(c), now, now, '[]'))
+                db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,?,?,?,?,?,?)', (job_id, scope, kind, day, slot, 'active', owner, json.dumps(c), now, now, '[]'))
                 return {'acao': kind, 'jobId': job_id, 'config': c, 'dia': day, 'noticias': [], 'previa': False}
             if c.get('enviar') is not True:
                 return {'acao': 'noticias' if data.get('manual') else 'nada', 'previa': True, 'jobId': '', 'config': c}

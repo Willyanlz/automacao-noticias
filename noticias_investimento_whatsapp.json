@@ -36,7 +36,6 @@
         192
       ],
       "alwaysOutputData": true,
-      "disabled": true,
       "onError": "continueRegularOutput"
     },
     {
@@ -53,7 +52,6 @@
         432
       ],
       "alwaysOutputData": true,
-      "disabled": true,
       "onError": "continueRegularOutput"
     },
     {
@@ -736,7 +734,8 @@
         "genericAuthType": "httpHeaderAuth",
         "options": {
           "timeout": 30000
-        }
+        },
+        "method": "GET"
       },
       "id": "ids-http",
       "name": "IDs · Consultar Evolution",
@@ -863,8 +862,7 @@
       "position": [
         -1168,
         208
-      ],
-      "disabled": true
+      ]
     },
     {
       "parameters": {
@@ -1133,8 +1131,7 @@
       "position": [
         1936,
         656
-      ],
-      "disabled": true
+      ]
     },
     {
       "parameters": {
@@ -1196,8 +1193,7 @@
       "position": [
         2320,
         0
-      ],
-      "disabled": true
+      ]
     },
     {
       "parameters": {
@@ -1423,17 +1419,6 @@
             "node": "Juntar Notícias",
             "type": "main",
             "index": 2
-          }
-        ]
-      ]
-    },
-    "RSS Veja Economia": {
-      "main": [
-        [
-          {
-            "node": "Juntar Notícias",
-            "type": "main",
-            "index": 3
           }
         ]
       ]
@@ -2028,6 +2013,17 @@
             "node": "Gemini · Aguardar e tentar novamente",
             "type": "main",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Veja": {
+      "main": [
+        [
+          {
+            "node": "Juntar Notícias",
+            "type": "main",
+            "index": 3
           }
         ]
       ]

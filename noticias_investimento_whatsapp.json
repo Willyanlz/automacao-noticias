@@ -190,7 +190,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ($('Configurar Cliente').item.json.evolutionUrl + '').replace(/\\/$/, '') + '/message/sendText/' + encodeURIComponent($('Configurar Cliente').item.json.instancia)) }}",
+        "url": "={{ ($('Configurar Cliente').item.json.evolutionUrl + '') + '/message/sendText/' + encodeURIComponent($('Configurar Cliente').item.json.instancia)) }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -574,7 +574,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ($('Configurar Cliente').item.json.evolutionUrl + '').replace(/\\/$/, '') + '/message/sendMedia/' + encodeURIComponent($('Configurar Cliente').item.json.instancia)) }}",
+        "url": "={{ ($('Configurar Cliente').item.json.evolutionUrl + '') + '/message/sendMedia/' + encodeURIComponent($('Configurar Cliente').item.json.instancia)) }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,

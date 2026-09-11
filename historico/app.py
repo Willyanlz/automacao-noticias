@@ -6,7 +6,7 @@ import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 DB = os.environ.get('HISTORICO_DB', '/data/historico.sqlite')
 PORT = int(os.environ.get('HISTORICO_PORT', 8090))
@@ -37,7 +37,8 @@ def init_db():
                 titulo TEXT,
                 dia TEXT NOT NULL,
                 job_id TEXT,
-                criado_em REAL NOT NULL
+                criado_em REAL NOT NULL,
+                escopo TEXT DEFAULT "default"
             );
             CREATE INDEX IF NOT EXISTS idx_envios_dia ON envios(dia);
             CREATE INDEX IF NOT EXISTS idx_envios_link ON envios(link);
@@ -47,14 +48,17 @@ def init_db():
             'resumo': 'ALTER TABLE envios ADD COLUMN resumo TEXT',
             'tipo': 'ALTER TABLE envios ADD COLUMN tipo TEXT DEFAULT "noticia"',
             'message_id': 'ALTER TABLE envios ADD COLUMN message_id TEXT',
+            'escopo': 'ALTER TABLE envios ADD COLUMN escopo TEXT DEFAULT "default"',
         }.items():
             if name not in cols:
                 db.execute(ddl)
+        db.execute('CREATE INDEX IF NOT EXISTS idx_envios_escopo_dia ON envios(escopo, dia)')
         limite = (agora() - timedelta(days=RETENCAO_DIAS)).timestamp()
         db.execute('DELETE FROM envios WHERE criado_em < ?', (limite,))
 
 
 def registrar(dados):
+    escopo = str(dados.get('escopo') or dados.get('cliente') or 'default').strip() or 'default'
     link = str(dados.get('link') or '').strip()
     titulo = str(dados.get('titulo') or '').strip()
     resumo = str(dados.get('resumo') or '').strip()
@@ -65,27 +69,28 @@ def registrar(dados):
     if not link and tipo != 'resumao':
         return {'erro': 'link obrigatorio'}
     chave = link or f'resumao:{dia}:{message_id or job_id or agora_ts()}'
-    id_registro = hashlib.sha256(f'{dia}:{chave}'.encode()).hexdigest()[:16]
+    id_registro = hashlib.sha256(f'{escopo}:{dia}:{chave}'.encode()).hexdigest()[:16]
     with sqlite3.connect(DB) as db:
         db.execute('''
-            INSERT INTO envios (id, link, titulo, dia, job_id, criado_em, resumo, tipo, message_id)
-            VALUES (?,?,?,?,?,?,?,?,?)
+            INSERT INTO envios (id, link, titulo, dia, job_id, criado_em, resumo, tipo, message_id, escopo)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(id) DO UPDATE SET
                 titulo=excluded.titulo,
                 resumo=excluded.resumo,
                 tipo=excluded.tipo,
                 message_id=excluded.message_id,
-                job_id=excluded.job_id
-        ''', (id_registro, link, titulo, dia, job_id, agora_ts(), resumo, tipo, message_id))
+                job_id=excluded.job_id,
+                escopo=excluded.escopo
+        ''', (id_registro, link, titulo, dia, job_id, agora_ts(), resumo, tipo, message_id, escopo))
     return {'registrado': True, 'id': id_registro}
 
 
-def listar_dia(data):
+def listar_dia(data, escopo='default'):
     with sqlite3.connect(DB) as db:
         rows = db.execute('''
-            SELECT link, titulo, job_id, criado_em, resumo, tipo, message_id
-            FROM envios WHERE dia=? ORDER BY criado_em
-        ''', (data,)).fetchall()
+            SELECT link, titulo, job_id, criado_em, resumo, tipo, message_id, escopo
+            FROM envios WHERE dia=? AND escopo=? ORDER BY criado_em
+        ''', (data, escopo)).fetchall()
     return [
         {
             'link': r[0],
@@ -96,26 +101,27 @@ def listar_dia(data):
             'resumo': r[4] or '',
             'tipo': r[5] or 'noticia',
             'messageId': r[6] or '',
+            'escopo': r[7] or 'default',
         }
         for r in rows
     ]
 
 
-def verificar(links):
+def verificar(links, escopo='default'):
     if not links:
         return []
     dia = hoje()
     placeholders = ','.join('?' * len(links))
     with sqlite3.connect(DB) as db:
         enviados = set(r[0] for r in db.execute(
-            f'SELECT link FROM envios WHERE dia=? AND link IN ({placeholders})',
-            (dia, *links)
+            f'SELECT link FROM envios WHERE dia=? AND escopo=? AND link IN ({placeholders})',
+            (dia, escopo, *links)
         ).fetchall())
     return [l for l in links if l not in enviados]
 
 
-def pagina_dia(data):
-    rows = listar_dia(data)
+def pagina_dia(data, escopo='default'):
+    rows = listar_dia(data, escopo)
     cards = []
     for r in rows:
         title = html.escape(r['titulo'] or '(sem titulo)')
@@ -153,23 +159,26 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == '/registrar':
             self.responder(registrar(dados))
         elif self.path == '/verifica':
-            self.responder({'links': verificar(dados.get('links', []))})
+            self.responder({'links': verificar(dados.get('links', []), str(dados.get('escopo') or dados.get('cliente') or 'default'))})
         else:
             self.responder({'erro': 'Endpoint invalido'}, 404)
 
     def do_GET(self):
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
+        escopo = (query.get('escopo') or ['default'])[0] or 'default'
         if path == '/health':
             return self.responder({'status': 'ok'})
         if path == '/hoje':
-            return self.responder_html(pagina_dia(hoje()))
+            return self.responder_html(pagina_dia(hoje(), escopo))
         if path.startswith('/dia/'):
             rest = path.split('/dia/', 1)[1].strip('/')
             parts = rest.split('/')
             data = parts[0]
             if len(parts) > 1 and parts[1] == 'html':
-                return self.responder_html(pagina_dia(data))
-            return self.responder(listar_dia(data))
+                return self.responder_html(pagina_dia(data, escopo))
+            return self.responder(listar_dia(data, escopo))
         self.responder({'erro': 'Endpoint invalido'}, 404)
 
     def responder(self, dados, status=200):

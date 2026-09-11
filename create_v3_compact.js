@@ -97,6 +97,7 @@ const collectCode = `
 const plano = $('Decidir Acao').first().json;
 const config = plano.config;
 const baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');
+const escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia', config.numeroNoticias || config.numero || 'destino'].map(v => String(v).trim()).join('|');
 const strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();
 const tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');
 const attr = (html, pattern) => (html.match(pattern) || [])[1] || '';
@@ -120,7 +121,7 @@ const http = async ({ method = 'GET', url, headers = {}, body, json = false, tim
 // collect helper inserted
 if (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];
 if (plano.acao === 'resumao' || plano.acao === 'historico') {
-  const rows = await http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia, json: true });
+  const rows = await http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia + '?escopo=' + encodeURIComponent(escopoHistorico), json: true });
   const noticias = (Array.isArray(rows) ? rows : [])
     .filter(row => row.link && row.tipo !== 'resumao' && row.tipo !== 'historico')
     .map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.resumo || row.titulo || row.link, resumo: row.resumo || '', hora: row.hora || '', imagemUrl: '' }));
@@ -176,9 +177,9 @@ candidates = candidates.filter(item => {
 const scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);
 const withScore = scored.filter(item => item.score > 0);
 candidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));
-if (!plano.manual && candidates.length) {
+if (candidates.length) {
   try {
-    const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });
+    const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { escopo: escopoHistorico, links: candidates.map(item => item.link) }, json: true });
     const allowed = new Set(response.links || []);
     candidates = candidates.filter(item => allowed.has(item.link));
   } catch (error) {
@@ -189,7 +190,7 @@ const noticias = [];
 for (const item of candidates) {
   try {
     const html = await http({ method: 'GET', url: item.link, timeout: 20000 });
-    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eé]m|^veja tamb[eé]m/i.test(text));
+    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eÃ©]m|^veja tamb[eÃ©]m/i.test(text));
     const image = attr(String(html), /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) || attr(String(html), /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) || item.imagemUrl;
     const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;
     if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });
@@ -291,14 +292,14 @@ if (input.historico) {
     const titulo = limpar(n.titulo || n.link || 'Sem titulo');
     return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo;
   }).join(String.fromCharCode(10));
-  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: '🗂️ *HISTORICO DE NOTICIAS - ' + input.plano.dia + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
+  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: 'ðŸ—‚ï¸ *HISTORICO DE NOTICIAS - ' + input.plano.dia + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
 }
 const result = input.ia;
 if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];
 if (input.plano.acao === 'resumao') {
   const resumo = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();
   if (resumo.length < 80 || /https?:\\/\\//i.test(resumo)) throw new Error('Resumao invalido');
-  return [{ json: { tipo: 'resumao', titulo: 'MERCADO HOJE', resumo, texto: '🚨 *MERCADO HOJE*\\n\\n' + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
+  return [{ json: { tipo: 'resumao', titulo: 'MERCADO HOJE', resumo, texto: 'ðŸš¨ *MERCADO HOJE*\\n\\n' + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
 }
 const sources = new Map(input.noticias.map(item => [item.id, item]));
 const messages = [];
@@ -309,7 +310,7 @@ for (const item of result.itens) {
   const resumo = String(item.resumo || '').trim();
   if (!titulo || resumo.length < 80 || /https?:\\/\\//i.test(resumo)) continue;
   const link = source.link || source.id;
-  const texto = (item.emoji || '📰') + ' *' + titulo + '*\\n\\n' + resumo + (input.config.enviarLinksFontes !== false ? '\\n\\n' + link : '');
+  const texto = (item.emoji || 'ðŸ“°') + ' *' + titulo + '*\\n\\n' + resumo + (input.config.enviarLinksFontes !== false ? '\\n\\n' + link : '');
   messages.push({ json: { tipo: 'noticia', titulo, resumo, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });
 }
 return messages.length ? messages : [{ json: { ...input, semNoticias: true, motivo: 'Nenhuma mensagem valida' } }];
@@ -319,6 +320,7 @@ const sendCode = `
 const item = $input.first().json;
 if (item.semNoticias) return [{ json: item }];
 const config = { ...item.config };
+const escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia', config.numeroNoticias || config.numero || 'destino'].map(v => String(v).trim()).join('|');
 if (config.enviar !== true) return [{ json: { preview: true, titulo: item.titulo, texto: item.texto } }];
 const rawNumber = String(item.numeroDestino || config.numero || '').trim();
 let destino;
@@ -354,7 +356,7 @@ const response = await http({ method: 'POST', url: base + path + encodeURICompon
 if (response?.status === 'ERROR') throw new Error('Evolution retornou erro');
 if (item.link || item.tipo === 'resumao' || item.tipo === 'historico') {
   try {
-    await http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { link: item.link || (item.tipo + ':' + item.plano?.dia + ':' + item.plano?.jobId), titulo: item.titulo, resumo: item.resumo || item.texto, tipo: item.tipo, dia: item.plano?.dia, jobId: item.plano?.jobId, messageId: response?.key?.id || response?.messageId || '' }, json: true });
+    await http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { escopo: escopoHistorico, link: item.link || (item.tipo + ':' + item.plano?.dia + ':' + item.plano?.jobId), titulo: item.titulo, resumo: item.resumo || item.texto, tipo: item.tipo, dia: item.plano?.dia, jobId: item.plano?.jobId, messageId: response?.key?.id || response?.messageId || '' }, json: true });
   } catch (error) {
     console.log('Falha ao registrar historico: ' + error.message);
   }
@@ -365,9 +367,9 @@ return [{ json: { enviado: true, titulo: item.titulo, link: item.link, messageId
 const idsPrepCode = `
 const form = $input.first().json;
 const config = $('Configurar Cliente').first().json;
-const choice = String(form.opcao ?? form['O que você quer consultar?'] ?? '').trim();
+const choice = String(form.opcao ?? form['O que vocÃª quer consultar?'] ?? '').trim();
 const filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();
-const map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'Instância e conexão': 'instancia' };
+const map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'InstÃ¢ncia e conexÃ£o': 'instancia' };
 const tipo = map[choice] || 'todos';
 const base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');
 const instancia = String(config.instancia || '').trim();
@@ -460,7 +462,7 @@ const idsForm = add('IDs - O que Consultar?', 'n8n-nodes-base.wait', 1.1, [-1040
   resume: 'form',
   formTitle: 'Consultar IDs do WhatsApp',
   formFields: { values: [
-    { fieldLabel: 'O que você quer consultar?', fieldType: 'dropdown', defaultValue: 'Todos os grupos e comunidades', fieldOptions: { values: ['Todos os grupos e comunidades', 'Grupos comuns', 'Comunidades', 'Grupos de avisos', 'Instância e conexão'].map(option => ({ option })) }, requiredField: true },
+    { fieldLabel: 'O que vocÃª quer consultar?', fieldType: 'dropdown', defaultValue: 'Todos os grupos e comunidades', fieldOptions: { values: ['Todos os grupos e comunidades', 'Grupos comuns', 'Comunidades', 'Grupos de avisos', 'InstÃ¢ncia e conexÃ£o'].map(option => ({ option })) }, requiredField: true },
     { fieldLabel: 'Filtrar por nome (opcional)', placeholder: 'Ex.: XP, familia, trabalho' },
   ] },
   limitWaitTime: true,
@@ -514,3 +516,4 @@ const workflow = {
 
 fs.writeFileSync('noticias_v3.json', JSON.stringify(workflow, null, 2) + '\n');
 console.log(`V3 compacta criada: ${nodes.length} nos, ${Object.keys(connections).length} conexoes`);
+

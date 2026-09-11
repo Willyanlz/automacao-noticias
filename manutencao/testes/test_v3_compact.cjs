@@ -58,9 +58,18 @@ for (const requiredField of [
 const collectCode = workflow.nodes.find(node => node.name === 'Coletar Fontes e Historico').parameters.jsCode;
 assert.ok(collectCode.includes('config.rssFeeds'), 'RSS deve vir do card Configurar Cliente');
 assert.ok(collectCode.includes('config.palavrasChave'), 'palavras-chave devem vir do card Configurar Cliente');
+assert.ok(collectCode.includes('escopoHistorico'), 'historico deve ser separado por cliente/instancia/destino');
+assert.ok(collectCode.includes('/verifica'), 'coleta deve consultar deduplicacao no historico');
+assert.ok(collectCode.includes('escopo: escopoHistorico'), 'deduplicacao deve enviar escopo ao historico');
 
 const promptCode = workflow.nodes.find(node => node.name === 'Montar Prompt').parameters.jsCode;
 assert.ok(promptCode.includes('config.promptNoticias'), 'prompt de noticias deve vir do card Configurar Cliente');
 assert.ok(promptCode.includes('config.promptResumao'), 'prompt de resumao deve vir do card Configurar Cliente');
+
+
+const sendCode = workflow.nodes.find(node => node.name === 'Enviar e Registrar').parameters.jsCode;
+assert.ok(sendCode.includes('escopoHistorico'), 'registro deve calcular escopo do historico');
+assert.ok(sendCode.includes('escopo: escopoHistorico'), 'registro deve salvar escopo no historico');
+
 
 console.log(`PASS V3 compacta importavel com ${workflow.nodes.length} nodes.`);

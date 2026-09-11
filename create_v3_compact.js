@@ -45,6 +45,7 @@ const configFields = [
   ['usarImagem', true, 'boolean'],
   ['enviar', true, 'boolean'],
   ['enviarLinksFontes', false, 'boolean'],
+  ['forcarAgora', '={{ Boolean($json.forcarAgora) }}', 'boolean'],
 ];
 
 const decideCode = `
@@ -56,7 +57,7 @@ const hm = value => {
   return h * 60 + m;
 };
 const current = now.getHours() * 60 + now.getMinutes();
-const manual = $execution.mode === 'manual';
+const manual = config.forcarAgora === true || $execution.mode === 'manual';
 const start = hm(config.inicioEnvios || '08:00');
 const end = hm(config.fimEnvios || '19:00');
 const digestAt = hm(config.horarioResumao || '19:00');
@@ -288,6 +289,10 @@ return result.length ? result : [{ json: { nome: 'Nenhum resultado', id: '', tip
 
 const trigger = add('Agenda - Verificar a cada minuto', 'n8n-nodes-base.scheduleTrigger', 1.2, [-1600, 120], { rule: { interval: [{ field: 'cronExpression', expression: '* * * * *' }] } });
 const manual = add('Noticias - Rodar Manualmente', 'n8n-nodes-base.manualTrigger', 1, [-1600, 300], {});
+const manualFlag = add('Marcar Envio Manual', 'n8n-nodes-base.set', 3.4, [-1460, 360], {
+  assignments: { assignments: [{ id: id('field'), name: 'forcarAgora', value: true, type: 'boolean' }] },
+  options: {},
+});
 const config = add('Configurar Cliente', 'n8n-nodes-base.set', 3.4, [-1320, 200], {
   assignments: { assignments: configFields.map(([name, value, type]) => ({ id: id('field'), name, value, type })) },
   options: {},
@@ -325,7 +330,8 @@ const idsResult = code('IDs - Resultados', [-200, 760], idsFormatCode);
 sticky('V3 - Como usar', [-1600, -260], 'V3 compacta: 13 nos no fluxo de noticias e 5 nos no bloco de IDs. Mantem agenda, manual, intervalo/diario, janela de horario, resumao, RSS de 4 fontes, historico, Gemini com retry, imagem/texto, intervalo entre mensagens, registro e consulta de IDs. Configure Configurar Cliente; para Evolution em Code node use evolutionApiKey/apikey no proprio card se quiser enviar sem credencial HTTP.');
 
 link(trigger, config);
-link(manual, config);
+link(manual, manualFlag);
+link(manualFlag, config);
 link(config, decide);
 link(decide, collect);
 link(collect, prompt);

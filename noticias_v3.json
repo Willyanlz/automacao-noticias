@@ -3,7 +3,7 @@
   "name": "Noticias de Investimento -> IA -> WhatsApp v3 compacta",
   "nodes": [
     {
-      "id": "scheduleTrigger-50b7e2942d",
+      "id": "scheduleTrigger-77c56232de",
       "name": "Agenda - Verificar a cada minuto",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "manualTrigger-669c68b7db",
+      "id": "manualTrigger-a8e1988855",
       "name": "Noticias - Rodar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -34,7 +34,30 @@
       "parameters": {}
     },
     {
-      "id": "set-00e4938736",
+      "id": "set-f588ff2532",
+      "name": "Marcar Envio Manual",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1460,
+        360
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-fc8e0f123a",
+              "name": "forcarAgora",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "set-ceb4be1cfa",
       "name": "Configurar Cliente",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -46,123 +69,129 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-3f7e9b3c45",
+              "id": "field-55d200af01",
               "name": "cliente",
               "value": "Iguera",
               "type": "string"
             },
             {
-              "id": "field-ddd722ddbf",
+              "id": "field-6d47e4fd29",
               "name": "numero",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-a682bbe626",
+              "id": "field-aa3c709787",
               "name": "instancia",
               "value": "iguera",
               "type": "string"
             },
             {
-              "id": "field-771e4be709",
+              "id": "field-5b24bbdb71",
               "name": "evolutionUrl",
               "value": "http://evolution-api:8080",
               "type": "string"
             },
             {
-              "id": "field-e407d4026d",
+              "id": "field-b40f93910d",
               "name": "evolutionApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-4b55e7e040",
+              "id": "field-aa9b83908c",
               "name": "geminiApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-206edbc250",
+              "id": "field-352ecd44a6",
               "name": "modeloGemini",
               "value": "gemini-2.0-flash",
               "type": "string"
             },
             {
-              "id": "field-f65171105e",
+              "id": "field-b5b53c167b",
               "name": "historicoUrl",
               "value": "http://historico:8090",
               "type": "string"
             },
             {
-              "id": "field-e1c265f278",
+              "id": "field-b3301767b9",
               "name": "periodicidade",
               "value": "intervalo",
               "type": "string"
             },
             {
-              "id": "field-8ab34e33e3",
+              "id": "field-589b470ce4",
               "name": "intervaloMinutos",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "field-a67c085385",
+              "id": "field-46c10e6c20",
               "name": "inicioEnvios",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-4ee1018690",
+              "id": "field-6e7e57b6ff",
               "name": "fimEnvios",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-d38929e0ff",
+              "id": "field-779226e74c",
               "name": "horarioEnvioDiario",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-d6907a4e6c",
+              "id": "field-5c475c9099",
               "name": "horarioResumao",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-7d3715a126",
+              "id": "field-056b93d4ed",
               "name": "resumaoAtivo",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-c5bc26d2f4",
+              "id": "field-a735cf5c4a",
               "name": "maxNoticias",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "field-97d24aeba0",
+              "id": "field-dec6453ebe",
               "name": "janelaHoras",
               "value": 24,
               "type": "number"
             },
             {
-              "id": "field-71f9da546b",
+              "id": "field-107ec4e562",
               "name": "usarImagem",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-f1c234cbd5",
+              "id": "field-83b1c2de12",
               "name": "enviar",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-7715373bbe",
+              "id": "field-98873e1761",
               "name": "enviarLinksFontes",
               "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "field-7598530339",
+              "name": "forcarAgora",
+              "value": "={{ Boolean($json.forcarAgora) }}",
               "type": "boolean"
             }
           ]
@@ -171,7 +200,7 @@
       }
     },
     {
-      "id": "code-ae890bdf3e",
+      "id": "code-cc9f71bcf5",
       "name": "Decidir Acao",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -181,11 +210,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const config = $input.first().json;\nconst now = new Date();\nconst hm = value => {\n  const [h, m] = String(value || '00:00').split(':').map(Number);\n  if (!Number.isInteger(h) || !Number.isInteger(m)) throw new Error('Horario invalido: ' + value);\n  return h * 60 + m;\n};\nconst current = now.getHours() * 60 + now.getMinutes();\nconst manual = $execution.mode === 'manual';\nconst start = hm(config.inicioEnvios || '08:00');\nconst end = hm(config.fimEnvios || '19:00');\nconst digestAt = hm(config.horarioResumao || '19:00');\nconst dailyAt = hm(config.horarioEnvioDiario || '08:00');\nconst interval = Math.max(5, Number(config.intervaloMinutos || 60));\nlet acao = 'nada';\nif (manual) acao = 'noticias';\nelse if (config.resumaoAtivo !== false && current >= digestAt && current < digestAt + 5) acao = 'resumao';\nelse if (current >= start && current <= end && current < digestAt) {\n  if (config.periodicidade === 'diario') acao = current >= dailyAt && current < dailyAt + 5 ? 'noticias' : 'nada';\n  else acao = ((current - start) % interval) < 5 ? 'noticias' : 'nada';\n}\nreturn [{ json: { acao, config, manual, jobId: $execution.id, dia: now.toISOString().slice(0, 10) } }];"
+        "jsCode": "const config = $input.first().json;\nconst now = new Date();\nconst hm = value => {\n  const [h, m] = String(value || '00:00').split(':').map(Number);\n  if (!Number.isInteger(h) || !Number.isInteger(m)) throw new Error('Horario invalido: ' + value);\n  return h * 60 + m;\n};\nconst current = now.getHours() * 60 + now.getMinutes();\nconst manual = config.forcarAgora === true || $execution.mode === 'manual';\nconst start = hm(config.inicioEnvios || '08:00');\nconst end = hm(config.fimEnvios || '19:00');\nconst digestAt = hm(config.horarioResumao || '19:00');\nconst dailyAt = hm(config.horarioEnvioDiario || '08:00');\nconst interval = Math.max(5, Number(config.intervaloMinutos || 60));\nlet acao = 'nada';\nif (manual) acao = 'noticias';\nelse if (config.resumaoAtivo !== false && current >= digestAt && current < digestAt + 5) acao = 'resumao';\nelse if (current >= start && current <= end && current < digestAt) {\n  if (config.periodicidade === 'diario') acao = current >= dailyAt && current < dailyAt + 5 ? 'noticias' : 'nada';\n  else acao = ((current - start) % interval) < 5 ? 'noticias' : 'nada';\n}\nreturn [{ json: { acao, config, manual, jobId: $execution.id, dia: now.toISOString().slice(0, 10) } }];"
       }
     },
     {
-      "id": "code-889fed955e",
+      "id": "code-063acec8a1",
       "name": "Coletar Fontes e Historico",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -199,7 +228,7 @@
       }
     },
     {
-      "id": "code-b24f98122f",
+      "id": "code-0675b764a9",
       "name": "Montar Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -213,7 +242,7 @@
       }
     },
     {
-      "id": "code-bfb0c98261",
+      "id": "code-14ba053c8e",
       "name": "Gemini com Retry",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -227,7 +256,7 @@
       }
     },
     {
-      "id": "code-dc29f08b4d",
+      "id": "code-170d3c7d2e",
       "name": "Preparar Mensagens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -241,7 +270,7 @@
       }
     },
     {
-      "id": "splitInBatches-b20abe7c4a",
+      "id": "splitInBatches-fbf2b5543e",
       "name": "Uma mensagem por vez",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -255,7 +284,7 @@
       }
     },
     {
-      "id": "code-9fd424da14",
+      "id": "code-dff8a43c50",
       "name": "Enviar e Registrar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -269,7 +298,7 @@
       }
     },
     {
-      "id": "wait-ac13bf0f46",
+      "id": "wait-4e38c334f8",
       "name": "Aguardar 8-10s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -282,7 +311,7 @@
       }
     },
     {
-      "id": "noOp-68d758ecb7",
+      "id": "noOp-55a5832451",
       "name": "Fim",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
@@ -293,7 +322,7 @@
       "parameters": {}
     },
     {
-      "id": "manualTrigger-839063b6ed",
+      "id": "manualTrigger-efc6fdc6a8",
       "name": "IDs - Iniciar Consulta",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -304,7 +333,7 @@
       "parameters": {}
     },
     {
-      "id": "set-a711845aee",
+      "id": "set-397f6f2966",
       "name": "Configurar Cliente - IDs",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -316,123 +345,129 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-4862e4575c",
+              "id": "field-7930523c7e",
               "name": "cliente",
               "value": "Iguera",
               "type": "string"
             },
             {
-              "id": "field-d85bde2f24",
+              "id": "field-a03caa995a",
               "name": "numero",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-20a084baed",
+              "id": "field-65adffcdd4",
               "name": "instancia",
               "value": "iguera",
               "type": "string"
             },
             {
-              "id": "field-219b313e6e",
+              "id": "field-4903436715",
               "name": "evolutionUrl",
               "value": "http://evolution-api:8080",
               "type": "string"
             },
             {
-              "id": "field-2b8cd5012d",
+              "id": "field-2fe2efbb5e",
               "name": "evolutionApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-6408849ad1",
+              "id": "field-b2e83c7d09",
               "name": "geminiApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-3fe426cb1f",
+              "id": "field-016335e687",
               "name": "modeloGemini",
               "value": "gemini-2.0-flash",
               "type": "string"
             },
             {
-              "id": "field-54e3fa9b21",
+              "id": "field-5264b6c9d5",
               "name": "historicoUrl",
               "value": "http://historico:8090",
               "type": "string"
             },
             {
-              "id": "field-feb02bd9af",
+              "id": "field-42bba4802c",
               "name": "periodicidade",
               "value": "intervalo",
               "type": "string"
             },
             {
-              "id": "field-6948979a33",
+              "id": "field-ceaa38b7eb",
               "name": "intervaloMinutos",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "field-296458a9f4",
+              "id": "field-e846d0e300",
               "name": "inicioEnvios",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-f3d8e7032c",
+              "id": "field-006550004a",
               "name": "fimEnvios",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-212a3b2175",
+              "id": "field-6a68d36330",
               "name": "horarioEnvioDiario",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-1e140f280a",
+              "id": "field-33f5213d10",
               "name": "horarioResumao",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-61aeceaa54",
+              "id": "field-5e12c34dee",
               "name": "resumaoAtivo",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-ce8d88f06c",
+              "id": "field-26d816d34f",
               "name": "maxNoticias",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "field-bd27fa6bbf",
+              "id": "field-22c7fbe6ce",
               "name": "janelaHoras",
               "value": 24,
               "type": "number"
             },
             {
-              "id": "field-bc482feb4c",
+              "id": "field-500c9fed26",
               "name": "usarImagem",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-043daae575",
+              "id": "field-ce16ee6e59",
               "name": "enviar",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-e22e0bf86e",
+              "id": "field-981bc31811",
               "name": "enviarLinksFontes",
               "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "field-5383d38b1e",
+              "name": "forcarAgora",
+              "value": "={{ Boolean($json.forcarAgora) }}",
               "type": "boolean"
             }
           ]
@@ -441,7 +476,7 @@
       }
     },
     {
-      "id": "wait-9340bad2eb",
+      "id": "wait-297e8fe44d",
       "name": "IDs - O que Consultar?",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -495,7 +530,7 @@
       "webhookId": "ids-v3-compact-form"
     },
     {
-      "id": "code-b28a28bca9",
+      "id": "code-0191caa4d5",
       "name": "IDs - Preparar Consulta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -509,7 +544,7 @@
       }
     },
     {
-      "id": "code-cd41d8db4e",
+      "id": "code-fb665c8609",
       "name": "IDs - Consultar Evolution",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -523,7 +558,7 @@
       }
     },
     {
-      "id": "code-33c3c407aa",
+      "id": "code-8dffb31dc2",
       "name": "IDs - Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -537,7 +572,7 @@
       }
     },
     {
-      "id": "stickyNote-992786c3a0",
+      "id": "stickyNote-570d120efe",
       "name": "V3 - Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -565,6 +600,17 @@
       ]
     },
     "Noticias - Rodar Manualmente": {
+      "main": [
+        [
+          {
+            "node": "Marcar Envio Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Envio Manual": {
       "main": [
         [
           {

@@ -21,7 +21,7 @@ if (oldConfig) {
   const nowFields = Object.fromEntries(localConfig.parameters.assignments.assignments.map(a => [a.name, a.value]));
   const merged = { ...remoteFields, ...nowFields }; // campos novos ganham as configurações novas quando inexistentes no antigo
   // Campos de produção devem vir do antigo quando existem com valor real:
-  for (const key of ['numero', 'cliente', 'instancia', 'evolutionUrl', 'modeloGemini', 'maxNoticias', 'janelaHoras', 'enviar', 'usarImagem']) {
+  for (const key of ['numero', 'cliente', 'instancia', 'evolutionUrl', 'modeloGemini', 'maxNoticias', 'janelaHoras', 'enviar', 'usarImagem', 'enviarLinksFontes', 'periodicidade', 'intervaloMinutos', 'inicioEnvios', 'fimEnvios', 'horarioEnvioDiario', 'resumaoAtivo', 'horarioResumao', 'estadoUrl']) {
     if (key in remoteFields) merged[key] = remoteFields[key];
   }
   localConfig.parameters.assignments.assignments = Object.entries(merged).map(([name, value]) => ({

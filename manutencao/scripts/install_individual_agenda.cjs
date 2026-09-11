@@ -29,10 +29,13 @@ trigger.notes='Verifica somente o relógio e o histórico. RSS e Gemini só exec
 const manual=make('manual','Notícias · Testar agenda','manualTrigger',[-2000,400],{},1);
 connect(trigger.name,config.name);connect(manual.name,config.name);config.position=[-1780,200];
 http('tick','Agenda · Decidir execução',[-1550,200],'/tick',"={{ {config:$('Configurar Cliente').first().json,executionId:$execution.id,manual:$execution.mode==='manual'} }}",true);
-condition('is-news','Agenda · Coletar notícias?',[-1330,200],'={{ $json.acao }}','noticias');
-condition('is-digest','Agenda · Montar resumão?',[-1110,500],'={{ $json.acao }}','resumao');
+// Roteamento determinístico: calcula booleanos no código e usa IF boolean (Isee comprovado).
+// IF com comparação de string + expressão falha de forma intermitente no n8n (rota 'nada' como true).
+code('router','Agenda · Preparar rota',[-1330,200],"const t=$input.first().json;return [{json:{...t,rotaNoticias:t.acao==='noticias',rotaResumao:t.acao==='resumao'}}];");
+condition('is-news','Agenda · Coletar notícias?',[-1170,200],'={{ $json.rotaNoticias }}');
+condition('is-digest','Agenda · Montar resumão?',[-1390,500],'={{ $json.rotaResumao }}');
 make('nothing','Agenda · Nada a enviar', 'noOp',[-850,700],{},1);
-connect(config.name,'Agenda · Decidir execução');connect('Agenda · Decidir execução','Agenda · Coletar notícias?');
+connect(config.name,'Agenda · Decidir execução');connect('Agenda · Decidir execução','Agenda · Preparar rota');connect('Agenda · Preparar rota','Agenda · Coletar notícias?');
 const feeds=w.nodes.filter(n=>n.type==='n8n-nodes-base.rssFeedRead');
 w.connections['Agenda · Coletar notícias?']={main:[feeds.map(n=>edge(n.name)),[edge('Agenda · Montar resumão?')]]};
 for(const n of feeds){n.alwaysOutputData=true;n.onError='continueRegularOutput'}
@@ -60,7 +63,7 @@ connect('Extrair Resposta da IA','IA · Há conteúdo para enviar?');branch('IA 
 const loop=get('Uma notícia por vez');loop.parameters={batchSize:1,options:{}};
 w.connections[loop.name]={main:[[edge('Agenda · Concluir execução')],[edge('Envio habilitado?')]]};
 connect('Ver Resultado (Teste)',loop.name);
-http('reserve','Histórico · Reservar envio',[2040,300],'/reserve',"={{ {jobId:$('Agenda · Decidir execução').first().json.jobId,artigo:$json} }}");
+http('reserve','Histórico · Reservar envio',[2040,300],'/reserve',"={{ {jobId:$('Agenda · Decidir execução').first().json.jobId||'',artigo:$json} }}");
 condition('allowed','Histórico · Pode enviar?',[2260,300],'={{ $json.enviar }}');
 code('restore','Histórico · Preparar envio',[2480,300],"const r=$input.first().json;return [{json:{...r.artigo,registroId:r.registroId}}];");
 connect('Validar destino','Histórico · Reservar envio');connect('Histórico · Reservar envio','Histórico · Pode enviar?');

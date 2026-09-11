@@ -201,7 +201,12 @@ def dispatch(path, data, now=None):
             return {'noticias': result[:max(1, min(50, int(c.get('maxNoticias',10))))], 'recentes': recent(db, scope)}
 
         if path == '/reserve':
-            job = active_job(db, data['jobId'], now)
+            job_id = data.get('jobId') or ''
+            if not job_id:
+                # Sem job ativo (ex.: execução manual fora do horário). Nada a enviar:
+                # resposta limpa em vez de erro para não quebrar a execução.
+                return {'enviar': False, 'motivo': 'Sem job ativo. Nada a enviar.'}
+            job = active_job(db, job_id, now)
             if not job:
                 return {'enviar': False, 'motivo': 'Execução expirada ou encerrada.'}
             article = data['artigo']
@@ -219,9 +224,9 @@ def dispatch(path, data, now=None):
             return {'enviar': True, 'registroId': record, 'artigo': article}
 
         if path == '/confirm':
-            record = db.execute('SELECT * FROM deliveries WHERE id=? AND job=?', (data['registroId'], data['jobId'])).fetchone()
+            record = db.execute('SELECT * FROM deliveries WHERE id=? AND job=?', (data.get('registroId') or '', data.get('jobId') or '')).fetchone()
             if not record:
-                raise ValueError('Registro de envio não encontrado.')
+                raise ValueError('Registro de envio não encontrado. Confira registroId/jobId.')
             message_id = data.get('messageId')
             if not isinstance(message_id, str) or not message_id:
                 raise ValueError('A Evolution não retornou um identificador de mensagem.')

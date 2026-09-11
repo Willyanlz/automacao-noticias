@@ -909,12 +909,26 @@
       "waitBetweenTries": 1000
     },
     {
+      "id": "agenda-router",
+      "name": "Agenda · Preparar rota",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1330,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const t=$input.first().json;return [{json:{...t,rotaNoticias:t.acao==='noticias',rotaResumao:t.acao==='resumao'}}];"
+      }
+    },
+    {
       "id": "agenda-is-news",
       "name": "Agenda · Coletar notícias?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1330,
+        -1170,
         200
       ],
       "parameters": {
@@ -928,11 +942,12 @@
           "conditions": [
             {
               "id": "cond-is-news",
-              "leftValue": "={{ $json.acao }}",
-              "rightValue": "noticias",
+              "leftValue": "={{ $json.rotaNoticias }}",
+              "rightValue": "",
               "operator": {
-                "type": "string",
-                "operation": "equals"
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
               }
             }
           ],
@@ -947,7 +962,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1110,
+        -1390,
         500
       ],
       "parameters": {
@@ -961,11 +976,12 @@
           "conditions": [
             {
               "id": "cond-is-digest",
-              "leftValue": "={{ $json.acao }}",
-              "rightValue": "resumao",
+              "leftValue": "={{ $json.rotaResumao }}",
+              "rightValue": "",
               "operator": {
-                "type": "string",
-                "operation": "equals"
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
               }
             }
           ],
@@ -1215,7 +1231,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ {jobId:$('Agenda · Decidir execução').first().json.jobId,artigo:$json} }}",
+        "jsonBody": "={{ {jobId:$('Agenda · Decidir execução').first().json.jobId||'',artigo:$json} }}",
         "options": {
           "timeout": 30000
         }
@@ -1738,6 +1754,17 @@
       ]
     },
     "Agenda · Decidir execução": {
+      "main": [
+        [
+          {
+            "node": "Agenda · Preparar rota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agenda · Preparar rota": {
       "main": [
         [
           {

@@ -6,7 +6,7 @@ const connections = {};
 const id = prefix => `${prefix}-${crypto.randomBytes(5).toString('hex')}`;
 
 const rssFeedsDefault = "https://www.infomoney.com.br/feed/\nhttps://www.moneytimes.com.br/feed/\nhttps://braziljournal.com/feed/\nhttps://veja.abril.com.br/feed/";
-const dominiosPermitidosDefault = "infomoney.com.br\nmoneytimes.com.br\nbraziljournal.com\nveja.abril.com.br";
+const dominiosPermitidosDefault = "";
 const palavrasChaveDefault = "banco, bancos, itau, bradesco, santander, btg, nubank, inter, caixa, banco do brasil, xp, goldman sachs, jpmorgan, morgan stanley, blackrock, fed, banco central, copom, cmn, open finance, pix, credito, emprestimos, financiamento, inadimplencia, provisoes, basileia, fintech, seguradora, previdencia, cvm, anbima, susep, previc, bacen, empresas, companhia, acoes, b3, ibovespa, ipo, follow-on, oferta secundaria, opa, dividendos, jcp, resultados, balanco, lucro, lucro liquido, receita, receita liquida, ebitda, margem, guidance, ceo, m&a, aquisicao, fusao, venda de participacao, recompra de acoes, fato relevante, comunicado ao mercado, aviso aos acionistas, ri, conselho, capex, divida, endividamento, fluxo de caixa, geracao de caixa, consenso, estimativa, revisao de projecao, recuperacao judicial, falencia, desinvestimento, venda de ativos, mudanca de controle, reestruturacao, bolsa, small caps, blue chips, valuation, recomendacao, upgrade, downgrade, preco-alvo, volatilidade, insider, ifix, idiv, ibovespa futuro, fluxo estrangeiro, renda fixa, cdb, lci, lca, cdi, debentures, credito privado, cra, cri, fidc, tesouro direto, tesouro ipca, tesouro prefixado, ltn, ntn-b, ntn-f, ipca, igp-m, spread de credito, rating, default, emissao, resgate antecipado, duration, marcacao a mercado, covenant, curva de juros, di futuro, ima-b, ima-geral, fundos de investimento, fundos imobiliarios, fiis, etfs, bdrs, asset, gestora, corretora, fundos de credito, fundos de acoes, fundos multimercado, selic, juros, ipca-15, inflacao, taxa real, pib, desemprego, fiscal, politica fiscal, politica monetaria, deficit, superavit, divida publica, arrecadacao, impostos, reforma tributaria, arcabouco fiscal, gastos publicos, contingenciamento, orcamento, meta fiscal, fazenda, privatizacao, concessao, leilao, desoneracao, subsidios, risco-pais, cds, embi, ibc-br, boletim focus, producao industrial, varejo, balanca comercial, atividade economica, stf, stj, congresso, camara, senado, governo, planalto, presidente, ministro, pec, projeto de lei, medida provisoria, julgamento, decisao, liminar, marco regulatorio, eleicoes, bce, china, eua, estados unidos, europa, japao, hong kong, taiwan, russia, ucrania, oriente medio, guerra, sancoes, tarifas, comercio exterior, recessao, payroll, cpi, pce, emprego, juros americanos, treasuries, treasury, yield, s&p 500, nasdaq, dow jones, dax, ftse, nikkei, hang seng, msci, otan, israel, ira, palestina, coreia do norte, guerra comercial, tarifaco, conflitos, cessar-fogo, petroleo, brent, wti, gas natural, minerio de ferro, ouro, cobre, aluminio, litio, niquel, fertilizantes, soja, milho, trigo, cafe, acucar, etanol, celulose, carne, boi gordo, opep, commodities, dolar, dolar comercial, dolar futuro, euro, cambio, real, moeda, fluxo cambial, reservas internacionais, petroleo e gas, energia eletrica, saneamento, utilities, construcao civil, shoppings, agronegocio, mineracao, siderurgia, papel e celulose, telecomunicacoes, tecnologia, saude, educacao, transporte, aviacao, infraestrutura, liquidez, volatilidade implicita, aversao ao risco, apetite ao risco, alta, queda, disparada, colapso, crise, risco, alerta, surpresa, emergencia, intervencao, mudanca, corte, alta de juros, corte de juros, suspensao, investigacao, operacao, fraude, escandalo, rebaixamento, surpresa positiva, surpresa negativa, acima das expectativas, abaixo das expectativas, circuit breaker, estresse financeiro";
 const promptNoticiasDefault = "Voce e editor de noticias financeiras para leitores leigos no WhatsApp. TAREFA: selecionar apenas noticias relevantes e ineditas para investidores. Ignore propaganda, educacao generica, opiniao sem fato e conteudo sem impacto economico, mesmo que tenha palavra-chave. Priorize fatos das ultimas 24 horas com impacto em mercados, investimentos, empresas, juros, inflacao, cambio, bolsa ou decisoes de investidores. Use apenas as fontes, nao invente numeros, causas, cotacoes, recomendacoes ou previsoes. Cada resumo deve ter 75 a 130 palavras, em linguagem simples, explicando quem fez o que, contexto e possivel impacto.";
 const promptResumaoDefault = "Voce e editor financeiro para WhatsApp. TAREFA: escrever UM UNICO resumao do dia, baseado SOMENTE nas noticias individuais ja enviadas hoje. Escreva em portugues brasileiro, didatico, natural, sem inventar fatos, numeros ou causas. Use ate tres paragrafos curtos, sem links, sem markdown, sem lista numerada e sem emojis por noticia. Diga primeiro quem fez o que e explique o impacto para mercado, empresas, juros, inflacao, cambio, bolsa ou investidores.";
@@ -281,10 +281,6 @@ if (input.historico) {
     .split(' ')
     .filter(Boolean)
     .join(' ');
-  const normalizar = v => Array.from(limpar(v).normalize('NFD')).filter(ch => {
-    const code = ch.charCodeAt(0);
-    return code < 0x0300 || code > 0x036f;
-  }).join('').toLowerCase();
   const horaFmt = valor => {
     const s = String(valor || '').trim();
     if (s.length >= 5 && s[2] === ':') return s.slice(0, 5);
@@ -293,10 +289,8 @@ if (input.historico) {
   };
   const linhas = input.noticias.map((n, i) => {
     const titulo = limpar(n.titulo || n.link || 'Sem titulo');
-    const resumo = limpar(n.resumo || '');
-    const detalhe = resumo && normalizar(resumo) !== normalizar(titulo) ? String.fromCharCode(10) + resumo : '';
-    return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo + detalhe;
-  }).join(String.fromCharCode(10) + String.fromCharCode(10));
+    return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo;
+  }).join(String.fromCharCode(10));
   return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: '🗂️ *HISTORICO DE NOTICIAS - ' + input.plano.dia + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
 }
 const result = input.ia;
@@ -477,7 +471,7 @@ const idsForm = add('IDs - O que Consultar?', 'n8n-nodes-base.wait', 1.1, [-1040
 const idsPrep = code('IDs - Preparar Consulta', [-760, 760], idsPrepCode);
 const idsFetch = code('IDs - Consultar Evolution', [-480, 760], idsFetchCode);
 const idsResult = code('IDs - Resultados', [-200, 760], idsFormatCode);
-sticky('V3 - Como usar', [-1600, -260], 'V3 compacta multitenant. Configure numeroNoticias, numeroResumao e numeroHistorico para separar destinatarios; se vazio, usa numero. Edite rssFeeds, dominiosPermitidos, palavrasChave, promptNoticias e promptResumao para reutilizar o fluxo em outros nichos, mantendo os defaults atuais de noticias economicas. Webhooks: noticias-agora, resumao-agora e historico-agora. O resumao e o historico usam somente noticias registradas no dia atual.');
+sticky('V3 - Como usar', [-1600, -260], 'V3 compacta multitenant. Configure numeroNoticias, numeroResumao e numeroHistorico para separar destinatarios; se vazio, usa numero. Para escalar para outro nicho, normalmente basta editar rssFeeds, palavrasChave, promptNoticias e promptResumao. dominiosPermitidos e opcional: vazio usa automaticamente os dominios dos RSS; preencha apenas se quiser restringir mais. Webhooks: noticias-agora, resumao-agora e historico-agora.');
 
 link(trigger, config);
 link(manual, manualFlag);

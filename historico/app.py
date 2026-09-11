@@ -5,19 +5,25 @@ import sqlite3
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from urllib.parse import urlparse
 
 DB = os.environ.get('HISTORICO_DB', '/data/historico.sqlite')
 PORT = int(os.environ.get('HISTORICO_PORT', 8090))
 RETENCAO_DIAS = int(os.environ.get('HISTORICO_RETENCAO_DIAS', 60))
+TZ = ZoneInfo(os.environ.get('TZ', 'America/Sao_Paulo'))
+
+
+def agora():
+    return datetime.now(TZ)
 
 
 def hoje():
-    return datetime.now().strftime('%Y-%m-%d')
+    return agora().strftime('%Y-%m-%d')
 
 
 def agora_ts():
-    return datetime.now().timestamp()
+    return agora().timestamp()
 
 
 def init_db():
@@ -44,7 +50,7 @@ def init_db():
         }.items():
             if name not in cols:
                 db.execute(ddl)
-        limite = (datetime.now() - timedelta(days=RETENCAO_DIAS)).timestamp()
+        limite = (agora() - timedelta(days=RETENCAO_DIAS)).timestamp()
         db.execute('DELETE FROM envios WHERE criado_em < ?', (limite,))
 
 
@@ -85,8 +91,8 @@ def listar_dia(data):
             'link': r[0],
             'titulo': r[1] or '',
             'jobId': r[2] or '',
-            'hora': datetime.fromtimestamp(r[3]).strftime('%H:%M:%S'),
-            'criadoEm': datetime.fromtimestamp(r[3]).isoformat(),
+            'hora': datetime.fromtimestamp(r[3], TZ).strftime('%H:%M:%S'),
+            'criadoEm': datetime.fromtimestamp(r[3], TZ).isoformat(),
             'resumo': r[4] or '',
             'tipo': r[5] or 'noticia',
             'messageId': r[6] or '',

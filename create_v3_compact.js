@@ -292,7 +292,8 @@ if (input.historico) {
     const titulo = limpar(n.titulo || n.link || 'Sem titulo');
     return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo;
   }).join(String.fromCharCode(10));
-  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: 'ðŸ—‚ï¸ *HISTORICO DE NOTICIAS - ' + input.plano.dia + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
+  const dataBr = String(input.plano.dia || '').replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1');
+  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: 'ðŸ—‚ï¸ *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
 }
 const result = input.ia;
 if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];

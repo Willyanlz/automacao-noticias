@@ -83,6 +83,10 @@ const tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\
 const attr = (html, pattern) => (html.match(pattern) || [])[1] || '';
 const normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
+  if (this && this.helpers && this.helpers.httpRequest) {
+    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });
+  }
+  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');
   const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };
   if (body !== undefined) {
     init.body = typeof body === 'string' ? body : JSON.stringify(body);
@@ -106,6 +110,7 @@ const feeds = [
   'https://veja.abril.com.br/feed/',
 ];
 let candidates = [];
+let feedErrors = [];
 for (const feed of feeds) {
   try {
     const xml = await http({ method: 'GET', url: feed, timeout: 20000 });
@@ -116,9 +121,11 @@ for (const feed of feeds) {
       candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=["']([^"']+)["']/i) });
     }
   } catch (error) {
+    feedErrors.push(feed + ': ' + error.message);
     console.log('Falha no RSS ' + feed + ': ' + error.message);
   }
 }
+if (!candidates.length && feedErrors.length) throw new Error('Nenhum RSS lido: ' + feedErrors.join(' | '));
 const allowedDomains = /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//i;
 const keywords = ['banco','itau','bradesco','santander','btg','nubank','xp','fed','banco central','copom','selic','juros','ipca','inflacao','pib','dolar','cambio','ibovespa','bolsa','acoes','b3','dividendos','jcp','resultado','lucro','receita','ebitda','guidance','fato relevante','petrobras','vale','commodities','petroleo','minerio','tesouro','cdb','lci','lca','fii','fundos','renda fixa','credito','china','eua','s&p 500','nasdaq'];
 const seen = new Set();
@@ -192,6 +199,10 @@ const input = $input.first().json;
 if (input.semNoticias) return [input];
 const model = input.config.modeloGemini || 'gemini-2.0-flash';
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
+  if (this && this.helpers && this.helpers.httpRequest) {
+    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });
+  }
+  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');
   const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };
   if (body !== undefined) {
     init.body = typeof body === 'string' ? body : JSON.stringify(body);
@@ -262,6 +273,10 @@ else {
 }
 const base = String(config.evolutionUrl || '').replace(/\\/$/, '');
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
+  if (this && this.helpers && this.helpers.httpRequest) {
+    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });
+  }
+  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');
   const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };
   if (body !== undefined) {
     init.body = typeof body === 'string' ? body : JSON.stringify(body);
@@ -307,6 +322,10 @@ return [{ json: { tipo, filtro: filter, url, config } }];
 const idsFetchCode = `
 const q = $input.first().json;
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
+  if (this && this.helpers && this.helpers.httpRequest) {
+    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });
+  }
+  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');
   const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };
   if (body !== undefined) {
     init.body = typeof body === 'string' ? body : JSON.stringify(body);

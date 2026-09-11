@@ -38,4 +38,29 @@ for (const required of [
   assert.ok(names.has(required), `node obrigatorio ausente: ${required}`);
 }
 
+const config = workflow.nodes
+  .find(node => node.name === 'Configurar Cliente')
+  .parameters.assignments.assignments;
+const configNames = new Set(config.map(field => field.name));
+for (const requiredField of [
+  'rssFeeds',
+  'dominiosPermitidos',
+  'palavrasChave',
+  'promptNoticias',
+  'promptResumao',
+  'numeroNoticias',
+  'numeroResumao',
+  'numeroHistorico',
+]) {
+  assert.ok(configNames.has(requiredField), `campo dinamico ausente: ${requiredField}`);
+}
+
+const collectCode = workflow.nodes.find(node => node.name === 'Coletar Fontes e Historico').parameters.jsCode;
+assert.ok(collectCode.includes('config.rssFeeds'), 'RSS deve vir do card Configurar Cliente');
+assert.ok(collectCode.includes('config.palavrasChave'), 'palavras-chave devem vir do card Configurar Cliente');
+
+const promptCode = workflow.nodes.find(node => node.name === 'Montar Prompt').parameters.jsCode;
+assert.ok(promptCode.includes('config.promptNoticias'), 'prompt de noticias deve vir do card Configurar Cliente');
+assert.ok(promptCode.includes('config.promptResumao'), 'prompt de resumao deve vir do card Configurar Cliente');
+
 console.log(`PASS V3 compacta importavel com ${workflow.nodes.length} nodes.`);

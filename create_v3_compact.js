@@ -5,6 +5,13 @@ const nodes = [];
 const connections = {};
 const id = prefix => `${prefix}-${crypto.randomBytes(5).toString('hex')}`;
 
+const rssFeedsDefault = "https://www.infomoney.com.br/feed/\nhttps://www.moneytimes.com.br/feed/\nhttps://braziljournal.com/feed/\nhttps://veja.abril.com.br/feed/";
+const dominiosPermitidosDefault = "infomoney.com.br\nmoneytimes.com.br\nbraziljournal.com\nveja.abril.com.br";
+const palavrasChaveDefault = "banco, bancos, itau, bradesco, santander, btg, nubank, inter, caixa, banco do brasil, xp, goldman sachs, jpmorgan, morgan stanley, blackrock, fed, banco central, copom, cmn, open finance, pix, credito, emprestimos, financiamento, inadimplencia, provisoes, basileia, fintech, seguradora, previdencia, cvm, anbima, susep, previc, bacen, empresas, companhia, acoes, b3, ibovespa, ipo, follow-on, oferta secundaria, opa, dividendos, jcp, resultados, balanco, lucro, lucro liquido, receita, receita liquida, ebitda, margem, guidance, ceo, m&a, aquisicao, fusao, venda de participacao, recompra de acoes, fato relevante, comunicado ao mercado, aviso aos acionistas, ri, conselho, capex, divida, endividamento, fluxo de caixa, geracao de caixa, consenso, estimativa, revisao de projecao, recuperacao judicial, falencia, desinvestimento, venda de ativos, mudanca de controle, reestruturacao, bolsa, small caps, blue chips, valuation, recomendacao, upgrade, downgrade, preco-alvo, volatilidade, insider, ifix, idiv, ibovespa futuro, fluxo estrangeiro, renda fixa, cdb, lci, lca, cdi, debentures, credito privado, cra, cri, fidc, tesouro direto, tesouro ipca, tesouro prefixado, ltn, ntn-b, ntn-f, ipca, igp-m, spread de credito, rating, default, emissao, resgate antecipado, duration, marcacao a mercado, covenant, curva de juros, di futuro, ima-b, ima-geral, fundos de investimento, fundos imobiliarios, fiis, etfs, bdrs, asset, gestora, corretora, fundos de credito, fundos de acoes, fundos multimercado, selic, juros, ipca-15, inflacao, taxa real, pib, desemprego, fiscal, politica fiscal, politica monetaria, deficit, superavit, divida publica, arrecadacao, impostos, reforma tributaria, arcabouco fiscal, gastos publicos, contingenciamento, orcamento, meta fiscal, fazenda, privatizacao, concessao, leilao, desoneracao, subsidios, risco-pais, cds, embi, ibc-br, boletim focus, producao industrial, varejo, balanca comercial, atividade economica, stf, stj, congresso, camara, senado, governo, planalto, presidente, ministro, pec, projeto de lei, medida provisoria, julgamento, decisao, liminar, marco regulatorio, eleicoes, bce, china, eua, estados unidos, europa, japao, hong kong, taiwan, russia, ucrania, oriente medio, guerra, sancoes, tarifas, comercio exterior, recessao, payroll, cpi, pce, emprego, juros americanos, treasuries, treasury, yield, s&p 500, nasdaq, dow jones, dax, ftse, nikkei, hang seng, msci, otan, israel, ira, palestina, coreia do norte, guerra comercial, tarifaco, conflitos, cessar-fogo, petroleo, brent, wti, gas natural, minerio de ferro, ouro, cobre, aluminio, litio, niquel, fertilizantes, soja, milho, trigo, cafe, acucar, etanol, celulose, carne, boi gordo, opep, commodities, dolar, dolar comercial, dolar futuro, euro, cambio, real, moeda, fluxo cambial, reservas internacionais, petroleo e gas, energia eletrica, saneamento, utilities, construcao civil, shoppings, agronegocio, mineracao, siderurgia, papel e celulose, telecomunicacoes, tecnologia, saude, educacao, transporte, aviacao, infraestrutura, liquidez, volatilidade implicita, aversao ao risco, apetite ao risco, alta, queda, disparada, colapso, crise, risco, alerta, surpresa, emergencia, intervencao, mudanca, corte, alta de juros, corte de juros, suspensao, investigacao, operacao, fraude, escandalo, rebaixamento, surpresa positiva, surpresa negativa, acima das expectativas, abaixo das expectativas, circuit breaker, estresse financeiro";
+const promptNoticiasDefault = "Voce e editor de noticias financeiras para leitores leigos no WhatsApp. TAREFA: selecionar apenas noticias relevantes e ineditas para investidores. Ignore propaganda, educacao generica, opiniao sem fato e conteudo sem impacto economico, mesmo que tenha palavra-chave. Priorize fatos das ultimas 24 horas com impacto em mercados, investimentos, empresas, juros, inflacao, cambio, bolsa ou decisoes de investidores. Use apenas as fontes, nao invente numeros, causas, cotacoes, recomendacoes ou previsoes. Cada resumo deve ter 75 a 130 palavras, em linguagem simples, explicando quem fez o que, contexto e possivel impacto.";
+const promptResumaoDefault = "Voce e editor financeiro para WhatsApp. TAREFA: escrever UM UNICO resumao do dia, baseado SOMENTE nas noticias individuais ja enviadas hoje. Escreva em portugues brasileiro, didatico, natural, sem inventar fatos, numeros ou causas. Use ate tres paragrafos curtos, sem links, sem markdown, sem lista numerada e sem emojis por noticia. Diga primeiro quem fez o que e explique o impacto para mercado, empresas, juros, inflacao, cambio, bolsa ou investidores.";
+
+
 function add(name, type, typeVersion, position, parameters = {}, extra = {}) {
   nodes.push({ id: id(type.split('.').pop()), name, type, typeVersion, position, parameters, ...extra });
   return name;
@@ -33,6 +40,11 @@ const configFields = [
   ['geminiApiKey', '', 'string'],
   ['modeloGemini', 'gemini-2.0-flash', 'string'],
   ['historicoUrl', 'http://historico:8090', 'string'],
+  ['rssFeeds', rssFeedsDefault, 'string'],
+  ['dominiosPermitidos', dominiosPermitidosDefault, 'string'],
+  ['palavrasChave', palavrasChaveDefault, 'string'],
+  ['promptNoticias', promptNoticiasDefault, 'string'],
+  ['promptResumao', promptResumaoDefault, 'string'],
   ['periodicidade', 'intervalo', 'string'],
   ['intervaloMinutos', 60, 'number'],
   ['inicioEnvios', '08:00', 'string'],
@@ -115,12 +127,9 @@ if (plano.acao === 'resumao' || plano.acao === 'historico') {
   if (plano.acao === 'historico') return noticias.length ? [{ json: { plano, config, noticias, historico: true } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias enviadas hoje no historico', plano, config } }];
   return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];
 }
-const feeds = [
-  'https://www.infomoney.com.br/feed/',
-  'https://www.moneytimes.com.br/feed/',
-  'https://braziljournal.com/feed/',
-  'https://veja.abril.com.br/feed/',
-];
+const parseList = value => String(value || '').split(String.fromCharCode(10)).flatMap(line => line.split(/[;,]+/)).map(v => { const text = strip(v); const close = text.indexOf(']('); return text.startsWith('[') && close > 1 && text.endsWith(')') ? text.slice(1, close) : text; }).filter(Boolean);
+const feeds = parseList(config.rssFeeds);
+if (!feeds.length) throw new Error('Configure pelo menos um RSS no campo rssFeeds.');
 let candidates = [];
 let feedErrors = [];
 for (const feed of feeds) {
@@ -138,11 +147,22 @@ for (const feed of feeds) {
   }
 }
 if (!candidates.length && feedErrors.length) throw new Error('Nenhum RSS lido: ' + feedErrors.join(' | '));
-const allowedDomains = /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//i;
-const keywords = ['banco','bancos','itau','bradesco','santander','btg','nubank','inter','caixa','banco do brasil','xp','goldman sachs','jpmorgan','morgan stanley','blackrock','fed','banco central','copom','cmn','open finance','pix','credito','emprestimos','financiamento','inadimplencia','provisoes','basileia','fintech','seguradora','previdencia','cvm','anbima','susep','previc','bacen','empresas','companhia','acoes','b3','ibovespa','ipo','follow-on','oferta secundaria','opa','dividendos','jcp','resultados','balanco','lucro','lucro liquido','receita','receita liquida','ebitda','margem','guidance','ceo','m&a','aquisicao','fusao','venda de participacao','recompra de acoes','fato relevante','comunicado ao mercado','aviso aos acionistas','ri','conselho','capex','divida','endividamento','fluxo de caixa','geracao de caixa','consenso','estimativa','revisao de projecao','recuperacao judicial','falencia','desinvestimento','venda de ativos','mudanca de controle','reestruturacao','bolsa','small caps','blue chips','valuation','recomendacao','upgrade','downgrade','preco-alvo','volatilidade','insider','ifix','idiv','ibovespa futuro','fluxo estrangeiro','renda fixa','cdb','lci','lca','cdi','debentures','credito privado','cra','cri','fidc','tesouro direto','tesouro ipca','tesouro prefixado','ltn','ntn-b','ntn-f','ipca','igp-m','spread de credito','rating','default','emissao','resgate antecipado','duration','marcacao a mercado','covenant','curva de juros','di futuro','ima-b','ima-geral','fundos de investimento','fundos imobiliarios','fiis','etfs','bdrs','asset','gestora','corretora','fundos de credito','fundos de acoes','fundos multimercado','selic','juros','ipca-15','inflacao','taxa real','pib','desemprego','fiscal','politica fiscal','politica monetaria','deficit','superavit','divida publica','arrecadacao','impostos','reforma tributaria','arcabouco fiscal','gastos publicos','contingenciamento','orcamento','meta fiscal','fazenda','privatizacao','concessao','leilao','desoneracao','subsidios','risco-pais','cds','embi','ibc-br','boletim focus','producao industrial','varejo','balanca comercial','atividade economica','stf','stj','congresso','camara','senado','governo','planalto','presidente','ministro','pec','projeto de lei','medida provisoria','julgamento','decisao','liminar','marco regulatorio','eleicoes','bce','china','eua','estados unidos','europa','japao','hong kong','taiwan','russia','ucrania','oriente medio','guerra','sancoes','tarifas','comercio exterior','recessao','payroll','cpi','pce','emprego','juros americanos','treasuries','treasury','yield','s&p 500','nasdaq','dow jones','dax','ftse','nikkei','hang seng','msci','otan','israel','ira','palestina','coreia do norte','guerra comercial','tarifaco','conflitos','cessar-fogo','petroleo','brent','wti','gas natural','minerio de ferro','ouro','cobre','aluminio','litio','niquel','fertilizantes','soja','milho','trigo','cafe','acucar','etanol','celulose','carne','boi gordo','opep','commodities','dolar','dolar comercial','dolar futuro','euro','cambio','real','moeda','fluxo cambial','reservas internacionais','petroleo e gas','energia eletrica','saneamento','utilities','construcao civil','shoppings','agronegocio','mineracao','siderurgia','papel e celulose','telecomunicacoes','tecnologia','saude','educacao','transporte','aviacao','infraestrutura','liquidez','volatilidade implicita','aversao ao risco','apetite ao risco','alta','queda','disparada','colapso','crise','risco','alerta','surpresa','emergencia','intervencao','mudanca','corte','alta de juros','corte de juros','suspensao','investigacao','operacao','fraude','escandalo','rebaixamento','surpresa positiva','surpresa negativa','acima das expectativas','abaixo das expectativas','circuit breaker','estresse financeiro'];
+const hostOf = value => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try { return new URL(raw.includes('://') ? raw : 'https://' + raw).hostname.replace(/^www[.]/i, '').toLowerCase(); } catch { return raw.split('/')[0].replace(/^www[.]/i, '').toLowerCase(); }
+};
+const domainTerms = parseList(config.dominiosPermitidos).map(hostOf).filter(Boolean);
+const feedHosts = feeds.map(hostOf).filter(Boolean);
+const allowedHosts = [...new Set(domainTerms.length ? domainTerms : feedHosts)];
+const allowedDomain = link => {
+  const host = hostOf(link);
+  return !!host && allowedHosts.some(domain => host === domain || host.endsWith('.' + domain));
+};
+const keywords = parseList(config.palavrasChave);
 const seen = new Set();
 candidates = candidates.filter(item => {
-  if (!allowedDomains.test(item.link)) return false;
+  if (!allowedDomain(item.link)) return false;
   if (Number.isFinite(item.data) && Date.now() - item.data > Number(config.janelaHoras || 24) * 3600000) return false;
   const key = normalize(item.titulo) + '|' + item.link;
   if (seen.has(key)) return false;
@@ -185,9 +205,11 @@ const input = $input.first().json;
 if (input.semNoticias) return [input];
 const diario = input.plano.acao === 'resumao';
 const fontes = input.noticias.map(item => ({ id: item.id, titulo: item.titulo, texto: String(item.texto || '').slice(0, diario ? 1200 : 5000) }));
-const prompt = diario
-  ? 'Voce e editor financeiro para WhatsApp. TAREFA: escrever UM UNICO resumao do dia, baseado SOMENTE nas noticias individuais ja enviadas hoje. Escreva em portugues brasileiro, didatico, natural, sem inventar fatos, numeros ou causas. Use ate tres paragrafos curtos, sem links, sem markdown, sem lista numerada e sem emojis por noticia. Diga primeiro quem fez o que e explique o impacto para mercado, empresas, juros, inflacao, cambio, bolsa ou investidores. Retorne apenas JSON no formato {"tipo":"resumao","itens":[{"titulo":"MERCADO HOJE","resumo":"texto corrido"}]}. FONTES: ' + JSON.stringify(fontes)
-  : 'Voce e editor de noticias financeiras para leitores leigos no WhatsApp. TAREFA: selecionar apenas noticias relevantes e ineditas para investidores. Ignore propaganda, educacao generica, opiniao sem fato e conteudo sem impacto economico, mesmo que tenha palavra-chave. Priorize fatos das ultimas 24 horas com impacto em mercados, investimentos, empresas, juros, inflacao, cambio, bolsa ou decisoes de investidores. Use apenas as fontes, nao invente numeros, causas, cotacoes, recomendacoes ou previsoes. Cada resumo deve ter 75 a 130 palavras, em linguagem simples, explicando quem fez o que, contexto e possivel impacto. Retorne apenas JSON no formato {"tipo":"noticias","itens":[{"id":"copie o id exatamente","emoji":"emoji","titulo":"TITULO CURTO","resumo":"texto"}]}. Se nada for relevante, retorne itens vazio. FONTES: ' + JSON.stringify(fontes);
+const basePrompt = diario ? String(input.config.promptResumao || '').trim() : String(input.config.promptNoticias || '').trim();
+const outputInstruction = diario
+  ? ' Retorne apenas JSON no formato {"tipo":"resumao","itens":[{"titulo":"MERCADO HOJE","resumo":"texto corrido"}]}. FONTES: '
+  : ' Retorne apenas JSON no formato {"tipo":"noticias","itens":[{"id":"copie o id exatamente","emoji":"emoji","titulo":"TITULO CURTO","resumo":"texto"}]}. Se nada for relevante, retorne itens vazio. FONTES: ';
+const prompt = (basePrompt || (diario ? 'Escreva um unico resumao do dia em portugues brasileiro.' : 'Selecione noticias relevantes e explique em linguagem simples.')) + outputInstruction + JSON.stringify(fontes);
 const schema = {
   type: 'OBJECT',
   properties: {
@@ -251,12 +273,31 @@ const prepareMessagesCode = `
 const input = $input.first().json;
 if (input.semNoticias) return [{ json: input }];
 if (input.historico) {
+  const limpar = v => String(v || '')
+    .replaceAll(String.fromCharCode(10), ' ')
+    .replaceAll(String.fromCharCode(13), ' ')
+    .replaceAll(String.fromCharCode(9), ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+    .join(' ');
+  const normalizar = v => Array.from(limpar(v).normalize('NFD')).filter(ch => {
+    const code = ch.charCodeAt(0);
+    return code < 0x0300 || code > 0x036f;
+  }).join('').toLowerCase();
+  const horaFmt = valor => {
+    const s = String(valor || '').trim();
+    if (s.length >= 5 && s[2] === ':') return s.slice(0, 5);
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+  };
   const linhas = input.noticias.map((n, i) => {
-    const hora = n.hora ? String(n.hora).slice(11, 16) : '--:--';
-    const resumo = String(n.resumo || n.texto || '').replace(/\\s+/g, ' ').trim();
-    return String(i + 1) + '. ' + hora + ' - ' + n.titulo + '\\n' + resumo;
-  }).join('\\n\\n');
-  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: '🗂️ *HISTORICO DE NOTICIAS - ' + input.plano.dia + '*\\n\\n' + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
+    const titulo = limpar(n.titulo || n.link || 'Sem titulo');
+    const resumo = limpar(n.resumo || '');
+    const detalhe = resumo && normalizar(resumo) !== normalizar(titulo) ? String.fromCharCode(10) + resumo : '';
+    return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo + detalhe;
+  }).join(String.fromCharCode(10) + String.fromCharCode(10));
+  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: '🗂️ *HISTORICO DE NOTICIAS - ' + input.plano.dia + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
 }
 const result = input.ia;
 if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];
@@ -436,7 +477,7 @@ const idsForm = add('IDs - O que Consultar?', 'n8n-nodes-base.wait', 1.1, [-1040
 const idsPrep = code('IDs - Preparar Consulta', [-760, 760], idsPrepCode);
 const idsFetch = code('IDs - Consultar Evolution', [-480, 760], idsFetchCode);
 const idsResult = code('IDs - Resultados', [-200, 760], idsFormatCode);
-sticky('V3 - Como usar', [-1600, -260], 'V3 compacta multitenant. Configure numeroNoticias, numeroResumao e numeroHistorico para separar destinatarios; se vazio, usa numero. Webhooks: noticias-agora, resumao-agora e historico-agora. O resumao e o historico usam somente noticias registradas no dia atual. Mantem agenda, manual, intervalo/diario, janela de horario, RSS de 4 fontes, historico interno, Gemini com retry, imagem/texto, intervalo entre mensagens, registro e consulta de IDs.');
+sticky('V3 - Como usar', [-1600, -260], 'V3 compacta multitenant. Configure numeroNoticias, numeroResumao e numeroHistorico para separar destinatarios; se vazio, usa numero. Edite rssFeeds, dominiosPermitidos, palavrasChave, promptNoticias e promptResumao para reutilizar o fluxo em outros nichos, mantendo os defaults atuais de noticias economicas. Webhooks: noticias-agora, resumao-agora e historico-agora. O resumao e o historico usam somente noticias registradas no dia atual.');
 
 link(trigger, config);
 link(manual, manualFlag);

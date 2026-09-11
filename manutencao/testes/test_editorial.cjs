@@ -39,15 +39,17 @@ const planoResumao={acao:'resumao',noticias:[
 ]};
 const digest=run('Montar Prompt',[],{'Configurar Cliente':C,'Agenda · Decidir execução':{first:()=>({json:planoResumao})}})[0].json;
 assert.equal(digest.diario,true);
-assert.ok(digest.prompt.includes('resumir TODAS as notícias'));
-const saida=run('Extrair Resposta da IA',[cand([{id:'r1',emoji:'📊',titulo:'PRIMEIRA',resumo:'Resumo extenso da primeira notícia enviada hoje, explicando o fato e sua importância para quem investe.'},{id:'r2',emoji:'📈',titulo:'SEGUNDA',resumo:'Resumo extenso da segunda notícia enviada hoje, com contexto econômico e consequências para o mercado.'}])],{'Configurar Cliente':C,'Montar Prompt':{first:()=>({json:digest})}});
+assert.ok(digest.prompt.includes('texto corrido'));
+assert.ok(digest.prompt.includes('Não aplique teto global de 3000 caracteres'));
+const saida=run('Extrair Resposta da IA',[cand([{resumo:'Os bancos apresentaram os resultados do trimestre e os números explicam o que mudou nos indicadores divulgados hoje, com impacto direto na leitura do mercado sobre o segundo semestre. A fabricante da aviação anunciou novos pedidos e o volume sustenta a atividade do setor, reforçando a atenção de quem acompanha os resultados corporativos. Juntos, os dois acontecimentos mostram empresas operando com mudanças relevantes e ajudam a entender o clima dos investidores neste fechamento de semana. O texto segue corrido, sem títulos internos, cobrindo todos os acontecimentos enviados hoje.'}])],{'Configurar Cliente':C,'Montar Prompt':{first:()=>({json:digest})}});
 assert.equal(saida.length,1);
 assert.equal(saida[0].json.tipo,'resumao');
-assert.ok(saida[0].json.mensagem.startsWith('🚨 *RESUMÃO DO MERCADO — 2 NOTÍCIAS DO DIA*'));
+assert.ok(saida[0].json.mensagem.startsWith('🚨 *MERCADO HOJE — 2 NOTÍCIAS*'));
 assert.equal(saida[0].json.quantidadeNoticias,2);
-assert.ok(saida[0].json.mensagem.includes('*PRIMEIRA*'));
-assert.ok(saida[0].json.mensagem.includes('*SEGUNDA*'));
+const corpo=saida[0].json.mensagem.slice(0,saida[0].json.mensagem.indexOf('Notícia 1:'));
+assert.ok(!corpo.includes('*PRIMEIRA*')&&!corpo.includes('*SEGUNDA*'),'Resumão não deve trazer títulos internos.');
 assert.ok(saida[0].json.mensagem.includes('Notícia 1: https://braziljournal.com/a'));
+assert.ok(saida[0].json.mensagem.includes('Notícia 2: https://braziljournal.com/b'));
 // 5) Agenda, histórico e loop presentes no workflow.
 const names=w.nodes.map(n=>n.name);
 assert.ok(names.includes('Agenda · Decidir execução'));

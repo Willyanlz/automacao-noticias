@@ -10,13 +10,20 @@ const news=extract(fontes.map(story));assert.equal(news.length,5);assert(news.ev
 assert(news[0].json.mensagem.endsWith(fontes[0].link));
 assert(!extract([story(fontes[0])],false,{...config,enviarLinksFontes:false})[0].json.mensagem.includes('https://'));
 assert.equal(extract([])[0].json.semNoticias,true);
-const digest=extract(fontes.map(story).reverse(),true);assert.equal(digest.length,1);assert.equal(digest[0].json.quantidadeNoticias,5);assert.equal(digest[0].json.imagemUrl,'');
-assert(digest[0].json.mensagem.indexOf('*NOTÍCIA 1*')<digest[0].json.mensagem.indexOf('*NOTÍCIA 5*'));
-assert.throws(()=>extract(fontes.slice(0,4).map(story),true),/TODAS/);
+// Resumão: UM objeto com UM texto corrido (sem títulos internos nem emojis por notícia).
+const corrido='A B3 anunciou que os BDRs entrarão no Ibovespa em 2027, ampliando o leque do índice com exigências de liquidez mantidas. O governo ampliou os subsídios aos combustíveis, com custo fiscal estimado em R$ 7 bilhões por mês, o que pressiona o arcabouço. O Ibovespa caiu com o petróleo acima de US$ 100, enquanto o mercado passou a apostar em até três cortes da Selic ainda neste ano, aliviando a renda fixa. A Oracle surpreendeu Wall Street com demanda por IA em nuvem e elevou suas estimativas de lucro anual.';
+const digest=extract([{resumo:corrido}],true);assert.equal(digest.length,1);assert.equal(digest[0].json.quantidadeNoticias,5);assert.equal(digest[0].json.imagemUrl,'');
+assert(digest[0].json.mensagem.startsWith('🚨 *MERCADO HOJE'));
+assert(digest[0].json.mensagem.includes(corrido));
+assert(digest[0].json.mensagem.endsWith(fontes[4].link));
+assert(!digest[0].json.mensagem.slice(0,digest[0].json.mensagem.indexOf('Notícia 1:')).includes('*NOTÍCIA'));
+assert.throws(()=>extract([{resumo:'texto corrido curto demais para valer.'}],true),/corrido insuficiente/);
+assert.throws(()=>extract([{resumo:'texto com link inesperado https://example.com dentro do corpo. '.repeat(20)}],true),/links/);
+assert.throws(()=>extract(fontes.map(story),true),/exatamente um objeto/);
 assert.throws(()=>extract([{...story(fontes[0]),id:'forjado'}]),/desconhecida/);
 assert.throws(()=>extract([story(fontes[0]),story(fontes[0])]),/repetida/);
-const long=fontes.map(f=>({...story(f),resumo:story(f).resumo.repeat(3)}));
-assert(extract(long,true)[0].json.mensagem.length>3000);
+const enorme=[{resumo:'Fato relevante relatado pela fonte, com contexto suficiente para leigos entenderem o que mudou e por que importa. '.repeat(120)}];
+assert(extract(enorme,true)[0].json.mensagem.length>3000);
 const diario=new Function('$input','$',promptCode)({all:()=>[]},name=>({first:()=>({json:name==='Configurar Cliente'?config:{acao:'resumao',noticias:fontes.map(f=>({...f,registroId:f.id,resumo:f.texto}))}})}))[0].json;
-assert.equal(diario.noticias.length,5);assert(diario.prompt.includes('TODAS'));
-console.log('PASS notícias individuais com imagem, fontes, resumo único completo, ordem e ausência de corte em 3000.');
+assert.equal(diario.noticias.length,5);assert(diario.prompt.includes('texto corrido'));assert(diario.prompt.includes('sem títulos internos'));
+console.log('PASS notícias individuais com imagem, fontes, resumão em texto corrido único, sem títulos internos e sem corte em 3000.');

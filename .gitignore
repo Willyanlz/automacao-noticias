@@ -12,3 +12,7 @@ manutencao/deploy_api.sh
 manutencao/check_*.js
 manutencao/check_*.py
 manutencao/run_*.sh
+
+manutencao/wf-server.json
+manutencao/deploy-temp.json
+manutencao/tmp_*

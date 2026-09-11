@@ -41,13 +41,13 @@ const digest=run('Montar Prompt',[],{'Configurar Cliente':C,'Agenda · Decidir e
 assert.equal(digest.diario,true);
 assert.ok(digest.prompt.includes('texto corrido'));
 assert.ok(digest.prompt.includes('Não aplique teto global de 3000 caracteres'));
-const saida=run('Extrair Resposta da IA',[cand([{resumo:'Os bancos apresentaram os resultados do trimestre e os números explicam o que mudou nos indicadores divulgados hoje, com impacto direto na leitura do mercado sobre o segundo semestre. A fabricante da aviação anunciou novos pedidos e o volume sustenta a atividade do setor, reforçando a atenção de quem acompanha os resultados corporativos. Juntos, os dois acontecimentos mostram empresas operando com mudanças relevantes e ajudam a entender o clima dos investidores neste fechamento de semana. O texto segue corrido, sem títulos internos, cobrindo todos os acontecimentos enviados hoje.'}])],{'Configurar Cliente':C,'Montar Prompt':{first:()=>({json:digest})}});
+const saida=run('Extrair Resposta da IA',[cand([{resumo:'Os bancos apresentaram os resultados do trimestre e explicaram o que mudou nos indicadores, conforme os dados divulgados nas fontes. A fabricante da aviação anunciou novos pedidos de aeronaves, movimento que sustenta a atividade do setor e influencia a leitura do mercado sobre o segundo semestre. Juntos, os dois fatos mostram empresas operando com mudanças relevantes e merecem atenção de quem acompanha os resultados.'}])],{'Configurar Cliente':C,'Montar Prompt':{first:()=>({json:digest})}});
 assert.equal(saida.length,1);
 assert.equal(saida[0].json.tipo,'resumao');
 assert.ok(saida[0].json.mensagem.startsWith('🚨 *MERCADO HOJE — 2 NOTÍCIAS*'));
 assert.equal(saida[0].json.quantidadeNoticias,2);
-const corpo=saida[0].json.mensagem.slice(0,saida[0].json.mensagem.indexOf('Notícia 1:'));
-assert.ok(!corpo.includes('*PRIMEIRA*')&&!corpo.includes('*SEGUNDA*'),'Resumão não deve trazer títulos internos.');
+const corpo=saida[0].json.mensagem.slice(saida[0].json.mensagem.indexOf('NOTÍCIAS*')+9, saida[0].json.mensagem.indexOf('Notícia 1:'));
+assert.ok(!corpo.includes('*'), 'Texto corrido não pode ter títulos em negrito no corpo.');
 assert.ok(saida[0].json.mensagem.includes('Notícia 1: https://braziljournal.com/a'));
 assert.ok(saida[0].json.mensagem.includes('Notícia 2: https://braziljournal.com/b'));
 // 5) Agenda, histórico e loop presentes no workflow.

@@ -72,11 +72,11 @@
     },
     {
       "parameters": {
-        "url": "https://veja.abril.com.br/economia/feed/",
+        "url": "https://veja.abril.com.br/feed/",
         "options": {}
       },
       "id": "rss-veja",
-      "name": "RSS Veja Economia",
+      "name": "RSS Veja",
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
       "position": [

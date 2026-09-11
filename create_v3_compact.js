@@ -46,6 +46,7 @@ const configFields = [
   ['enviar', true, 'boolean'],
   ['enviarLinksFontes', false, 'boolean'],
   ['forcarAgora', '={{ Boolean($json.forcarAgora) }}', 'boolean'],
+  ['fluxo', '={{ $json.fluxo || \"noticias\" }}', 'string'],
 ];
 
 const decideCode = `
@@ -121,7 +122,10 @@ candidates = candidates.filter(item => {
   const text = normalize(item.titulo + ' ' + item.trecho);
   const score = keywords.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0);
   return { ...item, score };
-}).filter(item => item.score > 0).sort((a, b) => b.score - a.score || b.data - a.data).slice(0, Math.max(12, Number(config.maxNoticias || 3) * 8));
+});
+const scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);
+const withScore = scored.filter(item => item.score > 0);
+candidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));
 if (!plano.manual && candidates.length) {
   try {
     const response = await $http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });
@@ -252,7 +256,7 @@ return [{ json: { enviado: true, titulo: item.titulo, link: item.link, messageId
 
 const idsPrepCode = `
 const form = $input.first().json;
-const config = $('Configurar Cliente - IDs').first().json;
+const config = $('Configurar Cliente').first().json;
 const choice = String(form.opcao ?? form['O que você quer consultar?'] ?? '').trim();
 const filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();
 const map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'Instância e conexão': 'instancia' };
@@ -297,7 +301,15 @@ const config = add('Configurar Cliente', 'n8n-nodes-base.set', 3.4, [-1320, 200]
   assignments: { assignments: configFields.map(([name, value, type]) => ({ id: id('field'), name, value, type })) },
   options: {},
 });
-const decide = code('Decidir Acao', [-1040, 200], decideCode);
+const routeIds = add('Rota - Consulta IDs?', 'n8n-nodes-base.if', 2.2, [-1160, 200], {
+  conditions: {
+    options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+    conditions: [{ id: id('cond'), leftValue: '={{ $json.fluxo }}', rightValue: 'ids', operator: { type: 'string', operation: 'equals' } }],
+    combinator: 'and',
+  },
+  options: {},
+});
+const decide = code('Decidir Acao', [-920, 120], decideCode);
 const collect = code('Coletar Fontes e Historico', [-760, 200], collectCode);
 const prompt = code('Montar Prompt', [-480, 200], promptCode);
 const gemini = code('Gemini com Retry', [-200, 200], geminiCode);
@@ -308,8 +320,8 @@ const wait = add('Aguardar 8-10s', 'n8n-nodes-base.wait', 1.1, [920, 200], { amo
 const end = add('Fim', 'n8n-nodes-base.noOp', 1, [640, 420], {});
 
 const idsManual = add('IDs - Iniciar Consulta', 'n8n-nodes-base.manualTrigger', 1, [-1600, 760], {});
-const idsConfig = add('Configurar Cliente - IDs', 'n8n-nodes-base.set', 3.4, [-1320, 760], {
-  assignments: { assignments: configFields.map(([name, value, type]) => ({ id: id('field'), name, value, type })) },
+const idsFlag = add('Marcar Consulta IDs', 'n8n-nodes-base.set', 3.4, [-1460, 760], {
+  assignments: { assignments: [{ id: id('field'), name: 'fluxo', value: 'ids', type: 'string' }] },
   options: {},
 });
 const idsForm = add('IDs - O que Consultar?', 'n8n-nodes-base.wait', 1.1, [-1040, 760], {
@@ -332,7 +344,9 @@ sticky('V3 - Como usar', [-1600, -260], 'V3 compacta: 13 nos no fluxo de noticia
 link(trigger, config);
 link(manual, manualFlag);
 link(manualFlag, config);
-link(config, decide);
+link(config, routeIds);
+link(routeIds, idsForm, 0);
+link(routeIds, decide, 1);
 link(decide, collect);
 link(collect, prompt);
 link(prompt, gemini);
@@ -342,8 +356,8 @@ link(split, end, 0);
 link(split, send, 1);
 link(send, wait);
 link(wait, split);
-link(idsManual, idsConfig);
-link(idsConfig, idsForm);
+link(idsManual, idsFlag);
+link(idsFlag, config);
 link(idsForm, idsPrep);
 link(idsPrep, idsFetch);
 link(idsFetch, idsResult);

@@ -3,7 +3,7 @@
   "name": "Noticias de Investimento -> IA -> WhatsApp v3 compacta",
   "nodes": [
     {
-      "id": "scheduleTrigger-77c56232de",
+      "id": "scheduleTrigger-8deb9b77a7",
       "name": "Agenda - Verificar a cada minuto",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "manualTrigger-a8e1988855",
+      "id": "manualTrigger-1eb2098bcc",
       "name": "Noticias - Rodar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       "parameters": {}
     },
     {
-      "id": "set-f588ff2532",
+      "id": "set-1e6a4f66e7",
       "name": "Marcar Envio Manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -46,7 +46,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-fc8e0f123a",
+              "id": "field-c63b5518d3",
               "name": "forcarAgora",
               "value": true,
               "type": "boolean"
@@ -57,7 +57,7 @@
       }
     },
     {
-      "id": "set-ceb4be1cfa",
+      "id": "set-dbac2b60d2",
       "name": "Configurar Cliente",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -69,130 +69,136 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-55d200af01",
+              "id": "field-314c23b420",
               "name": "cliente",
               "value": "Iguera",
               "type": "string"
             },
             {
-              "id": "field-6d47e4fd29",
+              "id": "field-fe938d0377",
               "name": "numero",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-aa3c709787",
+              "id": "field-1ae4c75798",
               "name": "instancia",
               "value": "iguera",
               "type": "string"
             },
             {
-              "id": "field-5b24bbdb71",
+              "id": "field-b1bb5b26df",
               "name": "evolutionUrl",
               "value": "http://evolution-api:8080",
               "type": "string"
             },
             {
-              "id": "field-b40f93910d",
+              "id": "field-475f49cc08",
               "name": "evolutionApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-aa9b83908c",
+              "id": "field-f682a5cf25",
               "name": "geminiApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-352ecd44a6",
+              "id": "field-077590850b",
               "name": "modeloGemini",
               "value": "gemini-2.0-flash",
               "type": "string"
             },
             {
-              "id": "field-b5b53c167b",
+              "id": "field-85d3843c7a",
               "name": "historicoUrl",
               "value": "http://historico:8090",
               "type": "string"
             },
             {
-              "id": "field-b3301767b9",
+              "id": "field-41321c433f",
               "name": "periodicidade",
               "value": "intervalo",
               "type": "string"
             },
             {
-              "id": "field-589b470ce4",
+              "id": "field-417844993f",
               "name": "intervaloMinutos",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "field-46c10e6c20",
+              "id": "field-11f0634bf1",
               "name": "inicioEnvios",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-6e7e57b6ff",
+              "id": "field-3ea15b971f",
               "name": "fimEnvios",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-779226e74c",
+              "id": "field-3f3df456d4",
               "name": "horarioEnvioDiario",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-5c475c9099",
+              "id": "field-b190c1e5b5",
               "name": "horarioResumao",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-056b93d4ed",
+              "id": "field-c3f64ce0e2",
               "name": "resumaoAtivo",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-a735cf5c4a",
+              "id": "field-4f08cafbcf",
               "name": "maxNoticias",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "field-dec6453ebe",
+              "id": "field-2ffa2a1746",
               "name": "janelaHoras",
               "value": 24,
               "type": "number"
             },
             {
-              "id": "field-107ec4e562",
+              "id": "field-9b5782677e",
               "name": "usarImagem",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-83b1c2de12",
+              "id": "field-55507ab7c1",
               "name": "enviar",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-98873e1761",
+              "id": "field-984fa81fdb",
               "name": "enviarLinksFontes",
               "value": false,
               "type": "boolean"
             },
             {
-              "id": "field-7598530339",
+              "id": "field-398319c6d5",
               "name": "forcarAgora",
               "value": "={{ Boolean($json.forcarAgora) }}",
               "type": "boolean"
+            },
+            {
+              "id": "field-540eb758f2",
+              "name": "fluxo",
+              "value": "={{ $json.fluxo || \"noticias\" }}",
+              "type": "string"
             }
           ]
         },
@@ -200,13 +206,46 @@
       }
     },
     {
-      "id": "code-cc9f71bcf5",
+      "id": "if-aaf97c8fbe",
+      "name": "Rota - Consulta IDs?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1160,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-648072694f",
+              "leftValue": "={{ $json.fluxo }}",
+              "rightValue": "ids",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-c05d2e5578",
       "name": "Decidir Acao",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1040,
-        200
+        -920,
+        120
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
@@ -214,7 +253,7 @@
       }
     },
     {
-      "id": "code-063acec8a1",
+      "id": "code-89e28a3d26",
       "name": "Coletar Fontes e Historico",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -224,11 +263,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const plano = $('Decidir Acao').first().json;\nconst config = plano.config;\nconst baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');\nconst strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\nconst tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');\nconst attr = (html, pattern) => (html.match(pattern) || [])[1] || '';\nconst normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nif (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];\nif (plano.acao === 'resumao') {\n  const rows = await $http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia, json: true });\n  const noticias = (Array.isArray(rows) ? rows : []).filter(row => row.link).map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.titulo || row.link, imagemUrl: '' }));\n  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];\n}\nconst feeds = [\n  'https://www.infomoney.com.br/feed/',\n  'https://www.moneytimes.com.br/feed/',\n  'https://braziljournal.com/feed/',\n  'https://veja.abril.com.br/feed/',\n];\nlet candidates = [];\nfor (const feed of feeds) {\n  try {\n    const xml = await $http({ method: 'GET', url: feed, timeout: 20000 });\n    const blocks = String(xml).match(/<item[\\s\\S]*?<\\/item>/gi) || [];\n    for (const block of blocks) {\n      const link = tag(block, 'link') || tag(block, 'guid');\n      const date = Date.parse(tag(block, 'pubDate') || tag(block, 'dc:date') || tag(block, 'updated') || '');\n      candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=[\"']([^\"']+)[\"']/i) });\n    }\n  } catch (error) {\n    console.log('Falha no RSS ' + feed + ': ' + error.message);\n  }\n}\nconst allowedDomains = /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//i;\nconst keywords = ['banco','itau','bradesco','santander','btg','nubank','xp','fed','banco central','copom','selic','juros','ipca','inflacao','pib','dolar','cambio','ibovespa','bolsa','acoes','b3','dividendos','jcp','resultado','lucro','receita','ebitda','guidance','fato relevante','petrobras','vale','commodities','petroleo','minerio','tesouro','cdb','lci','lca','fii','fundos','renda fixa','credito','china','eua','s&p 500','nasdaq'];\nconst seen = new Set();\ncandidates = candidates.filter(item => {\n  if (!allowedDomains.test(item.link)) return false;\n  if (Number.isFinite(item.data) && Date.now() - item.data > Number(config.janelaHoras || 24) * 3600000) return false;\n  const key = normalize(item.titulo) + '|' + item.link;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n}).map(item => {\n  const text = normalize(item.titulo + ' ' + item.trecho);\n  const score = keywords.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0);\n  return { ...item, score };\n}).filter(item => item.score > 0).sort((a, b) => b.score - a.score || b.data - a.data).slice(0, Math.max(12, Number(config.maxNoticias || 3) * 8));\nif (!plano.manual && candidates.length) {\n  try {\n    const response = await $http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });\n    const allowed = new Set(response.links || []);\n    candidates = candidates.filter(item => allowed.has(item.link));\n  } catch (error) {\n    console.log('Historico indisponivel em /verifica: ' + error.message);\n  }\n}\nconst noticias = [];\nfor (const item of candidates) {\n  try {\n    const html = await $http({ method: 'GET', url: item.link, timeout: 20000 });\n    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eé]m|^veja tamb[eé]m/i.test(text));\n    const image = attr(String(html), /<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || attr(String(html), /<meta[^>]+name=[\"']twitter:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || item.imagemUrl;\n    const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;\n    if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });\n  } catch (error) {\n    console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);\n  }\n}\nreturn noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias novas com texto suficiente', plano, config } }];"
+        "jsCode": "const plano = $('Decidir Acao').first().json;\nconst config = plano.config;\nconst baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');\nconst strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\nconst tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');\nconst attr = (html, pattern) => (html.match(pattern) || [])[1] || '';\nconst normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nif (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];\nif (plano.acao === 'resumao') {\n  const rows = await $http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia, json: true });\n  const noticias = (Array.isArray(rows) ? rows : []).filter(row => row.link).map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.titulo || row.link, imagemUrl: '' }));\n  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];\n}\nconst feeds = [\n  'https://www.infomoney.com.br/feed/',\n  'https://www.moneytimes.com.br/feed/',\n  'https://braziljournal.com/feed/',\n  'https://veja.abril.com.br/feed/',\n];\nlet candidates = [];\nfor (const feed of feeds) {\n  try {\n    const xml = await $http({ method: 'GET', url: feed, timeout: 20000 });\n    const blocks = String(xml).match(/<item[\\s\\S]*?<\\/item>/gi) || [];\n    for (const block of blocks) {\n      const link = tag(block, 'link') || tag(block, 'guid');\n      const date = Date.parse(tag(block, 'pubDate') || tag(block, 'dc:date') || tag(block, 'updated') || '');\n      candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=[\"']([^\"']+)[\"']/i) });\n    }\n  } catch (error) {\n    console.log('Falha no RSS ' + feed + ': ' + error.message);\n  }\n}\nconst allowedDomains = /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//i;\nconst keywords = ['banco','itau','bradesco','santander','btg','nubank','xp','fed','banco central','copom','selic','juros','ipca','inflacao','pib','dolar','cambio','ibovespa','bolsa','acoes','b3','dividendos','jcp','resultado','lucro','receita','ebitda','guidance','fato relevante','petrobras','vale','commodities','petroleo','minerio','tesouro','cdb','lci','lca','fii','fundos','renda fixa','credito','china','eua','s&p 500','nasdaq'];\nconst seen = new Set();\ncandidates = candidates.filter(item => {\n  if (!allowedDomains.test(item.link)) return false;\n  if (Number.isFinite(item.data) && Date.now() - item.data > Number(config.janelaHoras || 24) * 3600000) return false;\n  const key = normalize(item.titulo) + '|' + item.link;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n}).map(item => {\n  const text = normalize(item.titulo + ' ' + item.trecho);\n  const score = keywords.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0);\n  return { ...item, score };\n});\nconst scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);\nconst withScore = scored.filter(item => item.score > 0);\ncandidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));\nif (!plano.manual && candidates.length) {\n  try {\n    const response = await $http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });\n    const allowed = new Set(response.links || []);\n    candidates = candidates.filter(item => allowed.has(item.link));\n  } catch (error) {\n    console.log('Historico indisponivel em /verifica: ' + error.message);\n  }\n}\nconst noticias = [];\nfor (const item of candidates) {\n  try {\n    const html = await $http({ method: 'GET', url: item.link, timeout: 20000 });\n    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eé]m|^veja tamb[eé]m/i.test(text));\n    const image = attr(String(html), /<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || attr(String(html), /<meta[^>]+name=[\"']twitter:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || item.imagemUrl;\n    const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;\n    if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });\n  } catch (error) {\n    console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);\n  }\n}\nreturn noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias novas com texto suficiente', plano, config } }];"
       }
     },
     {
-      "id": "code-0675b764a9",
+      "id": "code-94cc4d8b3a",
       "name": "Montar Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -242,7 +281,7 @@
       }
     },
     {
-      "id": "code-14ba053c8e",
+      "id": "code-319546289e",
       "name": "Gemini com Retry",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -256,7 +295,7 @@
       }
     },
     {
-      "id": "code-170d3c7d2e",
+      "id": "code-68f048ae2c",
       "name": "Preparar Mensagens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -270,7 +309,7 @@
       }
     },
     {
-      "id": "splitInBatches-fbf2b5543e",
+      "id": "splitInBatches-78c4ef57fe",
       "name": "Uma mensagem por vez",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -284,7 +323,7 @@
       }
     },
     {
-      "id": "code-dff8a43c50",
+      "id": "code-22b2c65d6f",
       "name": "Enviar e Registrar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -298,7 +337,7 @@
       }
     },
     {
-      "id": "wait-4e38c334f8",
+      "id": "wait-f606900d68",
       "name": "Aguardar 8-10s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -311,7 +350,7 @@
       }
     },
     {
-      "id": "noOp-55a5832451",
+      "id": "noOp-b30ccb56ab",
       "name": "Fim",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
@@ -322,7 +361,7 @@
       "parameters": {}
     },
     {
-      "id": "manualTrigger-efc6fdc6a8",
+      "id": "manualTrigger-bd9401874b",
       "name": "IDs - Iniciar Consulta",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -333,142 +372,22 @@
       "parameters": {}
     },
     {
-      "id": "set-397f6f2966",
-      "name": "Configurar Cliente - IDs",
+      "id": "set-90b3499705",
+      "name": "Marcar Consulta IDs",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1320,
+        -1460,
         760
       ],
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "field-7930523c7e",
-              "name": "cliente",
-              "value": "Iguera",
+              "id": "field-1d7e4a3b46",
+              "name": "fluxo",
+              "value": "ids",
               "type": "string"
-            },
-            {
-              "id": "field-a03caa995a",
-              "name": "numero",
-              "value": "",
-              "type": "string"
-            },
-            {
-              "id": "field-65adffcdd4",
-              "name": "instancia",
-              "value": "iguera",
-              "type": "string"
-            },
-            {
-              "id": "field-4903436715",
-              "name": "evolutionUrl",
-              "value": "http://evolution-api:8080",
-              "type": "string"
-            },
-            {
-              "id": "field-2fe2efbb5e",
-              "name": "evolutionApiKey",
-              "value": "",
-              "type": "string"
-            },
-            {
-              "id": "field-b2e83c7d09",
-              "name": "geminiApiKey",
-              "value": "",
-              "type": "string"
-            },
-            {
-              "id": "field-016335e687",
-              "name": "modeloGemini",
-              "value": "gemini-2.0-flash",
-              "type": "string"
-            },
-            {
-              "id": "field-5264b6c9d5",
-              "name": "historicoUrl",
-              "value": "http://historico:8090",
-              "type": "string"
-            },
-            {
-              "id": "field-42bba4802c",
-              "name": "periodicidade",
-              "value": "intervalo",
-              "type": "string"
-            },
-            {
-              "id": "field-ceaa38b7eb",
-              "name": "intervaloMinutos",
-              "value": 60,
-              "type": "number"
-            },
-            {
-              "id": "field-e846d0e300",
-              "name": "inicioEnvios",
-              "value": "08:00",
-              "type": "string"
-            },
-            {
-              "id": "field-006550004a",
-              "name": "fimEnvios",
-              "value": "19:00",
-              "type": "string"
-            },
-            {
-              "id": "field-6a68d36330",
-              "name": "horarioEnvioDiario",
-              "value": "08:00",
-              "type": "string"
-            },
-            {
-              "id": "field-33f5213d10",
-              "name": "horarioResumao",
-              "value": "19:00",
-              "type": "string"
-            },
-            {
-              "id": "field-5e12c34dee",
-              "name": "resumaoAtivo",
-              "value": true,
-              "type": "boolean"
-            },
-            {
-              "id": "field-26d816d34f",
-              "name": "maxNoticias",
-              "value": 3,
-              "type": "number"
-            },
-            {
-              "id": "field-22c7fbe6ce",
-              "name": "janelaHoras",
-              "value": 24,
-              "type": "number"
-            },
-            {
-              "id": "field-500c9fed26",
-              "name": "usarImagem",
-              "value": true,
-              "type": "boolean"
-            },
-            {
-              "id": "field-ce16ee6e59",
-              "name": "enviar",
-              "value": true,
-              "type": "boolean"
-            },
-            {
-              "id": "field-981bc31811",
-              "name": "enviarLinksFontes",
-              "value": false,
-              "type": "boolean"
-            },
-            {
-              "id": "field-5383d38b1e",
-              "name": "forcarAgora",
-              "value": "={{ Boolean($json.forcarAgora) }}",
-              "type": "boolean"
             }
           ]
         },
@@ -476,7 +395,7 @@
       }
     },
     {
-      "id": "wait-297e8fe44d",
+      "id": "wait-475afd974c",
       "name": "IDs - O que Consultar?",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -530,7 +449,7 @@
       "webhookId": "ids-v3-compact-form"
     },
     {
-      "id": "code-0191caa4d5",
+      "id": "code-5b5b729023",
       "name": "IDs - Preparar Consulta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -540,11 +459,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const form = $input.first().json;\nconst config = $('Configurar Cliente - IDs').first().json;\nconst choice = String(form.opcao ?? form['O que você quer consultar?'] ?? '').trim();\nconst filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();\nconst map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'Instância e conexão': 'instancia' };\nconst tipo = map[choice] || 'todos';\nconst base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');\nconst instancia = String(config.instancia || '').trim();\nconst url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=false';\nreturn [{ json: { tipo, filtro: filter, url, config } }];"
+        "jsCode": "const form = $input.first().json;\nconst config = $('Configurar Cliente').first().json;\nconst choice = String(form.opcao ?? form['O que você quer consultar?'] ?? '').trim();\nconst filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();\nconst map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'Instância e conexão': 'instancia' };\nconst tipo = map[choice] || 'todos';\nconst base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');\nconst instancia = String(config.instancia || '').trim();\nconst url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=false';\nreturn [{ json: { tipo, filtro: filter, url, config } }];"
       }
     },
     {
-      "id": "code-fb665c8609",
+      "id": "code-5c5f1450a2",
       "name": "IDs - Consultar Evolution",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -558,7 +477,7 @@
       }
     },
     {
-      "id": "code-8dffb31dc2",
+      "id": "code-12df0196f2",
       "name": "IDs - Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -572,7 +491,7 @@
       }
     },
     {
-      "id": "stickyNote-570d120efe",
+      "id": "stickyNote-64ed1d2c84",
       "name": "V3 - Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -623,6 +542,24 @@
     },
     "Configurar Cliente": {
       "main": [
+        [
+          {
+            "node": "Rota - Consulta IDs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rota - Consulta IDs?": {
+      "main": [
+        [
+          {
+            "node": "IDs - O que Consultar?",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Decidir Acao",
@@ -731,18 +668,18 @@
       "main": [
         [
           {
-            "node": "Configurar Cliente - IDs",
+            "node": "Marcar Consulta IDs",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Configurar Cliente - IDs": {
+    "Marcar Consulta IDs": {
       "main": [
         [
           {
-            "node": "IDs - O que Consultar?",
+            "node": "Configurar Cliente",
             "type": "main",
             "index": 0
           }

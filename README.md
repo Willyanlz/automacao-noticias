@@ -1,12 +1,68 @@
-# Notícias para WhatsApp — n8n + Evolution + Gemini
+# Notícias para WhatsApp — n8n + Evolution + Gemini (v2)
 
 Automação de notícias de investimentos para WhatsApp: coleta RSS de fontes
 financeiras brasileiras, filtra por palavras-chave, busca a matéria, gera
 texto didático com Gemini e envia pelo WhatsApp (Evolution API).
 
-**Para compartilhar o workflow, envie somente `noticias_investimento_whatsapp.json`.**
-Os códigos dos cards já estão dentro desse arquivo. Quem importar não precisa
-dos arquivos `.js`/`.cjs` nem executá-los.
+**Versão 2**: simplificada de 56 para 24 nós, sem microsserviço externo complexo.
+
+## Como funciona
+
+1. **Coleta**: RSS de InfoMoney, Money Times, Brazil Journal e Veja Economia.
+2. **Filtro de palavras-chave**: filtro editorial com 38 termos relevantes para investidores.
+3. **Seleção com Gemini**: prioriza notícias com potencial de impacto em mercados.
+4. **Envio programado**: `periodicidade` (intervalo/diário), `intervaloMinutos`,
+   `inicioEnvios`/`fimEnvios` e `horarioEnvioDiario` configuráveis.
+5. **Resumão do dia**: no `horarioResumao`, uma única mensagem com TODAS as notícias
+   confirmadas como enviadas naquele dia.
+6. **Histórico persistente** (`historico/`): serviço mínimo com 3 endpoints
+   (registrar, verificar, listar) — evita repetição e alimenta o resumão.
+
+## Modos de execução
+
+### Automático (agendado)
+- Roda a cada minuto
+- Respeita `inicioEnvios`/`fimEnvios`
+- Deduplica notícias já enviadas
+- Respeita `intervaloMinutos` entre envios
+
+### Manual (Free Run) — **SEM TRAVAS**
+- Clique em "Execute Workflow" para rodar imediatamente
+- Sem verificação de horário
+- Sem bloqueio de duplicidade (mas registra no histórico)
+- Ideal para testes e envios urgentes
+
+## Configuração no n8n
+
+1. Importe `noticias_v2.json`. O workflow importa **inativo**.
+2. No card **Configurar Cliente**, ajuste:
+   - `cliente`, `instancia`, `numero`, `evolutionUrl`, `modeloGemini`, `geminiApiKey`
+   - `periodicidade` (intervalo/diário), `intervaloMinutos`, `inicioEnvios`, `fimEnvios`
+   - `horarioResumao`, `horarioEnvioDiario`, `maxNoticias`, `enviarLinksFontes`
+3. Crie a credencial **Header Auth** da Evolution (Name `apikey`, Value do token).
+4. `enviar=false` apenas revisa; `enviar=true` envia. Publique após configurar.
+
+## Docker (Evolution + Histórico)
+
+```bash
+cd evolution
+docker compose up -d
+```
+
+O serviço `historico` (porta interna 8090) substitui o antigo `noticias-estado`.
+Volume persistente: `historico_data:/data`.
+
+## Organização
+
+| Local | Finalidade |
+| --- | --- |
+| `noticias_v2.json` | Workflow principal v2 (24 nós) para importar/compartilhar. |
+| `consultar_ids_v2.json` | Helper separado para consultar IDs WhatsApp. |
+| `historico/` | Serviço mínimo de histórico (3 endpoints, SQLite). |
+| `evolution/` | Docker da Evolution API + histórico. |
+
+> Este repositório é **público**: não inclua tokens, chaves, senhas, IPs de
+> servidor ou dados de clientes reais nos arquivos versionados.
 
 ## Como funciona
 

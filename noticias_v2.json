@@ -1,0 +1,846 @@
+{
+  "name": "Noticias de Investimento -> IA -> WhatsApp (Diario) v2",
+  "nodes": [
+    {
+      "id": "agenda-trigger",
+      "name": "Agenda · Verificar a cada minuto",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2000,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "* * * * *"
+            }
+          ]
+        }
+      },
+      "notes": "Verifica a cada minuto. Modo manual = free run, sem travas."
+    },
+    {
+      "id": "config-cliente",
+      "name": "Configurar Cliente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1780,
+        200
+      ],
+      "parameters": {
+        "assignments": {
+          "values": [
+            {
+              "name": "cliente",
+              "value": "Iguera",
+              "type": "string"
+            },
+            {
+              "name": "instancia",
+              "value": "iguera-news",
+              "type": "string"
+            },
+            {
+              "name": "numero",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "name": "evolutionUrl",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "name": "modeloGemini",
+              "value": "gemini-2.0-flash",
+              "type": "string"
+            },
+            {
+              "name": "historicoUrl",
+              "value": "http://historico:8090",
+              "type": "string"
+            },
+            {
+              "name": "periodicidade",
+              "value": "intervalo",
+              "type": "string"
+            },
+            {
+              "name": "intervaloMinutos",
+              "value": 60,
+              "type": "number"
+            },
+            {
+              "name": "inicioEnvios",
+              "value": "08:00",
+              "type": "string"
+            },
+            {
+              "name": "fimEnvios",
+              "value": "18:00",
+              "type": "string"
+            },
+            {
+              "name": "horarioResumao",
+              "value": "19:00",
+              "type": "string"
+            },
+            {
+              "name": "horarioEnvioDiario",
+              "value": "08:00",
+              "type": "string"
+            },
+            {
+              "name": "maxNoticias",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "name": "enviarLinksFontes",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "name": "enviar",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "name": "geminiApiKey",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "decisao-acao",
+      "name": "Decidir Acao",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1560,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const config=$input.first().json;const agora=new Date();const hora=agora.getHours()*60+agora.getMinutes();const modoManual=$execution.mode===\"manual\";const [hi,mi]=(config.inicioEnvios||\"08:00\").split(\":\").map(Number);const [hf,mf]=(config.fimEnvios||\"18:00\").split(\":\").map(Number);const [hr,mr]=(config.horarioResumao||\"19:00\").split(\":\").map(Number);const [hd,md]=(config.horarioEnvioDiario||\"08:00\").split(\":\").map(Number);const p=config.periodicidade||\"intervalo\";let acao=\"nada\";if(modoManual){acao=\"noticias\";}else{if(hora>=hr*60+mr&&hora<hr*60+mr+5){acao=\"resumao\";}else if(p===\"diario\"){if(hora>=hd*60+md&&hora<hd*60+md+5)acao=\"noticias\";}else{if(hora>=hi*60+mi&&hora<=hf*60+mf){const ult=parseInt($env.LAST_NEWS_SEND||\"0\");const int=(config.intervaloMinutos||60)*60000;if(Date.now()-ult>=int)acao=\"noticias\";}}}return[{json:{acao,jobId:$execution.id,config,diaAtual:agora.toISOString().split(\"T\")[0],modoManual,timestamp:Date.now()}}];"
+      }
+    },
+    {
+      "id": "rota-nada",
+      "name": "Rota · Nada a fazer",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1340,
+        400
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "rota-noticias",
+      "name": "Rota · Coletar RSS?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1340,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.acao }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "noticias"
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "rss-infomoney",
+      "name": "RSS InfoMoney",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        -1120,
+        -50
+      ],
+      "parameters": {
+        "url": "https://www.infomoney.com.br/feed/",
+        "options": {}
+      }
+    },
+    {
+      "id": "rss-moneytimes",
+      "name": "RSS Money Times",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        -1120,
+        100
+      ],
+      "parameters": {
+        "url": "https://www.moneytimes.com.br/feed/",
+        "options": {}
+      }
+    },
+    {
+      "id": "rss-braziljournal",
+      "name": "RSS Brazil Journal",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        -1120,
+        250
+      ],
+      "parameters": {
+        "url": "https://braziljournal.com/feed/",
+        "options": {}
+      }
+    },
+    {
+      "id": "rss-veja",
+      "name": "RSS Veja",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        -1120,
+        400
+      ],
+      "parameters": {
+        "url": "https://veja.abril.com.br/economia/feed/",
+        "options": {}
+      }
+    },
+    {
+      "id": "merge-rss",
+      "name": "Juntar RSS",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -900,
+        200
+      ],
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 4,
+        "options": {}
+      }
+    },
+    {
+      "id": "filtrar-noticias",
+      "name": "Filtrar + Deduplicar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const decisao=$(\"Decidir Acao\").first().json;const config=decisao.config;const modoManual=decisao.modoManual;const historicoUrl=config.historicoUrl||\"http://historico:8090\";let noticias=[];for(const item of $input.all()){const j=item.json;if(j.title||j.content)noticias.push({title:j.title||\"\",link:j.link||j.id||\"\",content:j.content||j.contentSnippet||j.summary||\"\"});}if(!modoManual&&noticias.length>0){try{const links=noticias.map(n=>n.link).filter(Boolean);const resp=await $http({method:\"POST\",url:historicoUrl+\"/verifica\",body:{links}});const unicos=resp.links||[];noticias=noticias.filter(n=>unicos.includes(n.link));}catch(e){console.log(\"Erro historico:\",e.message);}}const pk=[\"investimento\",\"mercado\",\"acoes\",\"bolsa\",\"renda fixa\",\"cdb\",\"lci\",\"lca\",\"tesouro\",\"selic\",\"inflacao\",\"ipca\",\"dolar\",\"cripto\",\"bitcoin\",\"fii\",\"fundos\",\"dividendos\",\"petrobras\",\"vale\",\"itau\",\"bradesco\",\"banco central\",\"fed\",\"juros\",\"pib\",\"recessao\",\"alta\",\"queda\"];function rel(t,c){const tx=(t+\" \"+c).toLowerCase();let s=0;for(const p of pk)if(tx.includes(p))s++;return s;}const fil=noticias.map(n=>({...n,r:rel(n.title,n.content)})).filter(n=>n.r>=1).sort((a,b)=>b.r-a.r).slice(0,config.maxNoticias||5);if(fil.length===0)return[{json:{semNoticias:true}}];return fil.map(n=>({json:n}));"
+      }
+    },
+    {
+      "id": "buscar-materias",
+      "name": "Buscar Materias",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -460,
+        200
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.link }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "extrair-conteudo",
+      "name": "Extrair Texto e Imagem",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        200
+      ],
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "titulo",
+              "selector": "h1, article h1",
+              "returnValue": "text"
+            },
+            {
+              "key": "conteudo",
+              "selector": "article p, .article-body p",
+              "returnValue": "text",
+              "returnArray": true
+            },
+            {
+              "key": "imagem",
+              "selector": "article img, .article-body img",
+              "returnValue": "attribute",
+              "attribute": "src",
+              "returnArray": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "montar-prompt",
+      "name": "Montar Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const dados=$input.first().json;const config=dados.config||{};const decisao=$('Decidir Acao').first().json;const modoManual=decisao.modoManual;const materias=$input.all().map(item=>{const j=item.json;const c=Array.isArray(j.conteudo)?j.conteudo.join(' '):(j.conteudo||'');const imgs=Array.isArray(j.imagem)?j.imagem:(j.imagem?[j.imagem]:[]);return{titulo:j.titulo||j.title||'',link:j.link||'',conteudo:c.slice(0,2000),imagens:imgs.filter(i=>i&&i.startsWith('http')).slice(0,1)};}).filter(m=>m.conteudo.length>50);if(materias.length===0)return[{json:{semNoticias:true}}];const p='Analise estas noticias e resuma em JSON: {\"tipo\":\"noticias\",\"itens\":[{\"id\":\"link\",\"titulo\":\"...\",\"emoji\":\"📈\",\"resumo\":\"...\"}]}\\n\\n'+materias.map((m,i)=>'['+(i+1)+'] '+m.titulo+'\\n'+m.conteudo+'\\nLink: '+m.link).join('\\n\\n');return[{json:{prompt:p,config,modoManual,historicoUrl:(config.historicoUrl||'http://historico:8090')}}];"
+      }
+    },
+    {
+      "id": "gemini-retry",
+      "name": "Gemini com Retry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const inp=$input.first().json;const prompt=inp.prompt;const config=inp.config;const modelo=config.modeloGemini||'gemini-2.0-flash';const apiKey=config.geminiApiKey;if(!apiKey)throw new Error('geminiApiKey nao configurada');const maxT=3;let err=null;for(let t=1;t<=maxT;t++){try{const resp=await $http({method:'POST',url:'https://generativelanguage.googleapis.com/v1beta/models/'+modelo+':generateContent?key='+apiKey,headers:{'Content-Type':'application/json'},body:{contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',temperature:0.7,maxOutputTokens:2048}}});const txt=resp?.candidates?.[0]?.content?.parts?.[0]?.text;if(!txt)throw new Error('Vazio');const j=JSON.parse(txt);if(!j.tipo||!j.itens)throw new Error('Formato invalido');return[{json:{sucesso:true,dados:j,tentativa:t,config,modoManual:inp.modoManual,historicoUrl:inp.historicoUrl}}];}catch(e){err=e;console.log('T'+t+' falhou:',e.message);if(t<maxT)await new Promise(r=>setTimeout(r,2000*t));}}return[{json:{sucesso:false,erro:err?.message||'Falha',modoManual:inp.modoManual}}];"
+      }
+    },
+    {
+      "id": "validar-resposta",
+      "name": "Validar Resposta",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.sucesso }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "preparar-envio",
+      "name": "Preparar Envio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        100
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const dados=$input.first().json;const itens=dados.dados.itens;const config=dados.config;return itens.map(item=>{const linkNoticia=item.id&&item.id.startsWith('http')?item.id:(dados.materias?.[0]||'');const texto=(item.emoji||'📰')+' *'+item.titulo+'*\\n\\n'+item.resumo+'\\n\\n'+(config.enviarLinksFontes&&linkNoticia?'🔗 '+linkNoticia:'');return{titulo:item.titulo,texto:texto.trim(),imagemUrl:item.imagem||'',link:linkNoticia,config,modoManual:dados.modoManual,historicoUrl:dados.historicoUrl};});"
+      }
+    },
+    {
+      "id": "split-envio",
+      "name": "Uma noticia por vez",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        860,
+        100
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "tem-imagem",
+      "name": "Tem Imagem?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1080,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.imagemUrl }}",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "enviar-imagem",
+      "name": "Enviar Imagem (Evolution)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($json.config.evolutionUrl || '').replace(/\\/$/, '') + '/sendMedia/' + $json.config.instancia }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {number:$json.config.numero,media:$json.imagemUrl,caption:$json.texto} }}",
+        "options": {
+          "timeout": 30000
+        },
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "evolution-api",
+            "name": "Evolution API"
+          }
+        }
+      }
+    },
+    {
+      "id": "enviar-texto",
+      "name": "Enviar Texto (Evolution)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($json.config.evolutionUrl || '').replace(/\\/$/, '') + '/sendMessage/' + $json.config.instancia }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {number:$json.config.numero,text:$json.texto} }}",
+        "options": {
+          "timeout": 30000
+        },
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "evolution-api",
+            "name": "Evolution API"
+          }
+        }
+      }
+    },
+    {
+      "id": "aguardar-intervalo",
+      "name": "Aguardar 8-10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1520,
+        100
+      ],
+      "parameters": {
+        "unit": "seconds",
+        "value": 9
+      }
+    },
+    {
+      "id": "confirmar-envio",
+      "name": "Confirmar + Registrar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1740,
+        100
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const dados=$input.first().json;const config=dados.config;const historicoUrl=dados.historicoUrl;if(!dados.modoManual&&historicoUrl){try{await $http({method:'POST',url:historicoUrl+'/registrar',body:{link:dados.link,titulo:dados.titulo,jobId:$execution.id}});}catch(e){console.log('Erro registrar:',e.message);}}$env.LAST_NEWS_SEND=String(Date.now());return[{json:{enviado:true,titulo:dados.titulo}}];"
+      }
+    },
+    {
+      "id": "sticky-como-usar",
+      "name": "Como usar",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2000,
+        -250
+      ],
+      "parameters": {
+        "content": "## Noticias v2 - Simplificado (24 nos)\n\n### Modo Manual (Free Run)\n- Clique em 'Execute Workflow' para rodar imediatamente\n- Sem travamento de horario\n- Sem verificacao de duplicidade\n- Ideal para testes e envios urgentes\n\n### Modo Automatico (Agendado)\n- Roda a cada minuto\n- Respeita inicioEnvios/fimEnvios\n- Deduplica noticias ja enviadas\n- Envia resumao em horarioResumao",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    }
+  ],
+  "connections": {
+    "Agenda · Verificar a cada minuto": {
+      "main": [
+        [
+          {
+            "node": "Configurar Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Configurar Cliente": {
+      "main": [
+        [
+          {
+            "node": "Decidir Acao",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Decidir Acao": {
+      "main": [
+        [
+          {
+            "node": "Rota · Coletar RSS?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rota · Nada a fazer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rota · Coletar RSS?": {
+      "main": [
+        [
+          {
+            "node": "RSS InfoMoney",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RSS Money Times",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RSS Brazil Journal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RSS Veja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS InfoMoney": {
+      "main": [
+        [
+          {
+            "node": "Juntar RSS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "RSS Money Times": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Juntar RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Brazil Journal": {
+      "main": [
+        [],
+        [],
+        [
+          {
+            "node": "Juntar RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Veja": {
+      "main": [
+        [],
+        [],
+        [],
+        [
+          {
+            "node": "Juntar RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Juntar RSS": {
+      "main": [
+        [
+          {
+            "node": "Filtrar + Deduplicar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Filtrar + Deduplicar": {
+      "main": [
+        [
+          {
+            "node": "Buscar Materias",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Buscar Materias": {
+      "main": [
+        [
+          {
+            "node": "Extrair Texto e Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Extrair Texto e Imagem": {
+      "main": [
+        [
+          {
+            "node": "Montar Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Montar Prompt": {
+      "main": [
+        [
+          {
+            "node": "Gemini com Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Gemini com Retry": {
+      "main": [
+        [
+          {
+            "node": "Validar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Validar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Preparar Envio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Preparar Envio": {
+      "main": [
+        [
+          {
+            "node": "Uma noticia por vez",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Uma noticia por vez": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Tem Imagem?",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Tem Imagem?": {
+      "main": [
+        [
+          {
+            "node": "Enviar Imagem (Evolution)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Enviar Texto (Evolution)",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        []
+      ]
+    },
+    "Enviar Imagem (Evolution)": {
+      "main": [
+        [
+          {
+            "node": "Aguardar 8-10s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Enviar Texto (Evolution)": {
+      "main": [
+        [
+          {
+            "node": "Aguardar 8-10s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Aguardar 8-10s": {
+      "main": [
+        [
+          {
+            "node": "Confirmar + Registrar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Confirmar + Registrar": {
+      "main": [
+        [
+          {
+            "node": "Uma noticia por vez",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timezone": "America/Sao_Paulo"
+  },
+  "versionId": "v2-1789137074149",
+  "meta": {
+    "instanceId": "financas-iguera-v2"
+  },
+  "tags": []
+}

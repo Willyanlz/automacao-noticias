@@ -28,15 +28,13 @@ services:
       timeout: 5s
       start_period: 120s
       retries: 5
-  noticias-estado:
-    build: ./noticias-estado
-    image: SEU_USUARIO/noticias-estado:1
+  historico:
+    build: ../historico
     restart: unless-stopped
-    env_file: .env-news
     volumes:
-      - noticias_history:/data
+      - historico_data:/data
     networks: [n8n]
-    mem_limit: 128m
+    mem_limit: 64m
     read_only: true
     tmpfs: [/tmp]
     cap_drop: [ALL]
@@ -85,7 +83,7 @@ services:
       driver: json-file
       options: {max-size: "10m", max-file: "3"}
 volumes:
-  noticias_history:
+  historico_data:
   instances:
   postgres:
   redis:

@@ -82,9 +82,22 @@ const strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '')
 const tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');
 const attr = (html, pattern) => (html.match(pattern) || [])[1] || '';
 const normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
+  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };
+  if (body !== undefined) {
+    init.body = typeof body === 'string' ? body : JSON.stringify(body);
+    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';
+  }
+  const response = await fetch(url, init);
+  const text = await response.text();
+  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));
+  if (json) return text ? JSON.parse(text) : null;
+  return text;
+};
+// collect helper inserted
 if (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];
 if (plano.acao === 'resumao') {
-  const rows = await $http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia, json: true });
+  const rows = await http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia, json: true });
   const noticias = (Array.isArray(rows) ? rows : []).filter(row => row.link).map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.titulo || row.link, imagemUrl: '' }));
   return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];
 }
@@ -95,7 +108,7 @@ const feeds = [
 let candidates = [];
 for (const feed of feeds) {
   try {
-    const xml = await $http({ method: 'GET', url: feed, timeout: 20000 });
+    const xml = await http({ method: 'GET', url: feed, timeout: 20000 });
     const blocks = String(xml).match(/<item[\\s\\S]*?<\\/item>/gi) || [];
     for (const block of blocks) {
       const link = tag(block, 'link') || tag(block, 'guid');
@@ -126,7 +139,7 @@ const withScore = scored.filter(item => item.score > 0);
 candidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));
 if (!plano.manual && candidates.length) {
   try {
-    const response = await $http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });
+    const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });
     const allowed = new Set(response.links || []);
     candidates = candidates.filter(item => allowed.has(item.link));
   } catch (error) {
@@ -136,7 +149,7 @@ if (!plano.manual && candidates.length) {
 const noticias = [];
 for (const item of candidates) {
   try {
-    const html = await $http({ method: 'GET', url: item.link, timeout: 20000 });
+    const html = await http({ method: 'GET', url: item.link, timeout: 20000 });
     const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eé]m|^veja tamb[eé]m/i.test(text));
     const image = attr(String(html), /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) || attr(String(html), /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) || item.imagemUrl;
     const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;
@@ -178,12 +191,25 @@ const geminiCode = `
 const input = $input.first().json;
 if (input.semNoticias) return [input];
 const model = input.config.modeloGemini || 'gemini-2.0-flash';
+const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
+  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };
+  if (body !== undefined) {
+    init.body = typeof body === 'string' ? body : JSON.stringify(body);
+    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';
+  }
+  const response = await fetch(url, init);
+  const text = await response.text();
+  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));
+  if (json) return text ? JSON.parse(text) : null;
+  return text;
+};
+// gemini helper inserted
 const key = input.config.geminiApiKey;
 if (!key) throw new Error('geminiApiKey nao configurada');
 let lastError;
 for (let attempt = 1; attempt <= 3; attempt++) {
   try {
-    const response = await $http({ method: 'POST', url: 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key), headers: { 'Content-Type': 'application/json' }, body: input.geminiBody, json: true, timeout: 120000 });
+    const response = await http({ method: 'POST', url: 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key), headers: { 'Content-Type': 'application/json' }, body: input.geminiBody, json: true, timeout: 120000 });
     const candidate = response?.candidates?.[0];
     if (!candidate || (candidate.finishReason && candidate.finishReason !== 'STOP')) throw new Error('Gemini nao concluiu');
     const raw = candidate.content.parts.filter(part => !part.thought).map(part => part.text || '').join('');
@@ -235,16 +261,29 @@ else {
   if (!/^[1-9][0-9]{7,14}$/.test(config.numero)) throw new Error('Numero invalido');
 }
 const base = String(config.evolutionUrl || '').replace(/\\/$/, '');
+const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
+  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };
+  if (body !== undefined) {
+    init.body = typeof body === 'string' ? body : JSON.stringify(body);
+    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';
+  }
+  const response = await fetch(url, init);
+  const text = await response.text();
+  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));
+  if (json) return text ? JSON.parse(text) : null;
+  return text;
+};
+// send helper inserted
 if (!base) throw new Error('evolutionUrl nao configurada');
 const path = item.imagemUrl ? '/message/sendMedia/' : '/message/sendText/';
 const body = item.imagemUrl
   ? { number: config.numero, mediatype: 'image', media: item.imagemUrl, caption: item.texto }
   : { number: config.numero, text: item.texto, linkPreview: false };
-const response = await $http({ method: 'POST', url: base + path + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body, json: true, timeout: 30000 });
+const response = await http({ method: 'POST', url: base + path + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body, json: true, timeout: 30000 });
 if (response?.status === 'ERROR') throw new Error('Evolution retornou erro');
 if (item.link) {
   try {
-    await $http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { link: item.link, titulo: item.titulo, jobId: item.plano?.jobId }, json: true });
+    await http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { link: item.link, titulo: item.titulo, jobId: item.plano?.jobId }, json: true });
   } catch (error) {
     console.log('Falha ao registrar historico: ' + error.message);
   }
@@ -267,7 +306,20 @@ return [{ json: { tipo, filtro: filter, url, config } }];
 
 const idsFetchCode = `
 const q = $input.first().json;
-const rows = await $http({ method: 'GET', url: q.url, headers: { apikey: q.config.evolutionApiKey || q.config.apikey || '' }, json: true, timeout: 30000 });
+const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
+  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };
+  if (body !== undefined) {
+    init.body = typeof body === 'string' ? body : JSON.stringify(body);
+    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';
+  }
+  const response = await fetch(url, init);
+  const text = await response.text();
+  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));
+  if (json) return text ? JSON.parse(text) : null;
+  return text;
+};
+// ids helper inserted
+const rows = await http({ method: 'GET', url: q.url, headers: { apikey: q.config.evolutionApiKey || q.config.apikey || '' }, json: true, timeout: 30000 });
 return [{ json: { ...q, rows } }];
 `.trim();
 

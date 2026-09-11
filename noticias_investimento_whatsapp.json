@@ -18,7 +18,7 @@
       "typeVersion": 1.2,
       "position": [
         -2000,
-        200
+        208
       ],
       "notes": "Verifica somente o relógio e o histórico. RSS e Gemini só executam nos horários configurados no card Configurar Cliente."
     },
@@ -33,9 +33,10 @@
       "typeVersion": 1.1,
       "position": [
         -960,
-        180
+        192
       ],
       "alwaysOutputData": true,
+      "disabled": true,
       "onError": "continueRegularOutput"
     },
     {
@@ -49,9 +50,10 @@
       "typeVersion": 1.1,
       "position": [
         -960,
-        420
+        432
       ],
       "alwaysOutputData": true,
+      "disabled": true,
       "onError": "continueRegularOutput"
     },
     {
@@ -65,7 +67,7 @@
       "typeVersion": 1.1,
       "position": [
         -960,
-        660
+        672
       ],
       "alwaysOutputData": true,
       "onError": "continueRegularOutput"
@@ -81,16 +83,14 @@
       "typeVersion": 1.1,
       "position": [
         -960,
-        900
+        912
       ],
       "alwaysOutputData": true,
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "mode": "append",
-        "numberInputs": 4,
-        "options": {}
+        "numberInputs": 4
       },
       "id": "merge-noticias",
       "name": "Juntar Notícias",
@@ -98,7 +98,7 @@
       "typeVersion": 3,
       "position": [
         -720,
-        300
+        304
       ]
     },
     {
@@ -111,13 +111,15 @@
       "typeVersion": 2,
       "position": [
         240,
-        300
+        304
       ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent($('Configurar Cliente').first().json.modeloGemini) + ':generateContent' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -131,31 +133,35 @@
         "specifyBody": "json",
         "jsonBody": "={{ $json.geminiBody }}",
         "options": {
-          "timeout": 120000,
           "response": {
             "response": {
-              "responseFormat": "text",
-              "outputPropertyName": "body",
               "fullResponse": true,
-              "neverError": true
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "body"
             }
-          }
-        },
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth"
+          },
+          "timeout": 120000
+        }
       },
       "id": "http-gemini",
       "name": "Gemini (JSON estruturado)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "retryOnFail": false,
-      "onError": "continueRegularOutput",
       "position": [
         480,
-        300
+        304
       ],
-      "notes": "SUA CHAVE GEMINI: Authentication → Generic Credential Type → Header Auth → Create New Credential. No formulário: Name = x-goog-api-key; Value = sua chave Gemini. Salve e selecione a credencial. Não use a chave Evolution aqui.",
-      "notesInFlow": true
+      "notesInFlow": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dXLyvwf6OfIT0Ens",
+          "name": "gemini3"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "SUA CHAVE GEMINI: Authentication → Generic Credential Type → Header Auth → Create New Credential. No formulário: Name = x-goog-api-key; Value = sua chave Gemini. Salve e selecione a credencial. Não use a chave Evolution aqui."
     },
     {
       "parameters": {
@@ -166,8 +172,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        720,
-        300
+        736,
+        288
       ]
     },
     {
@@ -177,14 +183,16 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1380,
-        520
+        1328,
+        592
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ( $('Configurar Cliente').item.json.evolutionUrl + '').replace(/\\/$/, '') + '/message/sendText/' + encodeURIComponent( $('Configurar Cliente').item.json.instancia)) }}",
+        "url": "={{ ($('Configurar Cliente').item.json.evolutionUrl + '').replace(/\\/$/, '') + '/message/sendText/' + encodeURIComponent($('Configurar Cliente').item.json.instancia)) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -199,51 +207,46 @@
         "jsonBody": "={{ JSON.stringify({ number: $json.numero, text: $json.mensagem, linkPreview: false }) }}",
         "options": {
           "timeout": 30000
-        },
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth"
+        }
       },
       "id": "http-whatsapp",
       "name": "Enviar WhatsApp (Evolution API)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1820,
+        1824,
         400
       ],
       "retryOnFail": false,
-      "notes": "CHAVE EVOLUTION: Header Auth → Create New Credential. Name = apikey; Value = token da instância SEU_CLIENTE (ou do cliente escolhido). Não use a chave Gemini aqui. A mensagem sai do WhatsApp conectado em instancia e vai para numero.",
-      "notesInFlow": true
+      "notesInFlow": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "nxbFl2VUNeoyjjdg",
+          "name": "evolution - iguera"
+        }
+      },
+      "notes": "CHAVE EVOLUTION: Header Auth → Create New Credential. Name = apikey; Value = token da instância SEU_CLIENTE (ou do cliente escolhido). Não use a chave Gemini aqui. A mensagem sai do WhatsApp conectado em instancia e vai para numero."
     },
     {
-      "id": "config-cliente",
-      "name": "Configurar Cliente",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1780,
-        200
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
               "id": "campo-numero",
               "name": "numero",
-              "value": "",
+              "value": "5516997710969",
               "type": "string"
             },
             {
               "id": "campo-cliente",
               "name": "cliente",
-              "value": "SEU_CLIENTE",
+              "value": "Iguera",
               "type": "string"
             },
             {
               "id": "campo-instancia",
               "name": "instancia",
-              "value": "SEU_CLIENTE",
+              "value": "iguera",
               "type": "string"
             },
             {
@@ -255,13 +258,13 @@
             {
               "id": "campo-modeloGemini",
               "name": "modeloGemini",
-              "value": "gemini-3.6-flash",
+              "value": "gemini-3.5-flash-lite",
               "type": "string"
             },
             {
               "id": "campo-maxNoticias",
               "name": "maxNoticias",
-              "value": 12,
+              "value": 3,
               "type": "number"
             },
             {
@@ -273,7 +276,7 @@
             {
               "id": "campo-enviar",
               "name": "enviar",
-              "value": false,
+              "value": true,
               "type": "boolean"
             },
             {
@@ -286,7 +289,7 @@
               "id": "campo-enviarLinksFontes",
               "name": "enviarLinksFontes",
               "type": "boolean",
-              "value": true
+              "value": false
             },
             {
               "id": "config-periodicidade",
@@ -340,32 +343,31 @@
         },
         "options": {}
       },
-      "notes": "periodicidade: intervalo ou diario. intervaloMinutos: 5 ou mais (30, 60...). inicioEnvios/fimEnvios: HH:MM. No modo diario, use horarioEnvioDiario. horarioResumao interrompe as notícias individuais até o dia seguinte e monta uma única mensagem com TODAS as notícias registradas como enviadas hoje. enviar=false permite prévia manual sem registrar envios; agenda automática fica em silêncio. enviarLinksFontes controla os links em ambos os formatos. Publique após mudar os campos.",
-      "notesInFlow": true
+      "id": "config-cliente",
+      "name": "Configurar Cliente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1776,
+        208
+      ],
+      "notesInFlow": true,
+      "notes": "periodicidade: intervalo ou diario. intervaloMinutos: 5 ou mais (30, 60...). inicioEnvios/fimEnvios: HH:MM. No modo diario, use horarioEnvioDiario. horarioResumao interrompe as notícias individuais até o dia seguinte e monta uma única mensagem com TODAS as notícias registradas como enviadas hoje. enviar=false permite prévia manual sem registrar envios; agenda automática fica em silêncio. enviarLinksFontes controla os links em ambos os formatos. Publique após mudar os campos."
     },
     {
+      "parameters": {
+        "options": {}
+      },
       "id": "loop-noticias",
       "name": "Uma notícia por vez",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        940,
-        300
-      ],
-      "parameters": {
-        "batchSize": 1,
-        "options": {}
-      }
+        944,
+        288
+      ]
     },
     {
-      "id": "gate-envio",
-      "name": "Envio habilitado?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1160,
-        300
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -389,143 +391,135 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "gate-envio",
+      "name": "Envio habilitado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        304
+      ]
     },
     {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * 3) + 8 }}"
+      },
       "id": "wait-noticias",
       "name": "Intervalo 8–10 segundos",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        2060,
-        300
+        2160,
+        320
       ],
-      "webhookId": "8fa9ecc7-a4a7-4a81-ace4-19f6f20c761f",
-      "parameters": {
-        "resume": "timeInterval",
-        "amount": "={{ Math.floor(Math.random() * 3) + 8 }}",
-        "unit": "seconds"
-      }
+      "webhookId": "8fa9ecc7-a4a7-4a81-ace4-19f6f20c761f"
     },
     {
+      "parameters": {
+        "jsCode": "const n = {...$input.first().json};\nconst informado = String(n.numero ?? '').trim();\nif (!informado) throw new Error('Preencha o campo numero no cartão de configuração com seu WhatsApp, incluindo país e DDD.');\nif (/^[0-9]+(?:-[0-9]+)?@g\\.us$/.test(informado)) {\n  n.numero = informado;\n} else {\n  if (!/^\\+?[0-9\\s().-]+$/.test(informado)) throw new Error('Número inválido. Use seu telefone com país e DDD, ou o ID real do grupo terminado em @g.us.');\n  n.numero = informado.replace(/[^0-9]/g, '');\n  if (!/^[1-9][0-9]{7,14}$/.test(n.numero)) throw new Error('Telefone incompleto. Inclua o código do país e o DDD. Exemplo brasileiro: +55 (11) 99999-9999.');\n  if (n.numero.startsWith('55') && !/^55[1-9][0-9][0-9]{8,9}$/.test(n.numero)) throw new Error('Telefone brasileiro inválido. Use 55 + DDD de dois dígitos + telefone.');\n}\nif (!/^[a-z0-9_-]+$/.test(n.instancia)) throw new Error('Confira o campo instancia no cartão de configuração.');\nif (!/^https?:\\/\\//.test(n.evolutionUrl)) throw new Error('Confira o campo evolutionUrl no cartão de configuração.');\nreturn [{json: n}];"
+      },
       "id": "validar-destino",
       "name": "Validar destino",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1380,
-        220
-      ],
-      "parameters": {
-        "jsCode": "const n = {...$input.first().json};\nconst informado = String(n.numero ?? '').trim();\nif (!informado) throw new Error('Preencha o campo numero no cartão de configuração com seu WhatsApp, incluindo país e DDD.');\nif (/^[0-9]+(?:-[0-9]+)?@g\\.us$/.test(informado)) {\n  n.numero = informado;\n} else {\n  if (!/^\\+?[0-9\\s().-]+$/.test(informado)) throw new Error('Número inválido. Use seu telefone com país e DDD, ou o ID real do grupo terminado em @g.us.');\n  n.numero = informado.replace(/[^0-9]/g, '');\n  if (!/^[1-9][0-9]{7,14}$/.test(n.numero)) throw new Error('Telefone incompleto. Inclua o código do país e o DDD. Exemplo brasileiro: +55 (11) 99999-9999.');\n  if (n.numero.startsWith('55') && !/^55[1-9][0-9][0-9]{8,9}$/.test(n.numero)) throw new Error('Telefone brasileiro inválido. Use 55 + DDD de dois dígitos + telefone.');\n}\nif (!/^[a-z0-9_-]+$/.test(n.instancia)) throw new Error('Confira o campo instancia no cartão de configuração.');\nif (!/^https?:\\/\\//.test(n.evolutionUrl)) throw new Error('Confira o campo evolutionUrl no cartão de configuração.');\nreturn [{json: n}];"
-      }
+        1392,
+        224
+      ]
     },
     {
+      "parameters": {
+        "content": "## Cliente e destino\nConfigure os campos em Configurar Cliente. O controle de agenda e o histórico estão explicados no card Agenda · Como usar. Texto + imagem por notícia; resumão em uma única mensagem no horário definido.",
+        "height": 330,
+        "width": 560
+      },
       "id": "guia-configuracao",
       "name": "Como preencher",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -790,
+        -784,
         -448
-      ],
-      "parameters": {
-        "width": 560,
-        "height": 330,
-        "content": "## Cliente e destino\nConfigure os campos em Configurar Cliente. O controle de agenda e o histórico estão explicados no card Agenda · Como usar. Texto + imagem por notícia; resumão em uma única mensagem no horário definido."
-      }
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "const result=(()=>{const config = $('Configurar Cliente').first().json;\r\nconst limpar = v => String(v || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\r\nconst normalizar = v => limpar(v).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\r\nconst RAW = [\r\n  // 🏦 BANCOS E INSTITUIÇÕES\r\n  'Banco','Bancos','Itaú','Bradesco','Santander','BTG','Nubank','Inter','Caixa','Banco do Brasil','XP','Goldman Sachs','JPMorgan','Morgan Stanley','BlackRock','Fed','Banco Central','Copom','CMN','Open Finance','Pix','crédito','empréstimos','financiamento','inadimplência','provisões','Basileia','fintech','seguradora','previdência','CVM','ANBIMA','SUSEP','PREVIC','Bacen',\r\n  // 🏢 EMPRESAS E BOLSA\r\n  'Empresas','Companhia','ações','B3','Ibovespa','IPO','Follow-on','oferta secundária','OPA','dividendos','JCP','resultados','balanço','lucro','lucro líquido','receita','receita líquida','EBITDA','margem','guidance','CEO','mudança de CEO','M&A','aquisição','fusão','venda de participação','recompra de ações','fato relevante','comunicado ao mercado','aviso aos acionistas','RI','conselho','CAPEX','dívida','endividamento','fluxo de caixa','geração de caixa','consenso','estimativa','revisão de projeção','recuperação judicial','falência','desinvestimento','venda de ativos','aquisição de ativos','mudança de controle','mudança de gestão','reestruturação',\r\n  // 📈 RENDA VARIÁVEL\r\n  'Ações','Bolsa','Ibovespa','Small Caps','Blue Chips','Valuation','recomendação','upgrade','downgrade','preço-alvo','consenso','estimativa','volatilidade','insider','insider trading','recompra de ações','oferta pública','oferta secundária','resultado','dividendos','JCP','IFIX','IDIV','Ibovespa Futuro','fluxo estrangeiro','investidor estrangeiro',\r\n  // 💰 RENDA FIXA E CRÉDITO\r\n  'Renda fixa','CDB','LCI','LCA','CDI','debêntures','debênture incentivada','crédito privado','CRA','CRI','FIDC','Tesouro Direto','Tesouro IPCA+','Tesouro Prefixado','LTN','NTN-B','NTN-F','IPCA','IGP-M','spread de crédito','rating','agência de rating','default','inadimplência','emissão','resgate antecipado','duration','marcação a mercado','covenant','recuperação de crédito','curva de juros','DI futuro','IMA-B','IMA-Geral',\r\n  // 🏦 FUNDOS E INVESTIMENTOS\r\n  'Fundos de investimento','fundos imobiliários','FIIs','ETFs','BDRs','previdência privada','asset','gestora','corretora','fundos de crédito','fundos de ações','fundos multimercado','fundos internacionais',\r\n  // 🇧🇷 ECONOMIA BRASILEIRA\r\n  'Selic','juros','Copom','Banco Central','IPCA','IPCA-15','inflação','taxa real','PIB','desemprego','mercado de trabalho','fiscal','política fiscal','política monetária','déficit','superávit','dívida pública','dívida/PIB','arrecadação','impostos','reforma tributária','arcabouço fiscal','gastos públicos','contingenciamento','orçamento','meta fiscal','Fazenda','Ministério da Fazenda','privatização','concessão','leilão','desoneração','subsídios','risco-país','CDS','EMBI','IBC-Br','Boletim Focus','produção industrial','vendas no varejo','balança comercial','atividade econômica',\r\n  // 🏛️ POLÍTICA E JUDICIÁRIO\r\n  'STF','Supremo Tribunal Federal','STJ','Congresso','Câmara','Senado','Governo','Planalto','Presidente','Ministro','Deputado','Senador','PEC','projeto de lei','medida provisória','julgamento','decisão','liminar','marco regulatório','eleições','eleição presidencial',\r\n  // 🌎 EXTERIOR\r\n  'Fed','Fed Funds','BCE','Banco Central Europeu','China','EUA','Estados Unidos','Trump','Europa','Japão','Hong Kong','Taiwan','Rússia','Ucrânia','Oriente Médio','guerra','sanções','tarifas','comércio exterior','recessão','Payroll','CPI','PCE','inflação americana','emprego','mercado de trabalho','juros americanos','juros globais','Treasuries','Treasury','yield','S&P 500','Nasdaq','Dow Jones','DAX','FTSE','Nikkei','Hang Seng','MSCI',\r\n  // 🌍 GEOPOLÍTICA\r\n  'OTAN','Israel','Irã','Palestina','Rússia','Ucrânia','Oriente Médio','China','Taiwan','Coreia do Norte','sanções econômicas','guerra comercial','tarifas de importação','tarifaço','eleições','conflitos','ataques','cessar-fogo',\r\n  // 🛢️ COMMODITIES\r\n  'Petróleo','Brent','WTI','gás natural','minério de ferro','ouro','cobre','alumínio','lítio','níquel','fertilizantes','soja','milho','trigo','café','açúcar','etanol','celulose','carne','boi gordo','OPEP','commodities',\r\n  // 💵 CÂMBIO\r\n  'Dólar','dólar comercial','dólar futuro','euro','câmbio','real','moeda','fluxo cambial','reservas internacionais','dólar forte','dólar fraco',\r\n  // 🏭 SETORES DA BOLSA\r\n  'Petróleo e gás','bancos','seguradoras','energia elétrica','saneamento','utilities','varejo','construção civil','shoppings','agronegócio','mineração','siderurgia','papel e celulose','telecomunicações','tecnologia','saúde','educação','transporte','aviação','concessões','infraestrutura',\r\n  // 📊 MERCADO E FLUXO\r\n  'IMA-B','IMA-Geral','IFIX','IDIV','Ibovespa Futuro','DI Futuro','curva de juros','term structure','prêmio de risco','risco-país','CDS','EMBI','fluxo estrangeiro','fluxo de capital','investidor estrangeiro','liquidez','volatilidade implícita','aversão ao risco','apetite ao risco',\r\n  // 🚨 EVENTOS RELEVANTES\r\n  'Alta','queda','disparada','colapso','crise','risco','alerta','surpresa','emergência','intervenção','mudança','corte','alta de juros','corte de juros','suspensão','investigação','operação','fraude','escândalo','rebaixamento','default','inadimplência','recuperação judicial','falência','aquisição','OPA','dividendos','resultado','guidance','fato relevante','comunicado ao mercado','aviso aos acionistas','mudança de guidance','revisão de projeção','surpresa positiva','surpresa negativa','acima das expectativas','abaixo das expectativas','consenso','recomendação','preço-alvo','volatilidade','circuit breaker','suspensão de negociação','oferta pública','insider trading','estresse financeiro','problemas de liquidez','mudança de controle','mudança de gestão','reestruturação','venda de ativos','aquisição de ativos','desinvestimento','pedido de falência','rebaixamento de rating'\r\n];\r\nconst escapar = s => s.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\r\nconst termos = [...new Set(RAW.map(normalizar).filter(Boolean).map(escapar))];\nconst relevantes = new RegExp('(?:^|[^a-z0-9])(' + termos.join('|') + ')(?=$|[^a-z0-9])');\r\nconst vistos = new Set();\r\nreturn $input.all().map(({json:n}) => ({\r\n  titulo: limpar(n.title), link: limpar(n.link).replace(/^\\[([^\\]]+)\\]\\([^)]*\\)$/, '$1'),\r\n  trecho: limpar(n.contentSnippet || n['content:encodedSnippet'] || n.description || n.content || n['content:encoded']).slice(0, 5000),\r\n  imagemRss: n.enclosure?.url || '', data: Date.parse(n.isoDate || n.pubDate || ''),\r\n})).filter(n => /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//.test(n.link)\r\n  && Number.isFinite(n.data) && n.data <= Date.now() && Date.now()-n.data <= config.janelaHoras*3600000 && relevantes.test(normalizar(n.titulo)))\r\n  .sort((a,b)=>b.data-a.data).filter(n=> {\r\n    const t=normalizar(n.titulo); if(vistos.has(t)||vistos.has(n.link))return false;\r\n    vistos.add(t);vistos.add(n.link);return true;\r\n  }).slice(0,200).map(n=>({json:n}));\r\n})();return result.length?result:[{json:{semNoticias:true}}];"
+      },
       "id": "editorial-select",
       "name": "Selecionar Notícias",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -680,
-        300
-      ],
-      "parameters": {
-        "jsCode": "const result=(()=>{const config = $('Configurar Cliente').first().json;\r\nconst limpar = v => String(v || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\r\nconst normalizar = v => limpar(v).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\r\nconst RAW = [\r\n  // 🏦 BANCOS E INSTITUIÇÕES\r\n  'Banco','Bancos','Itaú','Bradesco','Santander','BTG','Nubank','Inter','Caixa','Banco do Brasil','XP','Goldman Sachs','JPMorgan','Morgan Stanley','BlackRock','Fed','Banco Central','Copom','CMN','Open Finance','Pix','crédito','empréstimos','financiamento','inadimplência','provisões','Basileia','fintech','seguradora','previdência','CVM','ANBIMA','SUSEP','PREVIC','Bacen',\r\n  // 🏢 EMPRESAS E BOLSA\r\n  'Empresas','Companhia','ações','B3','Ibovespa','IPO','Follow-on','oferta secundária','OPA','dividendos','JCP','resultados','balanço','lucro','lucro líquido','receita','receita líquida','EBITDA','margem','guidance','CEO','mudança de CEO','M&A','aquisição','fusão','venda de participação','recompra de ações','fato relevante','comunicado ao mercado','aviso aos acionistas','RI','conselho','CAPEX','dívida','endividamento','fluxo de caixa','geração de caixa','consenso','estimativa','revisão de projeção','recuperação judicial','falência','desinvestimento','venda de ativos','aquisição de ativos','mudança de controle','mudança de gestão','reestruturação',\r\n  // 📈 RENDA VARIÁVEL\r\n  'Ações','Bolsa','Ibovespa','Small Caps','Blue Chips','Valuation','recomendação','upgrade','downgrade','preço-alvo','consenso','estimativa','volatilidade','insider','insider trading','recompra de ações','oferta pública','oferta secundária','resultado','dividendos','JCP','IFIX','IDIV','Ibovespa Futuro','fluxo estrangeiro','investidor estrangeiro',\r\n  // 💰 RENDA FIXA E CRÉDITO\r\n  'Renda fixa','CDB','LCI','LCA','CDI','debêntures','debênture incentivada','crédito privado','CRA','CRI','FIDC','Tesouro Direto','Tesouro IPCA+','Tesouro Prefixado','LTN','NTN-B','NTN-F','IPCA','IGP-M','spread de crédito','rating','agência de rating','default','inadimplência','emissão','resgate antecipado','duration','marcação a mercado','covenant','recuperação de crédito','curva de juros','DI futuro','IMA-B','IMA-Geral',\r\n  // 🏦 FUNDOS E INVESTIMENTOS\r\n  'Fundos de investimento','fundos imobiliários','FIIs','ETFs','BDRs','previdência privada','asset','gestora','corretora','fundos de crédito','fundos de ações','fundos multimercado','fundos internacionais',\r\n  // 🇧🇷 ECONOMIA BRASILEIRA\r\n  'Selic','juros','Copom','Banco Central','IPCA','IPCA-15','inflação','taxa real','PIB','desemprego','mercado de trabalho','fiscal','política fiscal','política monetária','déficit','superávit','dívida pública','dívida/PIB','arrecadação','impostos','reforma tributária','arcabouço fiscal','gastos públicos','contingenciamento','orçamento','meta fiscal','Fazenda','Ministério da Fazenda','privatização','concessão','leilão','desoneração','subsídios','risco-país','CDS','EMBI','IBC-Br','Boletim Focus','produção industrial','vendas no varejo','balança comercial','atividade econômica',\r\n  // 🏛️ POLÍTICA E JUDICIÁRIO\r\n  'STF','Supremo Tribunal Federal','STJ','Congresso','Câmara','Senado','Governo','Planalto','Presidente','Ministro','Deputado','Senador','PEC','projeto de lei','medida provisória','julgamento','decisão','liminar','marco regulatório','eleições','eleição presidencial',\r\n  // 🌎 EXTERIOR\r\n  'Fed','Fed Funds','BCE','Banco Central Europeu','China','EUA','Estados Unidos','Trump','Europa','Japão','Hong Kong','Taiwan','Rússia','Ucrânia','Oriente Médio','guerra','sanções','tarifas','comércio exterior','recessão','Payroll','CPI','PCE','inflação americana','emprego','mercado de trabalho','juros americanos','juros globais','Treasuries','Treasury','yield','S&P 500','Nasdaq','Dow Jones','DAX','FTSE','Nikkei','Hang Seng','MSCI',\r\n  // 🌍 GEOPOLÍTICA\r\n  'OTAN','Israel','Irã','Palestina','Rússia','Ucrânia','Oriente Médio','China','Taiwan','Coreia do Norte','sanções econômicas','guerra comercial','tarifas de importação','tarifaço','eleições','conflitos','ataques','cessar-fogo',\r\n  // 🛢️ COMMODITIES\r\n  'Petróleo','Brent','WTI','gás natural','minério de ferro','ouro','cobre','alumínio','lítio','níquel','fertilizantes','soja','milho','trigo','café','açúcar','etanol','celulose','carne','boi gordo','OPEP','commodities',\r\n  // 💵 CÂMBIO\r\n  'Dólar','dólar comercial','dólar futuro','euro','câmbio','real','moeda','fluxo cambial','reservas internacionais','dólar forte','dólar fraco',\r\n  // 🏭 SETORES DA BOLSA\r\n  'Petróleo e gás','bancos','seguradoras','energia elétrica','saneamento','utilities','varejo','construção civil','shoppings','agronegócio','mineração','siderurgia','papel e celulose','telecomunicações','tecnologia','saúde','educação','transporte','aviação','concessões','infraestrutura',\r\n  // 📊 MERCADO E FLUXO\r\n  'IMA-B','IMA-Geral','IFIX','IDIV','Ibovespa Futuro','DI Futuro','curva de juros','term structure','prêmio de risco','risco-país','CDS','EMBI','fluxo estrangeiro','fluxo de capital','investidor estrangeiro','liquidez','volatilidade implícita','aversão ao risco','apetite ao risco',\r\n  // 🚨 EVENTOS RELEVANTES\r\n  'Alta','queda','disparada','colapso','crise','risco','alerta','surpresa','emergência','intervenção','mudança','corte','alta de juros','corte de juros','suspensão','investigação','operação','fraude','escândalo','rebaixamento','default','inadimplência','recuperação judicial','falência','aquisição','OPA','dividendos','resultado','guidance','fato relevante','comunicado ao mercado','aviso aos acionistas','mudança de guidance','revisão de projeção','surpresa positiva','surpresa negativa','acima das expectativas','abaixo das expectativas','consenso','recomendação','preço-alvo','volatilidade','circuit breaker','suspensão de negociação','oferta pública','insider trading','estresse financeiro','problemas de liquidez','mudança de controle','mudança de gestão','reestruturação','venda de ativos','aquisição de ativos','desinvestimento','pedido de falência','rebaixamento de rating'\r\n];\r\nconst escapar = s => s.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\r\nconst termos = [...new Set(RAW.map(normalizar).filter(Boolean).map(escapar))];\nconst relevantes = new RegExp('(?:^|[^a-z0-9])(' + termos.join('|') + ')(?=$|[^a-z0-9])');\r\nconst vistos = new Set();\r\nreturn $input.all().map(({json:n}) => ({\r\n  titulo: limpar(n.title), link: limpar(n.link).replace(/^\\[([^\\]]+)\\]\\([^)]*\\)$/, '$1'),\r\n  trecho: limpar(n.contentSnippet || n['content:encodedSnippet'] || n.description || n.content || n['content:encoded']).slice(0, 5000),\r\n  imagemRss: n.enclosure?.url || '', data: Date.parse(n.isoDate || n.pubDate || ''),\r\n})).filter(n => /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//.test(n.link)\r\n  && Number.isFinite(n.data) && n.data <= Date.now() && Date.now()-n.data <= config.janelaHoras*3600000 && relevantes.test(normalizar(n.titulo)))\r\n  .sort((a,b)=>b.data-a.data).filter(n=> {\r\n    const t=normalizar(n.titulo); if(vistos.has(t)||vistos.has(n.link))return false;\r\n    vistos.add(t);vistos.add(n.link);return true;\r\n  }).slice(0,200).map(n=>({json:n}));\r\n})();return result.length?result:[{json:{semNoticias:true}}];"
-      }
+        -576,
+        112
+      ]
     },
     {
-      "id": "editorial-fetch",
-      "name": "Buscar matéria",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -460,
-        300
-      ],
       "parameters": {
         "url": "={{ $json.link }}",
         "options": {
-          "timeout": 20000,
-          "response": {
-            "response": {
-              "responseFormat": "text",
-              "outputPropertyName": "data"
-            }
-          },
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 500
             }
-          }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
         }
       },
+      "id": "editorial-fetch",
+      "name": "Buscar matéria",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        304
+      ],
       "onError": "continueRegularOutput"
     },
     {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {json:{fonte: $('Histórico · Notícias inéditas').item.json, data: typeof $json.data === 'string' ? $json.data.slice(0,2000000) : '<html></html>'}};"
+      },
       "id": "editorial-html-input",
       "name": "Preparar HTML",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -240,
-        300
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "return {json:{fonte: $('Histórico · Notícias inéditas').item.json, data: typeof $json.data === 'string' ? $json.data.slice(0,2000000) : '<html></html>'}};"
-      }
+        304
+      ]
     },
     {
-      "id": "editorial-html",
-      "name": "Extrair texto e imagem",
-      "type": "n8n-nodes-base.html",
-      "typeVersion": 1.2,
-      "position": [
-        0,
-        300
-      ],
       "parameters": {
         "operation": "extractHtmlContent",
-        "sourceData": "json",
-        "dataPropertyName": "data",
         "extractionValues": {
           "values": [
             {
               "key": "paragrafos",
               "cssSelector": ".post-content-text p, .entry-content p, .article-content p, .article-body p, .single-content p, article p:not(footer p):not(aside p):not(nav p)",
-              "returnValue": "text",
-              "returnArray": true,
-              "skipSelectors": "script, style, nav, footer, aside"
+              "skipSelectors": "script, style, nav, footer, aside",
+              "returnArray": true
             },
             {
               "key": "imagem",
               "cssSelector": "meta[property=\"og:image\"]",
               "returnValue": "attribute",
-              "attribute": "content",
-              "returnArray": false
+              "attribute": "content"
             },
             {
               "key": "imagemTwitter",
               "cssSelector": "meta[name=\"twitter:image\"]",
               "returnValue": "attribute",
-              "attribute": "content",
-              "returnArray": false
+              "attribute": "content"
             }
           ]
         },
@@ -533,17 +527,17 @@
           "trimValues": true,
           "cleanUpText": true
         }
-      }
+      },
+      "id": "editorial-html",
+      "name": "Extrair texto e imagem",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        304
+      ]
     },
     {
-      "id": "editorial-has-image",
-      "name": "Tem imagem?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        3000,
-        220
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -567,12 +561,22 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "editorial-has-image",
+      "name": "Tem imagem?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2912,
+        96
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ( $('Configurar Cliente').item.json.evolutionUrl + '').replace(/\\/$/, '') + '/message/sendMedia/' + encodeURIComponent( $('Configurar Cliente').item.json.instancia)) }}",
+        "url": "={{ ($('Configurar Cliente').item.json.evolutionUrl + '').replace(/\\/$/, '') + '/message/sendMedia/' + encodeURIComponent($('Configurar Cliente').item.json.instancia)) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -587,42 +591,38 @@
         "jsonBody": "={{ JSON.stringify({number:$json.numero, mediatype:'image', media:$json.imagemUrl, caption:$json.mensagem}) }}",
         "options": {
           "timeout": 30000
-        },
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth"
+        }
       },
       "id": "editorial-send-media",
       "name": "Enviar imagem (Evolution API)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1820,
+        1824,
         160
       ],
       "retryOnFail": false,
-      "notes": "Envia a URL da capa obtida da matéria com o post completo na legenda. A Evolution detecta o MIME da mídia. Se a mídia falhar, o fluxo para; não repete automaticamente para evitar duplicatas.",
-      "notesInFlow": true
+      "notesInFlow": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "nxbFl2VUNeoyjjdg",
+          "name": "evolution - iguera"
+        }
+      },
+      "notes": "Envia a URL da capa obtida da matéria com o post completo na legenda. A Evolution detecta o MIME da mídia. Se a mídia falhar, o fluxo para; não repete automaticamente para evitar duplicatas."
     },
     {
+      "parameters": {},
       "id": "ids-manual",
       "name": "IDs · Iniciar consulta",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
         0,
-        1400
-      ],
-      "parameters": {}
+        1408
+      ]
     },
     {
-      "id": "ids-wait",
-      "name": "IDs · O que consultar?",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        260,
-        1400
-      ],
       "parameters": {
         "resume": "form",
         "formTitle": "Consultar IDs do WhatsApp",
@@ -631,8 +631,8 @@
           "values": [
             {
               "fieldLabel": "O que você quer consultar?",
-              "fieldName": "opcao",
               "fieldType": "dropdown",
+              "defaultValue": "Todos os grupos e comunidades",
               "fieldOptions": {
                 "values": [
                   {
@@ -655,55 +655,47 @@
                   }
                 ]
               },
-              "defaultValue": "Todos os grupos e comunidades",
               "requiredField": true
             },
             {
               "fieldLabel": "Filtrar por nome (opcional)",
-              "fieldName": "filtro",
-              "fieldType": "text",
-              "placeholder": "Ex.: XP, família, trabalho",
-              "requiredField": false
+              "placeholder": "Ex.: XP, família, trabalho"
             }
           ]
         },
-        "responseMode": "onReceived",
-        "options": {
-          "appendAttribution": false,
-          "formSubmittedText": "Consulta recebida. Volte ao n8n e abra o cartão IDs · Resultados na visualização Table para copiar o ID."
-        },
         "limitWaitTime": true,
-        "limitType": "afterTimeInterval",
         "resumeAmount": 10,
-        "resumeUnit": "minutes"
+        "resumeUnit": "minutes",
+        "options": {
+          "appendAttribution": false
+        }
       },
+      "id": "ids-wait",
+      "name": "IDs · O que consultar?",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        1408
+      ],
       "webhookId": "8fa9ecc7-a4a7-4a81-ace4-19f6f20c0001",
-      "notes": "Ao executar o bloco, o n8n abre este formulário. Se o navegador bloquear a janela, clique no link da execução em espera. O formulário expira após 10 minutos.",
-      "notesInFlow": true
+      "notesInFlow": true,
+      "notes": "Ao executar o bloco, o n8n abre este formulário. Se o navegador bloquear a janela, clique no link da execução em espera. O formulário expira após 10 minutos."
     },
     {
+      "parameters": {
+        "jsCode": "const formulario = $input.first().json;\nconst instancia = 'SEU_CLIENTE';\nconst baseUrl = 'http://evolution-api:8080';\nconst escolha = String(formulario.opcao ?? formulario['O que você quer consultar?'] ?? '').trim();\nconst filtro = String(formulario.filtro ?? formulario['Filtrar por nome (opcional)'] ?? '').trim().slice(0, 120);\nconst opcoes = {\n  'Todos os grupos e comunidades': 'todos',\n  'Grupos comuns': 'grupos',\n  'Comunidades': 'comunidades',\n  'Grupos de avisos': 'avisos',\n  'Instância e conexão': 'instancia',\n  'Canais de voz (disponibilidade)': 'voz',\n};\nconst tipo = opcoes[escolha];\nif (!tipo) throw new Error('Escolha uma das opções do formulário de consulta.');\nconst consultarAPI = tipo !== 'voz';\nconst url = tipo === 'instancia'\n  ? `${baseUrl}/instance/connectionState/${instancia}`\n  : `${baseUrl}/group/fetchAllGroups/${instancia}?getParticipants=false`;\nreturn [{json: {tipo, filtro, instancia, consultarAPI, url}}];\n"
+      },
       "id": "ids-url",
       "name": "IDs · Preparar consulta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        520,
-        1400
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const formulario = $input.first().json;\nconst instancia = 'SEU_CLIENTE';\nconst baseUrl = 'http://evolution-api:8080';\nconst escolha = String(formulario.opcao ?? formulario['O que você quer consultar?'] ?? '').trim();\nconst filtro = String(formulario.filtro ?? formulario['Filtrar por nome (opcional)'] ?? '').trim().slice(0, 120);\nconst opcoes = {\n  'Todos os grupos e comunidades': 'todos',\n  'Grupos comuns': 'grupos',\n  'Comunidades': 'comunidades',\n  'Grupos de avisos': 'avisos',\n  'Instância e conexão': 'instancia',\n  'Canais de voz (disponibilidade)': 'voz',\n};\nconst tipo = opcoes[escolha];\nif (!tipo) throw new Error('Escolha uma das opções do formulário de consulta.');\nconst consultarAPI = tipo !== 'voz';\nconst url = tipo === 'instancia'\n  ? `${baseUrl}/instance/connectionState/${instancia}`\n  : `${baseUrl}/group/fetchAllGroups/${instancia}?getParticipants=false`;\nreturn [{json: {tipo, filtro, instancia, consultarAPI, url}}];\n"
-      }
+        528,
+        1408
+      ]
     },
     {
-      "id": "ids-gate",
-      "name": "IDs · Consultar API?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        780,
-        1400
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -727,19 +719,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "ids-gate",
+      "name": "IDs · Consultar API?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        1408
+      ]
     },
     {
-      "id": "ids-http",
-      "name": "IDs · Consultar Evolution",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1040,
-        1400
-      ],
       "parameters": {
-        "method": "GET",
         "url": "={{ $json.url }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
@@ -747,132 +738,46 @@
           "timeout": 30000
         }
       },
-      "retryOnFail": false,
-      "onError": "stopWorkflow"
+      "id": "ids-http",
+      "name": "IDs · Consultar Evolution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        1408
+      ],
+      "retryOnFail": false
     },
     {
+      "parameters": {
+        "jsCode": "const consulta = $('IDs · Preparar consulta').first().json;\nconst normalizar = texto => String(texto || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nif (consulta.tipo === 'voz') return [{json: {\n  nome: 'Canais de voz', id: '', tipo: 'Indisponível nesta consulta',\n  observacao: 'A Evolution API 2.3.7 não oferece uma rota para listar IDs de canais de voz. Comunidades e grupos de avisos do WhatsApp são categorias diferentes. Nenhuma chamada é iniciada por este bloco.',\n}}];\nconst entradas = $input.all().flatMap(item => Array.isArray(item.json) ? item.json : [item.json]);\nif (consulta.tipo === 'instancia') {\n  const info = entradas[0]?.instance;\n  if (!info || typeof info.state !== 'string') throw new Error('A Evolution não retornou o estado esperado da instância.');\n  return [{json:{nome:info.instanceName || consulta.instancia, id:info.instanceName || consulta.instancia, tipo:'Instância', estado:info.state, observacao:'Este é o nome da conexão. Para enviar, use um telefone ou ID de grupo como destinatário.'}}];\n}\nconst grupos = entradas.flatMap(item=>Array.isArray(item.groups) ? item.groups : [item]);\nconst vistos = new Set();\nconst filas = grupos.filter(g=>{\n  if (!g || typeof g.id !== 'string' || !g.id.endsWith('@g.us') || vistos.has(g.id)) return false;\n  vistos.add(g.id);\n  if (consulta.tipo === 'grupos' && (g.isCommunity || g.isCommunityAnnounce)) return false;\n  if (consulta.tipo === 'comunidades' && !g.isCommunity) return false;\n  if (consulta.tipo === 'avisos' && !g.isCommunityAnnounce && !g.announce) return false;\n  return !consulta.filtro || normalizar(g.subject).includes(normalizar(consulta.filtro));\n}).map(g=>({json:{\n  nome:String(g.subject || 'Sem nome').trim(), id:g.id,\n  tipo:g.isCommunity ? 'Comunidade (estrutura principal)' : g.isCommunityAnnounce ? 'Grupo de avisos da comunidade' : g.announce ? 'Grupo somente administradores' : 'Grupo comum',\n  participantes:g.size ?? null,\n  comunidade:g.linkedParent || '',\n  observacao:g.isCommunity ? 'Para publicar avisos, procure o grupo de avisos vinculado a esta comunidade.' : 'Copie o ID para o destinatário quando desejar. Esta consulta não altera o destino do workflow.',\n}})).sort((a,b)=>a.json.nome.localeCompare(b.json.nome,'pt-BR'));\nreturn filas.length ? filas : [{json:{nome:'Nenhum resultado',id:'',tipo:consulta.tipo,observacao:'Tente outra categoria ou remova o filtro por nome.'}}];\n"
+      },
       "id": "ids-formato",
       "name": "IDs · Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1300,
-        1400
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const consulta = $('IDs · Preparar consulta').first().json;\nconst normalizar = texto => String(texto || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nif (consulta.tipo === 'voz') return [{json: {\n  nome: 'Canais de voz', id: '', tipo: 'Indisponível nesta consulta',\n  observacao: 'A Evolution API 2.3.7 não oferece uma rota para listar IDs de canais de voz. Comunidades e grupos de avisos do WhatsApp são categorias diferentes. Nenhuma chamada é iniciada por este bloco.',\n}}];\nconst entradas = $input.all().flatMap(item => Array.isArray(item.json) ? item.json : [item.json]);\nif (consulta.tipo === 'instancia') {\n  const info = entradas[0]?.instance;\n  if (!info || typeof info.state !== 'string') throw new Error('A Evolution não retornou o estado esperado da instância.');\n  return [{json:{nome:info.instanceName || consulta.instancia, id:info.instanceName || consulta.instancia, tipo:'Instância', estado:info.state, observacao:'Este é o nome da conexão. Para enviar, use um telefone ou ID de grupo como destinatário.'}}];\n}\nconst grupos = entradas.flatMap(item=>Array.isArray(item.groups) ? item.groups : [item]);\nconst vistos = new Set();\nconst filas = grupos.filter(g=>{\n  if (!g || typeof g.id !== 'string' || !g.id.endsWith('@g.us') || vistos.has(g.id)) return false;\n  vistos.add(g.id);\n  if (consulta.tipo === 'grupos' && (g.isCommunity || g.isCommunityAnnounce)) return false;\n  if (consulta.tipo === 'comunidades' && !g.isCommunity) return false;\n  if (consulta.tipo === 'avisos' && !g.isCommunityAnnounce && !g.announce) return false;\n  return !consulta.filtro || normalizar(g.subject).includes(normalizar(consulta.filtro));\n}).map(g=>({json:{\n  nome:String(g.subject || 'Sem nome').trim(), id:g.id,\n  tipo:g.isCommunity ? 'Comunidade (estrutura principal)' : g.isCommunityAnnounce ? 'Grupo de avisos da comunidade' : g.announce ? 'Grupo somente administradores' : 'Grupo comum',\n  participantes:g.size ?? null,\n  comunidade:g.linkedParent || '',\n  observacao:g.isCommunity ? 'Para publicar avisos, procure o grupo de avisos vinculado a esta comunidade.' : 'Copie o ID para o destinatário quando desejar. Esta consulta não altera o destino do workflow.',\n}})).sort((a,b)=>a.json.nome.localeCompare(b.json.nome,'pt-BR'));\nreturn filas.length ? filas : [{json:{nome:'Nenhum resultado',id:'',tipo:consulta.tipo,observacao:'Tente outra categoria ou remova o filtro por nome.'}}];\n"
-      }
+        1312,
+        1408
+      ]
     },
     {
+      "parameters": {
+        "content": "## Buscar IDs — bloco independente\n1. No botão **Execute workflow**, escolha o início **IDs · Iniciar consulta**. Não escolha o agendamento de notícias.\n2. O n8n abre o formulário **IDs · O que consultar?**. Escolha uma categoria e, se quiser, filtre por nome. Se a janela não abrir, clique no link do nó em espera.\n3. Envie o formulário e volte ao editor. Abra **IDs · Resultados → Output → Table**. Copie a coluna **id**.\n\n**Comunidade** é a estrutura principal; **grupo de avisos da comunidade** é o grupo vinculado onde os avisos são publicados.\n\nEste bloco só consulta dados. Não envia mensagens, não altera destinatários e não tem conexão com os nós de notícias. A credencial é da instância SEU_CLIENTE. Canais de voz não têm rota de listagem nesta versão.",
+        "height": 340,
+        "width": 780
+      },
       "id": "ids-guia",
       "name": "IDs · Como consultar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -40,
-        1650
-      ],
-      "parameters": {
-        "width": 780,
-        "height": 340,
-        "content": "## Buscar IDs — bloco independente\n1. No botão **Execute workflow**, escolha o início **IDs · Iniciar consulta**. Não escolha o agendamento de notícias.\n2. O n8n abre o formulário **IDs · O que consultar?**. Escolha uma categoria e, se quiser, filtre por nome. Se a janela não abrir, clique no link do nó em espera.\n3. Envie o formulário e volte ao editor. Abra **IDs · Resultados → Output → Table**. Copie a coluna **id**.\n\n**Comunidade** é a estrutura principal; **grupo de avisos da comunidade** é o grupo vinculado onde os avisos são publicados.\n\nEste bloco só consulta dados. Não envia mensagens, não altera destinatários e não tem conexão com os nós de notícias. A credencial é da instância SEU_CLIENTE. Canais de voz não têm rota de listagem nesta versão."
-      }
+        -48,
+        1664
+      ]
     },
     {
-      "id": "gemini-retry-prepare",
-      "name": "Gemini · Preparar tentativa",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        480,
-        60
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const origem = $('Montar Prompt').first(0, 0).json;\nconst anterior = $input.first().json;\nconst tentativa = Number(anterior.tentativaGemini || 0) + 1;\nreturn [{json: {...origem, tentativaGemini: tentativa}}];\n"
-      }
-    },
-    {
-      "id": "gemini-retry-check",
-      "name": "Gemini · Conferir resposta",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        700,
-        60
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const resposta = $input.first().json;\nconst tentativa = $('Gemini · Preparar tentativa').first(0, -1).json.tentativaGemini;\nlet body = resposta.body;\nlet status = Number(resposta.statusCode || 0);\nif (typeof body === 'string') {\n  try { body = JSON.parse(body); } catch { body = null; }\n}\nif (!status && resposta.error && typeof resposta.error === 'object') {\n  status = Number(resposta.error.httpCode || resposta.error.statusCode || 0);\n}\nconst erro = resposta.error;\nconst textoErro = typeof erro === 'string' ? erro : [erro?.message, erro?.description, erro?.code, erro?.cause?.code].filter(Boolean).join(' ');\nconst transitorioHttp = status === 408 || status === 429 || (status >= 500 && status <= 599);\nconst transitorioRede = !status && /timeout|timed.?out|ETIMEDOUT|ESOCKETTIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|socket|connection.*(?:closed|reset|aborted)|offline|network|temporar/i.test(textoErro);\nif (status >= 200 && status < 300 && body && !body.error) {\n  // O resultado segue apenas uma vez para a validação editorial e os envios.\n  return [{json: {...body, geminiConcluido: true, tentativaGemini: tentativa}}];\n}\nif (!transitorioHttp && !transitorioRede) {\n  const codigo = status || 'configuração';\n  throw new Error(`Gemini: erro ${codigo} não temporário. Confira a credencial, o modelo, os parâmetros e as permissões. Nenhuma notícia foi enviada por esta execução.`);\n}\nconst headers = resposta.headers || {};\nconst retryHeader = headers['retry-after'] || headers['Retry-After'];\nlet pedidoServidor = 0;\nif (retryHeader) {\n  pedidoServidor = /^\\d+(?:\\.\\d+)?$/.test(String(retryHeader))\n    ? Number(retryHeader)\n    : Math.max(0, (Date.parse(retryHeader) - Date.now()) / 1000);\n}\nfor (const detalhe of body?.error?.details || []) {\n  const segundos = /^([0-9]+(?:\\.[0-9]+)?)s$/.exec(detalhe.retryDelay || '');\n  if (segundos) pedidoServidor = Math.max(pedidoServidor || 0, Number(segundos[1]));\n}\nconst progressivo = Math.min(600, 90 * 2 ** Math.min(tentativa - 1, 4));\nconst esperaSegundos = Math.ceil(Math.max(progressivo, Number.isFinite(pedidoServidor) ? pedidoServidor : 0)) + Math.floor(Math.random() * 16);\nreturn [{json: {\n  geminiConcluido: false,\n  tentativaGemini: tentativa,\n  esperaSegundos,\n  motivo: status ? `Gemini HTTP ${status}` : 'Timeout ou falha temporária de rede',\n  proximaTentativa: new Date(Date.now() + esperaSegundos * 1000).toISOString(),\n}}];\n"
-      }
-    },
-    {
-      "id": "gemini-retry-gate",
-      "name": "Gemini · Concluiu?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        920,
-        60
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "gemini-success",
-              "leftValue": "={{ $json.geminiConcluido }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      }
-    },
-    {
-      "id": "gemini-retry-wait",
-      "name": "Gemini · Aguardar e tentar novamente",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        1140,
-        -160
-      ],
-      "parameters": {
-        "resume": "timeInterval",
-        "amount": "={{ $json.esperaSegundos }}",
-        "unit": "seconds"
-      },
-      "webhookId": "83b72208-50fa-4f27-8779-a3991560a7bb"
-    },
-    {
-      "id": "gemini-retry-guide",
-      "name": "Gemini · Como funcionam as tentativas",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        480,
-        -420
-      ],
-      "parameters": {
-        "width": 740,
-        "height": 210,
-        "content": "## Recuperação automática do Gemini\nTimeout, falha de rede, HTTP 408, 429 e 5xx: aguarda aproximadamente 90s, 3min, 6min e depois 10min entre tentativas, sem limite de quantidade. Respeita Retry-After.\nA execução fica em espera; não é preciso clicar em executar novamente. A repetição termina quando a API responde com sucesso. Erros de chave/modelo/permissão interrompem para correção.\nSomente o Gemini é repetido. Os envios de WhatsApp continuam sem repetição automática."
-      }
-    },
-    {
+      "parameters": {},
       "id": "agenda-manual",
       "name": "Notícias · Testar agenda",
       "type": "n8n-nodes-base.manualTrigger",
@@ -880,18 +785,9 @@
       "position": [
         -2000,
         400
-      ],
-      "parameters": {}
+      ]
     },
     {
-      "id": "agenda-tick",
-      "name": "Agenda · Decidir execução",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -1550,
-        200
-      ],
       "parameters": {
         "method": "POST",
         "url": "={{ ($('Configurar Cliente').first().json.estadoUrl.endsWith('/') ? $('Configurar Cliente').first().json.estadoUrl.slice(0,-1) : $('Configurar Cliente').first().json.estadoUrl) + '/tick' }}",
@@ -904,33 +800,38 @@
           "timeout": 30000
         }
       },
+      "id": "agenda-tick",
+      "name": "Agenda · Decidir execução",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1552,
+        208
+      ],
       "retryOnFail": true,
       "maxTries": 3,
-      "waitBetweenTries": 1000
+      "waitBetweenTries": 1000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "news-state-ledger",
+          "name": "Histórico de notícias"
+        }
+      }
     },
     {
+      "parameters": {
+        "jsCode": "const t=$input.first().json;return [{json:{...t,rotaNoticias:t.acao==='noticias',rotaResumao:t.acao==='resumao'}}];"
+      },
       "id": "agenda-router",
       "name": "Agenda · Preparar rota",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1330,
-        200
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const t=$input.first().json;return [{json:{...t,rotaNoticias:t.acao==='noticias',rotaResumao:t.acao==='resumao'}}];"
-      }
+        -1328,
+        208
+      ]
     },
     {
-      "id": "agenda-is-news",
-      "name": "Agenda · Coletar notícias?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -1170,
-        200
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -954,17 +855,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "agenda-is-digest",
-      "name": "Agenda · Montar resumão?",
+      },
+      "id": "agenda-is-news",
+      "name": "Agenda · Coletar notícias?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1390,
-        500
+        -1168,
+        208
       ],
+      "disabled": true
+    },
+    {
       "parameters": {
         "conditions": {
           "options": {
@@ -988,28 +890,28 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "agenda-is-digest",
+      "name": "Agenda · Montar resumão?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1392,
+        512
+      ]
     },
     {
+      "parameters": {},
       "id": "agenda-nothing",
       "name": "Agenda · Nada a enviar",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -850,
-        700
-      ],
-      "parameters": {}
+        -1248,
+        800
+      ]
     },
     {
-      "id": "agenda-filter",
-      "name": "Histórico · Filtrar inéditas",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -250,
-        300
-      ],
       "parameters": {
         "method": "POST",
         "url": "={{ ($('Configurar Cliente').first().json.estadoUrl.endsWith('/') ? $('Configurar Cliente').first().json.estadoUrl.slice(0,-1) : $('Configurar Cliente').first().json.estadoUrl) + '/filter' }}",
@@ -1022,19 +924,25 @@
           "timeout": 30000
         }
       },
+      "id": "agenda-filter",
+      "name": "Histórico · Filtrar inéditas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -288,
+        112
+      ],
       "retryOnFail": true,
       "maxTries": 3,
-      "waitBetweenTries": 1000
+      "waitBetweenTries": 1000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "news-state-ledger",
+          "name": "Histórico de notícias"
+        }
+      }
     },
     {
-      "id": "agenda-has-news",
-      "name": "Histórico · Há notícias novas?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        0,
-        300
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -1058,31 +966,30 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "agenda-has-news",
+      "name": "Histórico · Há notícias novas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        112
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "return $input.first().json.noticias.map(n=>({json:n}));"
+      },
       "id": "agenda-unpack",
       "name": "Histórico · Notícias inéditas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        220,
-        300
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "return $input.first().json.noticias.map(n=>({json:n}));"
-      }
+        192,
+        96
+      ]
     },
     {
-      "id": "agenda-has-source",
-      "name": "IA · Há texto suficiente?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        800,
-        500
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -1106,17 +1013,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "agenda-has-source",
+      "name": "IA · Há texto suficiente?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        496
+      ]
     },
     {
-      "id": "agenda-touch",
-      "name": "Agenda · Manter execução",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1100,
-        0
-      ],
       "parameters": {
         "method": "POST",
         "url": "={{ ($('Configurar Cliente').first().json.estadoUrl.endsWith('/') ? $('Configurar Cliente').first().json.estadoUrl.slice(0,-1) : $('Configurar Cliente').first().json.estadoUrl) + '/touch' }}",
@@ -1129,19 +1036,25 @@
           "timeout": 30000
         }
       },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1000
-    },
-    {
-      "id": "agenda-lease",
-      "name": "Agenda · Execução válida?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
+      "id": "agenda-touch",
+      "name": "Agenda · Manter execução",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
-        1320,
+        1104,
         0
       ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "news-state-ledger",
+          "name": "Histórico de notícias"
+        }
+      }
+    },
+    {
       "parameters": {
         "conditions": {
           "options": {
@@ -1165,31 +1078,30 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "agenda-lease",
+      "name": "Agenda · Execução válida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        0
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "return [{json:$('Gemini · Preparar tentativa').first(0,-1).json}];"
+      },
       "id": "agenda-payload",
       "name": "Gemini · Usar payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1540,
+        1552,
         0
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "return [{json:$('Gemini · Preparar tentativa').first(0,-1).json}];"
-      }
+      ]
     },
     {
-      "id": "agenda-has-output",
-      "name": "IA · Há conteúdo para enviar?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1550,
-        550
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -1213,17 +1125,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "agenda-has-output",
+      "name": "IA · Há conteúdo para enviar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1936,
+        656
+      ],
+      "disabled": true
     },
     {
-      "id": "agenda-reserve",
-      "name": "Histórico · Reservar envio",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2040,
-        300
-      ],
       "parameters": {
         "method": "POST",
         "url": "={{ ($('Configurar Cliente').first().json.estadoUrl.endsWith('/') ? $('Configurar Cliente').first().json.estadoUrl.slice(0,-1) : $('Configurar Cliente').first().json.estadoUrl) + '/reserve' }}",
@@ -1235,17 +1148,23 @@
         "options": {
           "timeout": 30000
         }
+      },
+      "id": "agenda-reserve",
+      "name": "Histórico · Reservar envio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2096,
+        32
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "news-state-ledger",
+          "name": "Histórico de notícias"
+        }
       }
     },
     {
-      "id": "agenda-allowed",
-      "name": "Histórico · Pode enviar?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        2260,
-        300
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -1269,45 +1188,44 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "agenda-allowed",
+      "name": "Histórico · Pode enviar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2320,
+        0
+      ],
+      "disabled": true
     },
     {
+      "parameters": {
+        "jsCode": "const r=$input.first().json;return [{json:{...r,...r.artigo,registroId:r.registroId}}];"
+      },
       "id": "agenda-restore",
       "name": "Histórico · Preparar envio",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2480,
-        300
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const r=$input.first().json;return [{json:{...r.artigo,registroId:r.registroId}}];"
-      }
+        2592,
+        0
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "const r=$input.first().json;if(!r?.key?.id||['ERROR','FAILED'].includes(r.status))throw new Error('Envio sem confirmação da Evolution. A reserva impede repetição automática; confira a entrega.');return [{json:{jobId:$('Agenda · Decidir execução').first().json.jobId,registroId:$('Histórico · Preparar envio').first(0,-1).json.registroId,messageId:r.key.id}}];"
+      },
       "id": "agenda-ack",
       "name": "Histórico · Conferir confirmação",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3100,
-        300
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const r=$input.first().json;if(!r?.key?.id||['ERROR','FAILED'].includes(r.status))throw new Error('Envio sem confirmação da Evolution. A reserva impede repetição automática; confira a entrega.');return [{json:{jobId:$('Agenda · Decidir execução').first().json.jobId,registroId:$('Histórico · Preparar envio').first(0,-1).json.registroId,messageId:r.key.id}}];"
-      }
+        3104,
+        304
+      ]
     },
     {
-      "id": "agenda-confirm",
-      "name": "Histórico · Registrar enviado",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3320,
-        300
-      ],
       "parameters": {
         "method": "POST",
         "url": "={{ ($('Configurar Cliente').first().json.estadoUrl.endsWith('/') ? $('Configurar Cliente').first().json.estadoUrl.slice(0,-1) : $('Configurar Cliente').first().json.estadoUrl) + '/confirm' }}",
@@ -1320,19 +1238,25 @@
           "timeout": 30000
         }
       },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1000
-    },
-    {
-      "id": "agenda-finish",
-      "name": "Agenda · Concluir execução",
+      "id": "agenda-confirm",
+      "name": "Histórico · Registrar enviado",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3600,
-        600
+        3328,
+        304
       ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "news-state-ledger",
+          "name": "Histórico de notícias"
+        }
+      }
+    },
+    {
       "parameters": {
         "method": "POST",
         "url": "={{ ($('Configurar Cliente').first().json.estadoUrl.endsWith('/') ? $('Configurar Cliente').first().json.estadoUrl.slice(0,-1) : $('Configurar Cliente').first().json.estadoUrl) + '/finish' }}",
@@ -1345,26 +1269,130 @@
           "timeout": 30000
         }
       },
+      "id": "agenda-finish",
+      "name": "Agenda · Concluir execução",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3600,
+        608
+      ],
       "retryOnFail": true,
       "maxTries": 3,
-      "waitBetweenTries": 1000
+      "waitBetweenTries": 1000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "news-state-ledger",
+          "name": "Histórico de notícias"
+        }
+      }
     },
     {
+      "parameters": {
+        "content": "## Notícias individuais + fechamento do dia\nConfigure periodicidade (intervalo/diario), intervaloMinutos, inicioEnvios, fimEnvios e horarioEnvioDiario. O resumão usa horarioResumao e interrompe novos envios até o próximo dia.\nCada notícia sai com imagem, se houver, e texto didático. O histórico impede repetição entre execuções e destinos são separados. Sem inéditas/relevantes, não envia.\nO resumão é UMA mensagem com TODAS as notícias confirmadas hoje. enviarLinksFontes controla os links.\nPara prévia manual: enviar=false e executar Notícias · Testar agenda. Para produção: enviar=true e publicar. A verificação por minuto não chama Gemini fora dos horários.\nReservas sem confirmação não são reenviadas automaticamente: confira o WhatsApp antes de liberar um envio incerto.\nO histórico exige o serviço Docker noticias-estado e sua credencial Header Auth.",
+        "height": 400,
+        "width": 950
+      },
       "id": "agenda-guide",
       "name": "Agenda · Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1800,
-        -450
-      ],
+        -1808,
+        -448
+      ]
+    },
+    {
       "parameters": {
-        "width": 950,
-        "height": 400,
-        "content": "## Notícias individuais + fechamento do dia\nConfigure periodicidade (intervalo/diario), intervaloMinutos, inicioEnvios, fimEnvios e horarioEnvioDiario. O resumão usa horarioResumao e interrompe novos envios até o próximo dia.\nCada notícia sai com imagem, se houver, e texto didático. O histórico impede repetição entre execuções e destinos são separados. Sem inéditas/relevantes, não envia.\nO resumão é UMA mensagem com TODAS as notícias confirmadas hoje. enviarLinksFontes controla os links.\nPara prévia manual: enviar=false e executar Notícias · Testar agenda. Para produção: enviar=true e publicar. A verificação por minuto não chama Gemini fora dos horários.\nReservas sem confirmação não são reenviadas automaticamente: confira o WhatsApp antes de liberar um envio incerto.\nO histórico exige o serviço Docker noticias-estado e sua credencial Header Auth."
-      }
+        "jsCode": "const origem = $('Montar Prompt').first(0, 0).json;\nconst anterior = $input.first().json;\nconst tentativa = Number(anterior.tentativaGemini || 0) + 1;\nreturn [{json: {...origem, tentativaGemini: tentativa}}];\n"
+      },
+      "id": "gemini-retry-prepare",
+      "name": "Gemini · Preparar tentativa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resposta = $input.first().json;\nconst tentativa = $('Gemini · Preparar tentativa').first(0, -1).json.tentativaGemini;\nconst LIMITE_TENTATIVAS = 6; // 1ª chamada + 5 reintentos imediatos; depois, erro rápido e claro.\nlet body = resposta.body;\nlet status = Number(resposta.statusCode || 0);\nif (typeof body === 'string') {\n  try { body = JSON.parse(body); } catch { body = null; }\n}\nif (!status && resposta.error && typeof resposta.error === 'object') {\n  status = Number(resposta.error.httpCode || resposta.error.statusCode || 0);\n}\nconst erro = resposta.error;\nconst textoErro = typeof erro === 'string' ? erro : [erro?.message, erro?.description, erro?.code, erro?.cause?.code].filter(Boolean).join(' ');\nconst transitorioHttp = status === 408 || status === 429 || (status >= 500 && status <= 599);\nconst transitorioRede = !status && /timeout|timed.?out|ETIMEDOUT|ESOCKETTIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|socket|connection.*(?:closed|reset|aborted)|offline|network|temporar/i.test(textoErro);\nif (status >= 200 && status < 300 && body && !body.error) {\n  // O resultado segue apenas uma vez para a validação editorial e os envios.\n  return [{json: {...body, geminiConcluido: true, tentativaGemini: tentativa}}];\n}\nif (!transitorioHttp && !transitorioRede) {\n  const codigo = status || 'configuração';\n  throw new Error(`Gemini: erro ${codigo} não temporário. Confira a credencial, o modelo, os parâmetros e as permissões. Nenhuma notícia foi enviada por esta execução.`);\n}\nif (tentativa >= LIMITE_TENTATIVAS) {\n  // Limite atingido: falha rápida e clara em vez de esperar minutos indefinidamente.\n  const codigo = status ? `HTTP ${status}` : 'falha de rede/timeout';\n  throw new Error(`Gemini indisponível após ${tentativa} tentativa(s) imediatas (último erro: ${codigo}). A execução termina aqui sem enviar notícias. Na próxima execução programada o sistema tenta novamente.`);\n}\n// Reintentar de forma IMEDIATA: base ~10-16s. Respeita Retry-After/retryDelay do servidor, com teto de 60s.\nconst headers = resposta.headers || {};\nconst retryHeader = headers['retry-after'] || headers['Retry-After'];\nlet pedidoServidor = 0;\nif (retryHeader) {\n  const bruto = /^\\d+(?:\\.\\d+)?$/.test(String(retryHeader))\n    ? Number(retryHeader)\n    : Math.max(0, (Date.parse(retryHeader) - Date.now()) / 1000);\n  pedidoServidor = Math.min(bruto, 60); // teto de 60s para não travar a execução\n}\nfor (const detalhe of body?.error?.details || []) {\n  const segundos = /^([0-9]+(?:\\.[0-9]+)?)s$/.exec(detalhe.retryDelay || '');\n  if (segundos) pedidoServidor = Math.max(pedidoServidor, Math.min(Number(segundos[1]), 60));\n}\nconst baseImediata = 10 + Math.floor(Math.random() * 7); // 10-16s\nconst esperaSegundos = Math.max(baseImediata, pedidoServidor);\nreturn [{json: {\n  geminiConcluido: false,\n  tentativaGemini: tentativa,\n  esperaSegundos,\n  motivo: status ? `Gemini HTTP ${status}` : 'Timeout ou falha temporária de rede',\n  proximaTentativa: new Date(Date.now() + esperaSegundos * 1000).toISOString(),\n}}];\n"
+      },
+      "id": "gemini-retry-check",
+      "name": "Gemini · Conferir resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gemini-success",
+              "leftValue": "={{ $json.geminiConcluido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gemini-retry-gate",
+      "name": "Gemini · Concluiu?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.esperaSegundos }}"
+      },
+      "id": "gemini-retry-wait",
+      "name": "Gemini · Aguardar e tentar novamente",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1152,
+        -160
+      ],
+      "webhookId": "83b72208-50fa-4f27-8779-a3991560a7bb"
+    },
+    {
+      "parameters": {
+        "content": "## Recuperação automática do Gemini\nTimeout, falha de rede, HTTP 408, 429 e 5xx: reintentos IMEDIATOS de ~10-16s entre tentativas (até 6 tentativas no total). Respeita Retry-After do servidor com teto de 60s.\nApós 6 tentativas sem sucesso a execução termina com erro claro (sem esperar minutos). Na próxima execução programada o sistema tenta novamente.\nSomente o Gemini é repetido. Os envios de WhatsApp continuam sem repetição automática.",
+        "height": 210,
+        "width": 740
+      },
+      "id": "gemini-retry-guide",
+      "name": "Gemini · Como funcionam as tentativas",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -416
+      ]
     }
   ],
+  "pinData": {},
   "connections": {
     "RSS InfoMoney": {
       "main": [
@@ -1425,7 +1453,7 @@
       "main": [
         [
           {
-            "node": "IA · Há texto suficiente?",
+            "node": "Gemini · Preparar tentativa",
             "type": "main",
             "index": 0
           }
@@ -1674,57 +1702,6 @@
         [
           {
             "node": "IDs · Resultados",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini · Preparar tentativa": {
-      "main": [
-        [
-          {
-            "node": "Agenda · Manter execução",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini · Conferir resposta": {
-      "main": [
-        [
-          {
-            "node": "Gemini · Concluiu?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini · Aguardar e tentar novamente": {
-      "main": [
-        [
-          {
-            "node": "Gemini · Preparar tentativa",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini · Concluiu?": {
-      "main": [
-        [
-          {
-            "node": "Extrair Resposta da IA",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Gemini · Aguardar e tentar novamente",
             "type": "main",
             "index": 0
           }
@@ -2003,15 +1980,69 @@
           }
         ]
       ]
+    },
+    "Gemini · Preparar tentativa": {
+      "main": [
+        [
+          {
+            "node": "Gemini (JSON estruturado)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini · Conferir resposta": {
+      "main": [
+        [
+          {
+            "node": "Gemini · Concluiu?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini · Aguardar e tentar novamente": {
+      "main": [
+        [
+          {
+            "node": "Gemini · Preparar tentativa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini · Concluiu?": {
+      "main": [
+        [
+          {
+            "node": "Extrair Resposta da IA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gemini · Aguardar e tentar novamente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
+    "binaryMode": "separate",
     "timezone": "America/Sao_Paulo"
   },
-  "pinData": {},
+  "versionId": "e3ed19a4-63c9-4c42-9c29-416966c63d05",
   "meta": {
-    "instanceId": "noticias-investimento-workflow"
-  }
+    "instanceId": "48ff7f89fe1c9121baa6d9eb47d73997f8f7e16499667556644587bb0e0c71f3"
+  },
+  "id": "ivbnTE3V5021wcsv",
+  "tags": []
 }

@@ -374,7 +374,7 @@ const map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos
 const tipo = map[choice] || 'todos';
 const base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');
 const instancia = String(config.instancia || '').trim();
-const url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=false';
+const url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=true';
 return [{ json: { tipo, filtro: filter, url, config } }];
 `.trim();
 
@@ -410,12 +410,39 @@ if (data.tipo === 'instancia') {
 }
 const source = Array.isArray(data.rows) ? data.rows : Array.isArray(data.rows?.groups) ? data.rows.groups : [data.rows];
 const groups = source.filter(group => group?.id?.endsWith?.('@g.us'));
+const meCandidates = [
+  data.config?.numero,
+  data.config?.numeroNoticias,
+  data.config?.numeroResumao,
+  data.config?.numeroHistorico,
+].map(v => String(v || '').replace(/[^0-9]/g, '')).filter(Boolean);
+const participantRole = group => {
+  const participants = Array.isArray(group.participants) ? group.participants : [];
+  const mine = participants.find(p => {
+    const id = String(p.id || p.jid || p.phoneNumber || '');
+    const phone = String(p.phoneNumber || '').replace(/[^0-9]/g, '');
+    return meCandidates.some(n => id.includes(n) || phone.endsWith(n) || n.endsWith(phone));
+  });
+  const admin = mine?.admin || '';
+  if (admin === 'superadmin') return 'Dono';
+  if (admin === 'admin') return 'Admin';
+  if (mine) return 'Membro';
+  return participants.length ? 'Nao identificado' : 'Participantes nao carregados';
+};
 const result = groups.filter(group => {
   if (data.tipo === 'grupos' && (group.isCommunity || group.isCommunityAnnounce)) return false;
   if (data.tipo === 'comunidades' && !group.isCommunity) return false;
   if (data.tipo === 'avisos' && !group.isCommunityAnnounce && !group.announce) return false;
   return !data.filtro || normalize(group.subject).includes(normalize(data.filtro));
-}).map(group => ({ json: { nome: group.subject || 'Sem nome', id: group.id, tipo: group.isCommunity ? 'Comunidade' : group.isCommunityAnnounce ? 'Grupo de avisos' : group.announce ? 'Somente administradores' : 'Grupo comum', participantes: group.size ?? null } }));
+}).map(group => ({ json: {
+  nome: group.subject || 'Sem nome',
+  id: group.id,
+  tipo: group.isCommunity ? 'Comunidade' : group.isCommunityAnnounce ? 'Grupo de avisos' : group.announce ? 'Somente administradores' : 'Grupo comum',
+  permissao: participantRole(group),
+  participantes: group.size ?? (Array.isArray(group.participants) ? group.participants.length : null),
+  donoId: group.owner || group.subjectOwner || '',
+  somenteAdmins: Boolean(group.announce),
+} }));
 return result.length ? result : [{ json: { nome: 'Nenhum resultado', id: '', tipo: data.tipo } }];
 `.trim();
 

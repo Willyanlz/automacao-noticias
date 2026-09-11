@@ -3,7 +3,7 @@
   "name": "Noticias de Investimento -> IA -> WhatsApp v3 compacta",
   "nodes": [
     {
-      "id": "scheduleTrigger-ba36c7cae2",
+      "id": "scheduleTrigger-317635c937",
       "name": "Agenda - Verificar a cada minuto",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "manualTrigger-68ed4cff45",
+      "id": "manualTrigger-2c4272fef7",
       "name": "Noticias - Rodar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       "parameters": {}
     },
     {
-      "id": "set-78cba2f859",
+      "id": "set-1aeff23345",
       "name": "Marcar Envio Manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -46,7 +46,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-df5fe7b953",
+              "id": "field-0edf4500fb",
               "name": "forcarAgora",
               "value": true,
               "type": "boolean"
@@ -57,7 +57,7 @@
       }
     },
     {
-      "id": "webhook-a1dd1ec593",
+      "id": "webhook-8f8f8f5a03",
       "name": "Webhook - Noticias Agora",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -74,7 +74,7 @@
       "webhookId": "noticias-agora-v3"
     },
     {
-      "id": "manualTrigger-fbb5bfd4f7",
+      "id": "manualTrigger-ae1a76622c",
       "name": "Resumao - Rodar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -85,7 +85,7 @@
       "parameters": {}
     },
     {
-      "id": "set-3dd949c30e",
+      "id": "set-2fc18dd58a",
       "name": "Marcar Resumao Manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -97,7 +97,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-d80f12aeb9",
+              "id": "field-c7804484d1",
               "name": "forcarResumao",
               "value": true,
               "type": "boolean"
@@ -108,7 +108,7 @@
       }
     },
     {
-      "id": "webhook-93ccdcdb3d",
+      "id": "webhook-5c133295d4",
       "name": "Webhook - Resumao Agora",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -125,7 +125,7 @@
       "webhookId": "resumao-agora-v3"
     },
     {
-      "id": "manualTrigger-e0b220ca4d",
+      "id": "manualTrigger-1843d6b937",
       "name": "Historico - Enviar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -136,7 +136,7 @@
       "parameters": {}
     },
     {
-      "id": "set-bd87b38761",
+      "id": "set-e0224fe614",
       "name": "Marcar Historico Manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -148,7 +148,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-99c59926f7",
+              "id": "field-0d5cb40398",
               "name": "forcarHistorico",
               "value": true,
               "type": "boolean"
@@ -159,7 +159,7 @@
       }
     },
     {
-      "id": "webhook-7c2bd88ee7",
+      "id": "webhook-dd3a976641",
       "name": "Webhook - Historico Agora",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -176,7 +176,7 @@
       "webhookId": "historico-agora-v3"
     },
     {
-      "id": "set-81d2aea53d",
+      "id": "set-88faeb4237",
       "name": "Configurar Cliente",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -188,193 +188,193 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-b23d64e5c4",
+              "id": "field-a70770568a",
               "name": "cliente",
               "value": "Iguera",
               "type": "string"
             },
             {
-              "id": "field-d2a3b7a031",
+              "id": "field-bd37c92df2",
               "name": "numero",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-d2814c8f38",
+              "id": "field-5706f89ba5",
               "name": "instancia",
               "value": "iguera",
               "type": "string"
             },
             {
-              "id": "field-c83e4bbcdf",
+              "id": "field-7d938ff1b2",
               "name": "evolutionUrl",
               "value": "http://evolution-api:8080",
               "type": "string"
             },
             {
-              "id": "field-f109af1b9b",
+              "id": "field-3984bae226",
               "name": "evolutionApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-61926d7508",
+              "id": "field-2696ed7a6b",
               "name": "geminiApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-fea361c180",
+              "id": "field-ac366c8233",
               "name": "modeloGemini",
               "value": "gemini-2.0-flash",
               "type": "string"
             },
             {
-              "id": "field-b9323121df",
+              "id": "field-394ace7d56",
               "name": "historicoUrl",
               "value": "http://historico:8090",
               "type": "string"
             },
             {
-              "id": "field-2ff73d9b66",
+              "id": "field-d0cd149ac7",
               "name": "rssFeeds",
               "value": "https://www.infomoney.com.br/feed/\nhttps://www.moneytimes.com.br/feed/\nhttps://braziljournal.com/feed/\nhttps://veja.abril.com.br/feed/",
               "type": "string"
             },
             {
-              "id": "field-fe7ca68c70",
+              "id": "field-7d91f1fa55",
               "name": "dominiosPermitidos",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-d6e21f9ee9",
+              "id": "field-142255005a",
               "name": "palavrasChave",
               "value": "banco, bancos, itau, bradesco, santander, btg, nubank, inter, caixa, banco do brasil, xp, goldman sachs, jpmorgan, morgan stanley, blackrock, fed, banco central, copom, cmn, open finance, pix, credito, emprestimos, financiamento, inadimplencia, provisoes, basileia, fintech, seguradora, previdencia, cvm, anbima, susep, previc, bacen, empresas, companhia, acoes, b3, ibovespa, ipo, follow-on, oferta secundaria, opa, dividendos, jcp, resultados, balanco, lucro, lucro liquido, receita, receita liquida, ebitda, margem, guidance, ceo, m&a, aquisicao, fusao, venda de participacao, recompra de acoes, fato relevante, comunicado ao mercado, aviso aos acionistas, ri, conselho, capex, divida, endividamento, fluxo de caixa, geracao de caixa, consenso, estimativa, revisao de projecao, recuperacao judicial, falencia, desinvestimento, venda de ativos, mudanca de controle, reestruturacao, bolsa, small caps, blue chips, valuation, recomendacao, upgrade, downgrade, preco-alvo, volatilidade, insider, ifix, idiv, ibovespa futuro, fluxo estrangeiro, renda fixa, cdb, lci, lca, cdi, debentures, credito privado, cra, cri, fidc, tesouro direto, tesouro ipca, tesouro prefixado, ltn, ntn-b, ntn-f, ipca, igp-m, spread de credito, rating, default, emissao, resgate antecipado, duration, marcacao a mercado, covenant, curva de juros, di futuro, ima-b, ima-geral, fundos de investimento, fundos imobiliarios, fiis, etfs, bdrs, asset, gestora, corretora, fundos de credito, fundos de acoes, fundos multimercado, selic, juros, ipca-15, inflacao, taxa real, pib, desemprego, fiscal, politica fiscal, politica monetaria, deficit, superavit, divida publica, arrecadacao, impostos, reforma tributaria, arcabouco fiscal, gastos publicos, contingenciamento, orcamento, meta fiscal, fazenda, privatizacao, concessao, leilao, desoneracao, subsidios, risco-pais, cds, embi, ibc-br, boletim focus, producao industrial, varejo, balanca comercial, atividade economica, stf, stj, congresso, camara, senado, governo, planalto, presidente, ministro, pec, projeto de lei, medida provisoria, julgamento, decisao, liminar, marco regulatorio, eleicoes, bce, china, eua, estados unidos, europa, japao, hong kong, taiwan, russia, ucrania, oriente medio, guerra, sancoes, tarifas, comercio exterior, recessao, payroll, cpi, pce, emprego, juros americanos, treasuries, treasury, yield, s&p 500, nasdaq, dow jones, dax, ftse, nikkei, hang seng, msci, otan, israel, ira, palestina, coreia do norte, guerra comercial, tarifaco, conflitos, cessar-fogo, petroleo, brent, wti, gas natural, minerio de ferro, ouro, cobre, aluminio, litio, niquel, fertilizantes, soja, milho, trigo, cafe, acucar, etanol, celulose, carne, boi gordo, opep, commodities, dolar, dolar comercial, dolar futuro, euro, cambio, real, moeda, fluxo cambial, reservas internacionais, petroleo e gas, energia eletrica, saneamento, utilities, construcao civil, shoppings, agronegocio, mineracao, siderurgia, papel e celulose, telecomunicacoes, tecnologia, saude, educacao, transporte, aviacao, infraestrutura, liquidez, volatilidade implicita, aversao ao risco, apetite ao risco, alta, queda, disparada, colapso, crise, risco, alerta, surpresa, emergencia, intervencao, mudanca, corte, alta de juros, corte de juros, suspensao, investigacao, operacao, fraude, escandalo, rebaixamento, surpresa positiva, surpresa negativa, acima das expectativas, abaixo das expectativas, circuit breaker, estresse financeiro",
               "type": "string"
             },
             {
-              "id": "field-fe5c515896",
+              "id": "field-24474bad21",
               "name": "promptNoticias",
               "value": "Voce e editor de noticias financeiras para leitores leigos no WhatsApp. TAREFA: selecionar apenas noticias relevantes e ineditas para investidores. Ignore propaganda, educacao generica, opiniao sem fato e conteudo sem impacto economico, mesmo que tenha palavra-chave. Priorize fatos das ultimas 24 horas com impacto em mercados, investimentos, empresas, juros, inflacao, cambio, bolsa ou decisoes de investidores. Use apenas as fontes, nao invente numeros, causas, cotacoes, recomendacoes ou previsoes. Cada resumo deve ter 75 a 130 palavras, em linguagem simples, explicando quem fez o que, contexto e possivel impacto.",
               "type": "string"
             },
             {
-              "id": "field-7c06307567",
+              "id": "field-35d75933c1",
               "name": "promptResumao",
               "value": "Voce e editor financeiro para WhatsApp. TAREFA: escrever UM UNICO resumao do dia, baseado SOMENTE nas noticias individuais ja enviadas hoje. Escreva em portugues brasileiro, didatico, natural, sem inventar fatos, numeros ou causas. Use ate tres paragrafos curtos, sem links, sem markdown, sem lista numerada e sem emojis por noticia. Diga primeiro quem fez o que e explique o impacto para mercado, empresas, juros, inflacao, cambio, bolsa ou investidores.",
               "type": "string"
             },
             {
-              "id": "field-74f4f845e0",
+              "id": "field-90a7251d2b",
               "name": "periodicidade",
               "value": "intervalo",
               "type": "string"
             },
             {
-              "id": "field-495b186210",
+              "id": "field-6a48ff0f51",
               "name": "intervaloMinutos",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "field-3ebe3a4113",
+              "id": "field-59c48588ca",
               "name": "inicioEnvios",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-22a768f975",
+              "id": "field-51dcad79ff",
               "name": "fimEnvios",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-7f6db811f8",
+              "id": "field-9922c97eac",
               "name": "horarioEnvioDiario",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-e3af1b5558",
+              "id": "field-cd5d4c4bae",
               "name": "horarioResumao",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-6857fa9d20",
+              "id": "field-c35b518d10",
               "name": "resumaoAtivo",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-c5a71e0087",
+              "id": "field-c6d2e07840",
               "name": "maxNoticias",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "field-51b97729c4",
+              "id": "field-4f4eb0a5da",
               "name": "janelaHoras",
               "value": 24,
               "type": "number"
             },
             {
-              "id": "field-8b013b2325",
+              "id": "field-e5f6d0e525",
               "name": "usarImagem",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-380e9fe232",
+              "id": "field-5120263215",
               "name": "enviar",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-4ac58d455b",
+              "id": "field-65d199255c",
               "name": "enviarLinksFontes",
               "value": false,
               "type": "boolean"
             },
             {
-              "id": "field-8b6b8585b5",
+              "id": "field-f27b2d8a60",
               "name": "numeroNoticias",
               "value": "={{ $json.numeroNoticias || $json.numero || \"\" }}",
               "type": "string"
             },
             {
-              "id": "field-47e8cb276b",
+              "id": "field-a8836546bf",
               "name": "numeroResumao",
               "value": "={{ $json.numeroResumao || $json.numero || \"\" }}",
               "type": "string"
             },
             {
-              "id": "field-a744785b41",
+              "id": "field-06911bd363",
               "name": "numeroHistorico",
               "value": "={{ $json.numeroHistorico || $json.numero || \"\" }}",
               "type": "string"
             },
             {
-              "id": "field-f5327b8194",
+              "id": "field-08553812af",
               "name": "forcarAgora",
               "value": "={{ Boolean($json.forcarAgora) }}",
               "type": "boolean"
             },
             {
-              "id": "field-f42c1dc88d",
+              "id": "field-5acdb1afbd",
               "name": "forcarResumao",
               "value": "={{ Boolean($json.forcarResumao) }}",
               "type": "boolean"
             },
             {
-              "id": "field-36427cd4a4",
+              "id": "field-e41b554991",
               "name": "forcarHistorico",
               "value": "={{ Boolean($json.forcarHistorico) }}",
               "type": "boolean"
             },
             {
-              "id": "field-b24f19c13b",
+              "id": "field-f2ff78067f",
               "name": "fluxo",
               "value": "={{ $json.fluxo || \"noticias\" }}",
               "type": "string"
@@ -385,7 +385,7 @@
       }
     },
     {
-      "id": "if-ae1ca14a77",
+      "id": "if-6579564c65",
       "name": "Rota - Consulta IDs?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -403,7 +403,7 @@
           },
           "conditions": [
             {
-              "id": "cond-19b9380cfb",
+              "id": "cond-e3a38cc31e",
               "leftValue": "={{ $json.fluxo }}",
               "rightValue": "ids",
               "operator": {
@@ -418,7 +418,7 @@
       }
     },
     {
-      "id": "code-3fc9f99b89",
+      "id": "code-4a338e1a80",
       "name": "Decidir Acao",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -432,7 +432,7 @@
       }
     },
     {
-      "id": "code-204cff74d0",
+      "id": "code-0347eb927a",
       "name": "Coletar Fontes e Historico",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -446,7 +446,7 @@
       }
     },
     {
-      "id": "code-8b3a336087",
+      "id": "code-a8ebb5ce66",
       "name": "Montar Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -460,7 +460,7 @@
       }
     },
     {
-      "id": "code-36cc8e296e",
+      "id": "code-bbca6425cb",
       "name": "Gemini com Retry",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -474,7 +474,7 @@
       }
     },
     {
-      "id": "code-a9be56756e",
+      "id": "code-063e2204fa",
       "name": "Preparar Mensagens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -488,7 +488,7 @@
       }
     },
     {
-      "id": "splitInBatches-d72f407b2b",
+      "id": "splitInBatches-54106164e8",
       "name": "Uma mensagem por vez",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -502,7 +502,7 @@
       }
     },
     {
-      "id": "code-b2e8681e13",
+      "id": "code-e55bfb27de",
       "name": "Enviar e Registrar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -516,7 +516,7 @@
       }
     },
     {
-      "id": "wait-f4420ccdc4",
+      "id": "wait-27db402b4f",
       "name": "Aguardar 8-10s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -529,7 +529,7 @@
       }
     },
     {
-      "id": "noOp-1ea2ba7331",
+      "id": "noOp-a1517c0759",
       "name": "Fim",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
@@ -540,7 +540,7 @@
       "parameters": {}
     },
     {
-      "id": "manualTrigger-a936ec30bf",
+      "id": "manualTrigger-9995be06ef",
       "name": "IDs - Iniciar Consulta",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -551,7 +551,7 @@
       "parameters": {}
     },
     {
-      "id": "set-d4322dee78",
+      "id": "set-c2bf7b7bd2",
       "name": "Marcar Consulta IDs",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -563,7 +563,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-e9b6cba45c",
+              "id": "field-fd1fc36ae1",
               "name": "fluxo",
               "value": "ids",
               "type": "string"
@@ -574,7 +574,7 @@
       }
     },
     {
-      "id": "wait-91cb0712f0",
+      "id": "wait-2e190b1957",
       "name": "IDs - O que Consultar?",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -628,7 +628,7 @@
       "webhookId": "ids-v3-compact-form"
     },
     {
-      "id": "code-79d0af37b8",
+      "id": "code-f5a9573f4e",
       "name": "IDs - Preparar Consulta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -638,11 +638,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const form = $input.first().json;\nconst config = $('Configurar Cliente').first().json;\nconst choice = String(form.opcao ?? form['O que vocÃƒÂª quer consultar?'] ?? '').trim();\nconst filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();\nconst map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'InstÃƒÂ¢ncia e conexÃƒÂ£o': 'instancia' };\nconst tipo = map[choice] || 'todos';\nconst base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');\nconst instancia = String(config.instancia || '').trim();\nconst url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=false';\nreturn [{ json: { tipo, filtro: filter, url, config } }];"
+        "jsCode": "const form = $input.first().json;\nconst config = $('Configurar Cliente').first().json;\nconst choice = String(form.opcao ?? form['O que vocÃƒÂª quer consultar?'] ?? '').trim();\nconst filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();\nconst map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'InstÃƒÂ¢ncia e conexÃƒÂ£o': 'instancia' };\nconst tipo = map[choice] || 'todos';\nconst base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');\nconst instancia = String(config.instancia || '').trim();\nconst url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=true';\nreturn [{ json: { tipo, filtro: filter, url, config } }];"
       }
     },
     {
-      "id": "code-73b2e0ea20",
+      "id": "code-0fae883cfd",
       "name": "IDs - Consultar Evolution",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -656,7 +656,7 @@
       }
     },
     {
-      "id": "code-0970e2eab6",
+      "id": "code-3aa763358d",
       "name": "IDs - Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -666,11 +666,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const data = $input.first().json;\nconst normalize = text => String(text || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nif (data.tipo === 'instancia') {\n  const info = data.rows?.instance || data.rows || {};\n  return [{ json: { nome: info.instanceName || 'Instancia', id: info.instanceName || '', tipo: 'Instancia', estado: info.state || '' } }];\n}\nconst source = Array.isArray(data.rows) ? data.rows : Array.isArray(data.rows?.groups) ? data.rows.groups : [data.rows];\nconst groups = source.filter(group => group?.id?.endsWith?.('@g.us'));\nconst result = groups.filter(group => {\n  if (data.tipo === 'grupos' && (group.isCommunity || group.isCommunityAnnounce)) return false;\n  if (data.tipo === 'comunidades' && !group.isCommunity) return false;\n  if (data.tipo === 'avisos' && !group.isCommunityAnnounce && !group.announce) return false;\n  return !data.filtro || normalize(group.subject).includes(normalize(data.filtro));\n}).map(group => ({ json: { nome: group.subject || 'Sem nome', id: group.id, tipo: group.isCommunity ? 'Comunidade' : group.isCommunityAnnounce ? 'Grupo de avisos' : group.announce ? 'Somente administradores' : 'Grupo comum', participantes: group.size ?? null } }));\nreturn result.length ? result : [{ json: { nome: 'Nenhum resultado', id: '', tipo: data.tipo } }];"
+        "jsCode": "const data = $input.first().json;\nconst normalize = text => String(text || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nif (data.tipo === 'instancia') {\n  const info = data.rows?.instance || data.rows || {};\n  return [{ json: { nome: info.instanceName || 'Instancia', id: info.instanceName || '', tipo: 'Instancia', estado: info.state || '' } }];\n}\nconst source = Array.isArray(data.rows) ? data.rows : Array.isArray(data.rows?.groups) ? data.rows.groups : [data.rows];\nconst groups = source.filter(group => group?.id?.endsWith?.('@g.us'));\nconst meCandidates = [\n  data.config?.numero,\n  data.config?.numeroNoticias,\n  data.config?.numeroResumao,\n  data.config?.numeroHistorico,\n].map(v => String(v || '').replace(/[^0-9]/g, '')).filter(Boolean);\nconst participantRole = group => {\n  const participants = Array.isArray(group.participants) ? group.participants : [];\n  const mine = participants.find(p => {\n    const id = String(p.id || p.jid || p.phoneNumber || '');\n    const phone = String(p.phoneNumber || '').replace(/[^0-9]/g, '');\n    return meCandidates.some(n => id.includes(n) || phone.endsWith(n) || n.endsWith(phone));\n  });\n  const admin = mine?.admin || '';\n  if (admin === 'superadmin') return 'Dono';\n  if (admin === 'admin') return 'Admin';\n  if (mine) return 'Membro';\n  return participants.length ? 'Nao identificado' : 'Participantes nao carregados';\n};\nconst result = groups.filter(group => {\n  if (data.tipo === 'grupos' && (group.isCommunity || group.isCommunityAnnounce)) return false;\n  if (data.tipo === 'comunidades' && !group.isCommunity) return false;\n  if (data.tipo === 'avisos' && !group.isCommunityAnnounce && !group.announce) return false;\n  return !data.filtro || normalize(group.subject).includes(normalize(data.filtro));\n}).map(group => ({ json: {\n  nome: group.subject || 'Sem nome',\n  id: group.id,\n  tipo: group.isCommunity ? 'Comunidade' : group.isCommunityAnnounce ? 'Grupo de avisos' : group.announce ? 'Somente administradores' : 'Grupo comum',\n  permissao: participantRole(group),\n  participantes: group.size ?? (Array.isArray(group.participants) ? group.participants.length : null),\n  donoId: group.owner || group.subjectOwner || '',\n  somenteAdmins: Boolean(group.announce),\n} }));\nreturn result.length ? result : [{ json: { nome: 'Nenhum resultado', id: '', tipo: data.tipo } }];"
       }
     },
     {
-      "id": "stickyNote-58c795b6a8",
+      "id": "stickyNote-103947aefa",
       "name": "V3 - Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,

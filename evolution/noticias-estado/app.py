@@ -116,7 +116,8 @@ def active_job(db, job_id, now, kind=None):
     local = datetime.fromtimestamp(now, TZ)
     if (job['kind'] == 'noticias' and job['day'] != local.date().isoformat()) or now - job['touched'] > 1200:
         return None
-    if job['kind'] == 'noticias':
+    # Slots manuais (fora de horário) não estão sujeitos à janela de envio.
+    if job['kind'] == 'noticias' and not job['slot'].startswith('manual:'):
         c = json.loads(job['config'])
         _, end, digest, *_ = schedule(c)
         if local.hour * 60 + local.minute >= min(end + 1, digest):
@@ -139,6 +140,14 @@ def dispatch(path, data, now=None):
             c = data['config']
             scope = context(c)
             start, end, digest, mode, interval, daily = schedule(c)
+            # Modo manual forçado: executa a qualquer hora e realmente envia (ignora janela/horário).
+            if data.get('manual') and c.get('enviar') is True:
+                kind = 'noticias'
+                slot = 'manual:' + day + ':' + str(data.get('executionId', ''))
+                db.execute('DELETE FROM jobs WHERE scope=? AND slot=?', (scope, slot))
+                job_id = str(uuid.uuid4())
+                db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,?,?,?,?,?,?)', (job_id, scope, kind, day, slot, 'active', str(data.get('executionId', '')), json.dumps(c), now, now, '[]'))
+                return {'acao': kind, 'jobId': job_id, 'config': c, 'dia': day, 'noticias': [], 'previa': False}
             if c.get('enviar') is not True:
                 return {'acao': 'noticias' if data.get('manual') else 'nada', 'previa': True, 'jobId': '', 'config': c}
             db.execute("UPDATE jobs SET status='expired' WHERE scope=? AND status='active' AND (touched<? OR (kind='noticias' AND day<>?))", (scope, now-1200, day))
@@ -192,7 +201,8 @@ def dispatch(path, data, now=None):
         if path == '/filter':
             c = data['config']
             scope = context(c)
-            if data.get('jobId') and not active_job(db, data['jobId'], now, 'noticias'):
+            job_id = data.get('jobId') or ''
+            if job_id and not active_job(db, job_id, now, 'noticias'):
                 return {'noticias': [], 'recentes': []}
             result = []
             for article in data.get('noticias', []):

@@ -113,6 +113,24 @@ class NewsStateTests(unittest.TestCase):
         self.assertEqual(self.tick(8, 15)['acao'], 'nada')
         self.assertEqual(self.tick(9)['acao'], 'noticias')
 
+    def test_manual_force_outside_window(self):
+        # Manual + enviar=True FORA da janela (23h) cria job real e envia de verdade.
+        p = app.dispatch('/tick', {'config': self.c, 'manual': True, 'executionId': 'manual-1'}, self.t(23))
+        self.assertEqual(p['acao'], 'noticias')
+        self.assertNotEqual(p['jobId'], '')
+        self.assertFalse(p['previa'])
+        # Reserva e confirma funcionam (envia na hora).
+        r = app.dispatch('/reserve', {'jobId': p['jobId'], 'artigo': self.article()}, self.t(23, 1))
+        self.assertTrue(r['enviar'])
+        app.dispatch('/confirm', {'jobId': p['jobId'], 'registroId': r['registroId'], 'messageId': 'm-' + r['registroId']}, self.t(23, 2))
+        # Reexecutar o mesmo manual-1 recria o job (idempotente por executionId).
+        p2 = app.dispatch('/tick', {'config': self.c, 'manual': True, 'executionId': 'manual-1'}, self.t(23, 3))
+        self.assertNotEqual(p2['jobId'], p['jobId'])
+        # Manual + enviar=False segue como prévia (não envia).
+        previa = app.dispatch('/tick', {'config': {**self.c, 'enviar': False}, 'manual': True, 'executionId': 'manual-2'}, self.t(23))
+        self.assertTrue(previa['previa'])
+        self.assertEqual(previa['jobId'], '')
+
     def test_timeout_recovery_and_heartbeat(self):
         p = self.tick(8)
         for m in (10, 20, 30, 40, 50):

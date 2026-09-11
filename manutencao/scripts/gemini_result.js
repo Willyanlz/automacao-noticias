@@ -1,5 +1,6 @@
 const resposta = $input.first().json;
 const tentativa = $('Gemini · Preparar tentativa').first(0, -1).json.tentativaGemini;
+const LIMITE_TENTATIVAS = 6; // 1ª chamada + 5 reintentos imediatos; depois, erro rápido e claro.
 let body = resposta.body;
 let status = Number(resposta.statusCode || 0);
 if (typeof body === 'string') {
@@ -20,20 +21,27 @@ if (!transitorioHttp && !transitorioRede) {
   const codigo = status || 'configuração';
   throw new Error(`Gemini: erro ${codigo} não temporário. Confira a credencial, o modelo, os parâmetros e as permissões. Nenhuma notícia foi enviada por esta execução.`);
 }
+if (tentativa >= LIMITE_TENTATIVAS) {
+  // Limite atingido: falha rápida e clara em vez de esperar minutos indefinidamente.
+  const codigo = status ? `HTTP ${status}` : 'falha de rede/timeout';
+  throw new Error(`Gemini indisponível após ${tentativa} tentativa(s) imediatas (último erro: ${codigo}). A execução termina aqui sem enviar notícias. Na próxima execução programada o sistema tenta novamente.`);
+}
+// Reintentar de forma IMEDIATA: base ~10-16s. Respeita Retry-After/retryDelay do servidor, com teto de 60s.
 const headers = resposta.headers || {};
 const retryHeader = headers['retry-after'] || headers['Retry-After'];
 let pedidoServidor = 0;
 if (retryHeader) {
-  pedidoServidor = /^\d+(?:\.\d+)?$/.test(String(retryHeader))
+  const bruto = /^\d+(?:\.\d+)?$/.test(String(retryHeader))
     ? Number(retryHeader)
     : Math.max(0, (Date.parse(retryHeader) - Date.now()) / 1000);
+  pedidoServidor = Math.min(bruto, 60); // teto de 60s para não travar a execução
 }
 for (const detalhe of body?.error?.details || []) {
   const segundos = /^([0-9]+(?:\.[0-9]+)?)s$/.exec(detalhe.retryDelay || '');
-  if (segundos) pedidoServidor = Math.max(pedidoServidor || 0, Number(segundos[1]));
+  if (segundos) pedidoServidor = Math.max(pedidoServidor, Math.min(Number(segundos[1]), 60));
 }
-const progressivo = Math.min(600, 90 * 2 ** Math.min(tentativa - 1, 4));
-const esperaSegundos = Math.ceil(Math.max(progressivo, Number.isFinite(pedidoServidor) ? pedidoServidor : 0)) + Math.floor(Math.random() * 16);
+const baseImediata = 10 + Math.floor(Math.random() * 7); // 10-16s
+const esperaSegundos = Math.max(baseImediata, pedidoServidor);
 return [{json: {
   geminiConcluido: false,
   tentativaGemini: tentativa,

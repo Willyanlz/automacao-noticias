@@ -3,7 +3,7 @@
   "name": "Noticias de Investimento -> IA -> WhatsApp v3 compacta",
   "nodes": [
     {
-      "id": "scheduleTrigger-6573485077",
+      "id": "scheduleTrigger-ba36c7cae2",
       "name": "Agenda - Verificar a cada minuto",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "manualTrigger-361b4bcea8",
+      "id": "manualTrigger-68ed4cff45",
       "name": "Noticias - Rodar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       "parameters": {}
     },
     {
-      "id": "set-df9494b48d",
+      "id": "set-78cba2f859",
       "name": "Marcar Envio Manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -46,7 +46,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-cc39bd2501",
+              "id": "field-df5fe7b953",
               "name": "forcarAgora",
               "value": true,
               "type": "boolean"
@@ -57,7 +57,7 @@
       }
     },
     {
-      "id": "webhook-d4ef9de837",
+      "id": "webhook-a1dd1ec593",
       "name": "Webhook - Noticias Agora",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -68,13 +68,13 @@
       "parameters": {
         "httpMethod": "GET",
         "path": "noticias-agora",
-        "responseMode": "lastNode",
+        "responseMode": "onReceived",
         "options": {}
       },
       "webhookId": "noticias-agora-v3"
     },
     {
-      "id": "manualTrigger-cc3167cea6",
+      "id": "manualTrigger-fbb5bfd4f7",
       "name": "Resumao - Rodar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -85,7 +85,7 @@
       "parameters": {}
     },
     {
-      "id": "set-89a36ec5a9",
+      "id": "set-3dd949c30e",
       "name": "Marcar Resumao Manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -97,7 +97,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-fc936eee2e",
+              "id": "field-d80f12aeb9",
               "name": "forcarResumao",
               "value": true,
               "type": "boolean"
@@ -108,7 +108,7 @@
       }
     },
     {
-      "id": "webhook-767ee73bf9",
+      "id": "webhook-93ccdcdb3d",
       "name": "Webhook - Resumao Agora",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -119,13 +119,13 @@
       "parameters": {
         "httpMethod": "GET",
         "path": "resumao-agora",
-        "responseMode": "lastNode",
+        "responseMode": "onReceived",
         "options": {}
       },
       "webhookId": "resumao-agora-v3"
     },
     {
-      "id": "manualTrigger-862f55fd54",
+      "id": "manualTrigger-e0b220ca4d",
       "name": "Historico - Enviar Manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -136,7 +136,7 @@
       "parameters": {}
     },
     {
-      "id": "set-ec6254bcc9",
+      "id": "set-bd87b38761",
       "name": "Marcar Historico Manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -148,7 +148,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-c8382c18bd",
+              "id": "field-99c59926f7",
               "name": "forcarHistorico",
               "value": true,
               "type": "boolean"
@@ -159,7 +159,7 @@
       }
     },
     {
-      "id": "webhook-69e9ce6980",
+      "id": "webhook-7c2bd88ee7",
       "name": "Webhook - Historico Agora",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -170,13 +170,13 @@
       "parameters": {
         "httpMethod": "GET",
         "path": "historico-agora",
-        "responseMode": "lastNode",
+        "responseMode": "onReceived",
         "options": {}
       },
       "webhookId": "historico-agora-v3"
     },
     {
-      "id": "set-5f43d7899d",
+      "id": "set-81d2aea53d",
       "name": "Configurar Cliente",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -188,193 +188,193 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-d04f74c278",
+              "id": "field-b23d64e5c4",
               "name": "cliente",
               "value": "Iguera",
               "type": "string"
             },
             {
-              "id": "field-18941d853f",
+              "id": "field-d2a3b7a031",
               "name": "numero",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-cc60d2b76c",
+              "id": "field-d2814c8f38",
               "name": "instancia",
               "value": "iguera",
               "type": "string"
             },
             {
-              "id": "field-1e3adf4480",
+              "id": "field-c83e4bbcdf",
               "name": "evolutionUrl",
               "value": "http://evolution-api:8080",
               "type": "string"
             },
             {
-              "id": "field-bebed2d142",
+              "id": "field-f109af1b9b",
               "name": "evolutionApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-c2d0ff1829",
+              "id": "field-61926d7508",
               "name": "geminiApiKey",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-07716178b2",
+              "id": "field-fea361c180",
               "name": "modeloGemini",
               "value": "gemini-2.0-flash",
               "type": "string"
             },
             {
-              "id": "field-0de948593f",
+              "id": "field-b9323121df",
               "name": "historicoUrl",
               "value": "http://historico:8090",
               "type": "string"
             },
             {
-              "id": "field-8c930c9427",
+              "id": "field-2ff73d9b66",
               "name": "rssFeeds",
               "value": "https://www.infomoney.com.br/feed/\nhttps://www.moneytimes.com.br/feed/\nhttps://braziljournal.com/feed/\nhttps://veja.abril.com.br/feed/",
               "type": "string"
             },
             {
-              "id": "field-509bcbaaa1",
+              "id": "field-fe7ca68c70",
               "name": "dominiosPermitidos",
               "value": "",
               "type": "string"
             },
             {
-              "id": "field-3a1e334f33",
+              "id": "field-d6e21f9ee9",
               "name": "palavrasChave",
               "value": "banco, bancos, itau, bradesco, santander, btg, nubank, inter, caixa, banco do brasil, xp, goldman sachs, jpmorgan, morgan stanley, blackrock, fed, banco central, copom, cmn, open finance, pix, credito, emprestimos, financiamento, inadimplencia, provisoes, basileia, fintech, seguradora, previdencia, cvm, anbima, susep, previc, bacen, empresas, companhia, acoes, b3, ibovespa, ipo, follow-on, oferta secundaria, opa, dividendos, jcp, resultados, balanco, lucro, lucro liquido, receita, receita liquida, ebitda, margem, guidance, ceo, m&a, aquisicao, fusao, venda de participacao, recompra de acoes, fato relevante, comunicado ao mercado, aviso aos acionistas, ri, conselho, capex, divida, endividamento, fluxo de caixa, geracao de caixa, consenso, estimativa, revisao de projecao, recuperacao judicial, falencia, desinvestimento, venda de ativos, mudanca de controle, reestruturacao, bolsa, small caps, blue chips, valuation, recomendacao, upgrade, downgrade, preco-alvo, volatilidade, insider, ifix, idiv, ibovespa futuro, fluxo estrangeiro, renda fixa, cdb, lci, lca, cdi, debentures, credito privado, cra, cri, fidc, tesouro direto, tesouro ipca, tesouro prefixado, ltn, ntn-b, ntn-f, ipca, igp-m, spread de credito, rating, default, emissao, resgate antecipado, duration, marcacao a mercado, covenant, curva de juros, di futuro, ima-b, ima-geral, fundos de investimento, fundos imobiliarios, fiis, etfs, bdrs, asset, gestora, corretora, fundos de credito, fundos de acoes, fundos multimercado, selic, juros, ipca-15, inflacao, taxa real, pib, desemprego, fiscal, politica fiscal, politica monetaria, deficit, superavit, divida publica, arrecadacao, impostos, reforma tributaria, arcabouco fiscal, gastos publicos, contingenciamento, orcamento, meta fiscal, fazenda, privatizacao, concessao, leilao, desoneracao, subsidios, risco-pais, cds, embi, ibc-br, boletim focus, producao industrial, varejo, balanca comercial, atividade economica, stf, stj, congresso, camara, senado, governo, planalto, presidente, ministro, pec, projeto de lei, medida provisoria, julgamento, decisao, liminar, marco regulatorio, eleicoes, bce, china, eua, estados unidos, europa, japao, hong kong, taiwan, russia, ucrania, oriente medio, guerra, sancoes, tarifas, comercio exterior, recessao, payroll, cpi, pce, emprego, juros americanos, treasuries, treasury, yield, s&p 500, nasdaq, dow jones, dax, ftse, nikkei, hang seng, msci, otan, israel, ira, palestina, coreia do norte, guerra comercial, tarifaco, conflitos, cessar-fogo, petroleo, brent, wti, gas natural, minerio de ferro, ouro, cobre, aluminio, litio, niquel, fertilizantes, soja, milho, trigo, cafe, acucar, etanol, celulose, carne, boi gordo, opep, commodities, dolar, dolar comercial, dolar futuro, euro, cambio, real, moeda, fluxo cambial, reservas internacionais, petroleo e gas, energia eletrica, saneamento, utilities, construcao civil, shoppings, agronegocio, mineracao, siderurgia, papel e celulose, telecomunicacoes, tecnologia, saude, educacao, transporte, aviacao, infraestrutura, liquidez, volatilidade implicita, aversao ao risco, apetite ao risco, alta, queda, disparada, colapso, crise, risco, alerta, surpresa, emergencia, intervencao, mudanca, corte, alta de juros, corte de juros, suspensao, investigacao, operacao, fraude, escandalo, rebaixamento, surpresa positiva, surpresa negativa, acima das expectativas, abaixo das expectativas, circuit breaker, estresse financeiro",
               "type": "string"
             },
             {
-              "id": "field-bc939b4039",
+              "id": "field-fe5c515896",
               "name": "promptNoticias",
               "value": "Voce e editor de noticias financeiras para leitores leigos no WhatsApp. TAREFA: selecionar apenas noticias relevantes e ineditas para investidores. Ignore propaganda, educacao generica, opiniao sem fato e conteudo sem impacto economico, mesmo que tenha palavra-chave. Priorize fatos das ultimas 24 horas com impacto em mercados, investimentos, empresas, juros, inflacao, cambio, bolsa ou decisoes de investidores. Use apenas as fontes, nao invente numeros, causas, cotacoes, recomendacoes ou previsoes. Cada resumo deve ter 75 a 130 palavras, em linguagem simples, explicando quem fez o que, contexto e possivel impacto.",
               "type": "string"
             },
             {
-              "id": "field-33c045a472",
+              "id": "field-7c06307567",
               "name": "promptResumao",
               "value": "Voce e editor financeiro para WhatsApp. TAREFA: escrever UM UNICO resumao do dia, baseado SOMENTE nas noticias individuais ja enviadas hoje. Escreva em portugues brasileiro, didatico, natural, sem inventar fatos, numeros ou causas. Use ate tres paragrafos curtos, sem links, sem markdown, sem lista numerada e sem emojis por noticia. Diga primeiro quem fez o que e explique o impacto para mercado, empresas, juros, inflacao, cambio, bolsa ou investidores.",
               "type": "string"
             },
             {
-              "id": "field-b029e16f84",
+              "id": "field-74f4f845e0",
               "name": "periodicidade",
               "value": "intervalo",
               "type": "string"
             },
             {
-              "id": "field-fac4d02f6b",
+              "id": "field-495b186210",
               "name": "intervaloMinutos",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "field-00c1a4e3d7",
+              "id": "field-3ebe3a4113",
               "name": "inicioEnvios",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-a524405cf5",
+              "id": "field-22a768f975",
               "name": "fimEnvios",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-843b03250c",
+              "id": "field-7f6db811f8",
               "name": "horarioEnvioDiario",
               "value": "08:00",
               "type": "string"
             },
             {
-              "id": "field-319bccea53",
+              "id": "field-e3af1b5558",
               "name": "horarioResumao",
               "value": "19:00",
               "type": "string"
             },
             {
-              "id": "field-664680f462",
+              "id": "field-6857fa9d20",
               "name": "resumaoAtivo",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-a86f08d9f1",
+              "id": "field-c5a71e0087",
               "name": "maxNoticias",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "field-191ce5acc3",
+              "id": "field-51b97729c4",
               "name": "janelaHoras",
               "value": 24,
               "type": "number"
             },
             {
-              "id": "field-bb09894f27",
+              "id": "field-8b013b2325",
               "name": "usarImagem",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-ba5ac9d23b",
+              "id": "field-380e9fe232",
               "name": "enviar",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "field-278effef80",
+              "id": "field-4ac58d455b",
               "name": "enviarLinksFontes",
               "value": false,
               "type": "boolean"
             },
             {
-              "id": "field-db33a32f3a",
+              "id": "field-8b6b8585b5",
               "name": "numeroNoticias",
               "value": "={{ $json.numeroNoticias || $json.numero || \"\" }}",
               "type": "string"
             },
             {
-              "id": "field-36ab12717a",
+              "id": "field-47e8cb276b",
               "name": "numeroResumao",
               "value": "={{ $json.numeroResumao || $json.numero || \"\" }}",
               "type": "string"
             },
             {
-              "id": "field-a25d1ea161",
+              "id": "field-a744785b41",
               "name": "numeroHistorico",
               "value": "={{ $json.numeroHistorico || $json.numero || \"\" }}",
               "type": "string"
             },
             {
-              "id": "field-0c929f648f",
+              "id": "field-f5327b8194",
               "name": "forcarAgora",
               "value": "={{ Boolean($json.forcarAgora) }}",
               "type": "boolean"
             },
             {
-              "id": "field-f4ac775c80",
+              "id": "field-f42c1dc88d",
               "name": "forcarResumao",
               "value": "={{ Boolean($json.forcarResumao) }}",
               "type": "boolean"
             },
             {
-              "id": "field-ac6967e378",
+              "id": "field-36427cd4a4",
               "name": "forcarHistorico",
               "value": "={{ Boolean($json.forcarHistorico) }}",
               "type": "boolean"
             },
             {
-              "id": "field-ef91ccfe00",
+              "id": "field-b24f19c13b",
               "name": "fluxo",
               "value": "={{ $json.fluxo || \"noticias\" }}",
               "type": "string"
@@ -385,7 +385,7 @@
       }
     },
     {
-      "id": "if-b1c505ac43",
+      "id": "if-ae1ca14a77",
       "name": "Rota - Consulta IDs?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -403,7 +403,7 @@
           },
           "conditions": [
             {
-              "id": "cond-143471c9f4",
+              "id": "cond-19b9380cfb",
               "leftValue": "={{ $json.fluxo }}",
               "rightValue": "ids",
               "operator": {
@@ -418,7 +418,7 @@
       }
     },
     {
-      "id": "code-6736a5c087",
+      "id": "code-3fc9f99b89",
       "name": "Decidir Acao",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -432,7 +432,7 @@
       }
     },
     {
-      "id": "code-88504ba9f9",
+      "id": "code-204cff74d0",
       "name": "Coletar Fontes e Historico",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -442,11 +442,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const plano = $('Decidir Acao').first().json;\nconst config = plano.config;\nconst baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');\nconst escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia', config.numeroNoticias || config.numero || 'destino'].map(v => String(v).trim()).join('|');\nconst strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\nconst tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');\nconst attr = (html, pattern) => (html.match(pattern) || [])[1] || '';\nconst normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nconst http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {\n  if (this && this.helpers && this.helpers.httpRequest) {\n    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });\n  }\n  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');\n  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };\n  if (body !== undefined) {\n    init.body = typeof body === 'string' ? body : JSON.stringify(body);\n    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';\n  }\n  const response = await fetch(url, init);\n  const text = await response.text();\n  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));\n  if (json) return text ? JSON.parse(text) : null;\n  return text;\n};\n// collect helper inserted\nif (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];\nif (plano.acao === 'resumao' || plano.acao === 'historico') {\n  const rows = await http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia + '?escopo=' + encodeURIComponent(escopoHistorico), json: true });\n  const noticias = (Array.isArray(rows) ? rows : [])\n    .filter(row => row.link && row.tipo !== 'resumao' && row.tipo !== 'historico')\n    .map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.resumo || row.titulo || row.link, resumo: row.resumo || '', hora: row.hora || '', imagemUrl: '' }));\n  if (plano.acao === 'historico') return noticias.length ? [{ json: { plano, config, noticias, historico: true } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias enviadas hoje no historico', plano, config } }];\n  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];\n}\nconst parseList = value => String(value || '').split(String.fromCharCode(10)).flatMap(line => line.split(/[;,]+/)).map(v => { const text = strip(v); const close = text.indexOf(']('); return text.startsWith('[') && close > 1 && text.endsWith(')') ? text.slice(1, close) : text; }).filter(Boolean);\nconst feeds = parseList(config.rssFeeds);\nif (!feeds.length) throw new Error('Configure pelo menos um RSS no campo rssFeeds.');\nlet candidates = [];\nlet feedErrors = [];\nfor (const feed of feeds) {\n  try {\n    const xml = await http({ method: 'GET', url: feed, timeout: 20000 });\n    const blocks = String(xml).match(/<item[\\s\\S]*?<\\/item>/gi) || [];\n    for (const block of blocks) {\n      const link = tag(block, 'link') || tag(block, 'guid');\n      const date = Date.parse(tag(block, 'pubDate') || tag(block, 'dc:date') || tag(block, 'updated') || '');\n      candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=[\"']([^\"']+)[\"']/i) });\n    }\n  } catch (error) {\n    feedErrors.push(feed + ': ' + error.message);\n    console.log('Falha no RSS ' + feed + ': ' + error.message);\n  }\n}\nif (!candidates.length && feedErrors.length) throw new Error('Nenhum RSS lido: ' + feedErrors.join(' | '));\nconst hostOf = value => {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  try { return new URL(raw.includes('://') ? raw : 'https://' + raw).hostname.replace(/^www[.]/i, '').toLowerCase(); } catch { return raw.split('/')[0].replace(/^www[.]/i, '').toLowerCase(); }\n};\nconst domainTerms = parseList(config.dominiosPermitidos).map(hostOf).filter(Boolean);\nconst feedHosts = feeds.map(hostOf).filter(Boolean);\nconst allowedHosts = [...new Set(domainTerms.length ? domainTerms : feedHosts)];\nconst allowedDomain = link => {\n  const host = hostOf(link);\n  return !!host && allowedHosts.some(domain => host === domain || host.endsWith('.' + domain));\n};\nconst keywords = parseList(config.palavrasChave);\nconst seen = new Set();\ncandidates = candidates.filter(item => {\n  if (!allowedDomain(item.link)) return false;\n  if (Number.isFinite(item.data) && Date.now() - item.data > Number(config.janelaHoras || 24) * 3600000) return false;\n  const key = normalize(item.titulo) + '|' + item.link;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n}).map(item => {\n  const text = normalize(item.titulo + ' ' + item.trecho);\n  const score = keywords.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0);\n  return { ...item, score };\n});\nconst scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);\nconst withScore = scored.filter(item => item.score > 0);\ncandidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));\nif (candidates.length) {\n  try {\n    const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { escopo: escopoHistorico, links: candidates.map(item => item.link) }, json: true });\n    const allowed = new Set(response.links || []);\n    candidates = candidates.filter(item => allowed.has(item.link));\n  } catch (error) {\n    console.log('Historico indisponivel em /verifica: ' + error.message);\n  }\n}\nconst noticias = [];\nfor (const item of candidates) {\n  try {\n    const html = await http({ method: 'GET', url: item.link, timeout: 20000 });\n    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eÃ©]m|^veja tamb[eÃ©]m/i.test(text));\n    const image = attr(String(html), /<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || attr(String(html), /<meta[^>]+name=[\"']twitter:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || item.imagemUrl;\n    const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;\n    if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });\n  } catch (error) {\n    console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);\n  }\n}\nreturn noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias novas com texto suficiente', plano, config } }];"
+        "jsCode": "const plano = $('Decidir Acao').first().json;\nconst config = plano.config;\nconst baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');\nconst escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia', config.numeroNoticias || config.numero || 'destino'].map(v => String(v).trim()).join('|');\nconst strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\nconst tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');\nconst attr = (html, pattern) => (html.match(pattern) || [])[1] || '';\nconst normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nconst http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {\n  if (this && this.helpers && this.helpers.httpRequest) {\n    return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });\n  }\n  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');\n  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };\n  if (body !== undefined) {\n    init.body = typeof body === 'string' ? body : JSON.stringify(body);\n    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';\n  }\n  const response = await fetch(url, init);\n  const text = await response.text();\n  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));\n  if (json) return text ? JSON.parse(text) : null;\n  return text;\n};\n// collect helper inserted\nif (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];\nif (plano.acao === 'resumao' || plano.acao === 'historico') {\n  const rows = await http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia + '?escopo=' + encodeURIComponent(escopoHistorico), json: true });\n  const noticias = (Array.isArray(rows) ? rows : [])\n    .filter(row => row.link && row.tipo !== 'resumao' && row.tipo !== 'historico')\n    .map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.resumo || row.titulo || row.link, resumo: row.resumo || '', hora: row.hora || '', imagemUrl: '' }));\n  if (plano.acao === 'historico') return noticias.length ? [{ json: { plano, config, noticias, historico: true } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias enviadas hoje no historico', plano, config } }];\n  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];\n}\nconst parseList = value => String(value || '').split(String.fromCharCode(10)).flatMap(line => line.split(/[;,]+/)).map(v => { const text = strip(v); const close = text.indexOf(']('); return text.startsWith('[') && close > 1 && text.endsWith(')') ? text.slice(1, close) : text; }).filter(Boolean);\nconst feeds = parseList(config.rssFeeds);\nif (!feeds.length) throw new Error('Configure pelo menos um RSS no campo rssFeeds.');\nlet candidates = [];\nlet feedErrors = [];\nfor (const feed of feeds) {\n  try {\n    const xml = await http({ method: 'GET', url: feed, timeout: 20000 });\n    const blocks = String(xml).match(/<item[\\s\\S]*?<\\/item>/gi) || [];\n    for (const block of blocks) {\n      const link = tag(block, 'link') || tag(block, 'guid');\n      const date = Date.parse(tag(block, 'pubDate') || tag(block, 'dc:date') || tag(block, 'updated') || '');\n      candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=[\"']([^\"']+)[\"']/i) });\n    }\n  } catch (error) {\n    feedErrors.push(feed + ': ' + error.message);\n    console.log('Falha no RSS ' + feed + ': ' + error.message);\n  }\n}\nif (!candidates.length && feedErrors.length) throw new Error('Nenhum RSS lido: ' + feedErrors.join(' | '));\nconst hostOf = value => {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  try { return new URL(raw.includes('://') ? raw : 'https://' + raw).hostname.replace(/^www[.]/i, '').toLowerCase(); } catch { return raw.split('/')[0].replace(/^www[.]/i, '').toLowerCase(); }\n};\nconst domainTerms = parseList(config.dominiosPermitidos).map(hostOf).filter(Boolean);\nconst feedHosts = feeds.map(hostOf).filter(Boolean);\nconst allowedHosts = [...new Set(domainTerms.length ? domainTerms : feedHosts)];\nconst allowedDomain = link => {\n  const host = hostOf(link);\n  return !!host && allowedHosts.some(domain => host === domain || host.endsWith('.' + domain));\n};\nconst keywords = parseList(config.palavrasChave);\nconst seen = new Set();\ncandidates = candidates.filter(item => {\n  if (!allowedDomain(item.link)) return false;\n  if (Number.isFinite(item.data) && Date.now() - item.data > Number(config.janelaHoras || 24) * 3600000) return false;\n  const key = normalize(item.titulo) + '|' + item.link;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n}).map(item => {\n  const text = normalize(item.titulo + ' ' + item.trecho);\n  const score = keywords.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0);\n  return { ...item, score };\n});\nconst scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);\nconst withScore = scored.filter(item => item.score > 0);\ncandidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));\nif (candidates.length) {\n  try {\n    const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { escopo: escopoHistorico, links: candidates.map(item => item.link) }, json: true });\n    const allowed = new Set(response.links || []);\n    candidates = candidates.filter(item => allowed.has(item.link));\n  } catch (error) {\n    console.log('Historico indisponivel em /verifica: ' + error.message);\n  }\n}\nconst noticias = [];\nfor (const item of candidates) {\n  try {\n    const html = await http({ method: 'GET', url: item.link, timeout: 20000 });\n    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eÃƒÂ©]m|^veja tamb[eÃƒÂ©]m/i.test(text));\n    const image = attr(String(html), /<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || attr(String(html), /<meta[^>]+name=[\"']twitter:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || item.imagemUrl;\n    const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;\n    if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });\n  } catch (error) {\n    console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);\n  }\n}\nreturn noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias novas com texto suficiente', plano, config } }];"
       }
     },
     {
-      "id": "code-f1429c8b13",
+      "id": "code-8b3a336087",
       "name": "Montar Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -456,11 +456,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [input];\nconst diario = input.plano.acao === 'resumao';\nconst fontes = input.noticias.map(item => ({ id: item.id, titulo: item.titulo, texto: String(item.texto || '').slice(0, diario ? 1200 : 5000) }));\nconst basePrompt = diario ? String(input.config.promptResumao || '').trim() : String(input.config.promptNoticias || '').trim();\nconst outputInstruction = diario\n  ? ' Retorne apenas JSON no formato {\"tipo\":\"resumao\",\"itens\":[{\"titulo\":\"MERCADO HOJE\",\"resumo\":\"texto corrido\"}]}. FONTES: '\n  : ' Retorne apenas JSON no formato {\"tipo\":\"noticias\",\"itens\":[{\"id\":\"copie o id exatamente\",\"emoji\":\"emoji\",\"titulo\":\"TITULO CURTO\",\"resumo\":\"texto\"}]}. Se nada for relevante, retorne itens vazio. FONTES: ';\nconst prompt = (basePrompt || (diario ? 'Escreva um unico resumao do dia em portugues brasileiro.' : 'Selecione noticias relevantes e explique em linguagem simples.')) + outputInstruction + JSON.stringify(fontes);\nconst schema = {\n  type: 'OBJECT',\n  properties: {\n    tipo: { type: 'STRING' },\n    itens: {\n      type: 'ARRAY',\n      items: {\n        type: 'OBJECT',\n        properties: diario ? { titulo: { type: 'STRING' }, resumo: { type: 'STRING' } } : { id: { type: 'STRING' }, emoji: { type: 'STRING' }, titulo: { type: 'STRING' }, resumo: { type: 'STRING' } },\n        required: diario ? ['titulo', 'resumo'] : ['id', 'emoji', 'titulo', 'resumo'],\n      },\n    },\n  },\n  required: ['tipo', 'itens'],\n};\nreturn [{ json: { ...input, prompt, geminiBody: { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', responseSchema: schema } } } }];"
+        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [input];\nconst diario = input.plano.acao === 'resumao';\nconst fontes = input.noticias.map(item => ({ id: item.id, titulo: item.titulo, texto: String(item.texto || '').slice(0, diario ? 1200 : 5000) }));\nconst basePrompt = diario ? String(input.config.promptResumao || '').trim() : String(input.config.promptNoticias || '').trim();\nconst outputInstruction = diario\n  ? ' Retorne apenas JSON no formato {\"tipo\":\"resumao\",\"itens\":[{\"titulo\":\"Resumo de hoje\",\"resumo\":\"texto corrido\"}]}. FONTES: '\n  : ' Retorne apenas JSON no formato {\"tipo\":\"noticias\",\"itens\":[{\"id\":\"copie o id exatamente\",\"emoji\":\"emoji\",\"titulo\":\"TITULO CURTO\",\"resumo\":\"texto\"}]}. Se nada for relevante, retorne itens vazio. FONTES: ';\nconst prompt = (basePrompt || (diario ? 'Escreva um unico resumao do dia em portugues brasileiro.' : 'Selecione noticias relevantes e explique em linguagem simples.')) + outputInstruction + JSON.stringify(fontes);\nconst schema = {\n  type: 'OBJECT',\n  properties: {\n    tipo: { type: 'STRING' },\n    itens: {\n      type: 'ARRAY',\n      items: {\n        type: 'OBJECT',\n        properties: diario ? { titulo: { type: 'STRING' }, resumo: { type: 'STRING' } } : { id: { type: 'STRING' }, emoji: { type: 'STRING' }, titulo: { type: 'STRING' }, resumo: { type: 'STRING' } },\n        required: diario ? ['titulo', 'resumo'] : ['id', 'emoji', 'titulo', 'resumo'],\n      },\n    },\n  },\n  required: ['tipo', 'itens'],\n};\nreturn [{ json: { ...input, prompt, geminiBody: { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', responseSchema: schema } } } }];"
       }
     },
     {
-      "id": "code-a7ca637124",
+      "id": "code-36cc8e296e",
       "name": "Gemini com Retry",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -474,7 +474,7 @@
       }
     },
     {
-      "id": "code-df893094bd",
+      "id": "code-a9be56756e",
       "name": "Preparar Mensagens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -484,11 +484,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [{ json: input }];\nif (input.historico) {\n  const limpar = v => String(v || '')\n    .replaceAll(String.fromCharCode(10), ' ')\n    .replaceAll(String.fromCharCode(13), ' ')\n    .replaceAll(String.fromCharCode(9), ' ')\n    .trim()\n    .split(' ')\n    .filter(Boolean)\n    .join(' ');\n  const horaFmt = valor => {\n    const s = String(valor || '').trim();\n    if (s.length >= 5 && s[2] === ':') return s.slice(0, 5);\n    const d = new Date(s);\n    return Number.isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });\n  };\n  const linhas = input.noticias.map((n, i) => {\n    const titulo = limpar(n.titulo || n.link || 'Sem titulo');\n    return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo;\n  }).join(String.fromCharCode(10));\n  const dataBr = String(input.plano.dia || '').replace(/^(d{4})-(d{2})-(d{2})$/, '$3/$2/$1');\n  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: 'ðŸ—‚ï¸ *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];\n}\nconst result = input.ia;\nif (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];\nif (input.plano.acao === 'resumao') {\n  const resumo = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();\n  if (resumo.length < 80 || /https?:\\/\\//i.test(resumo)) throw new Error('Resumao invalido');\n  return [{ json: { tipo: 'resumao', titulo: 'MERCADO HOJE', resumo, texto: 'ðŸš¨ *MERCADO HOJE*\\n\\n' + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];\n}\nconst sources = new Map(input.noticias.map(item => [item.id, item]));\nconst messages = [];\nfor (const item of result.itens) {\n  const source = sources.get(item.id);\n  if (!source) continue;\n  const titulo = String(item.titulo || '').replace(/\\*/g, '').trim().toLocaleUpperCase('pt-BR');\n  const resumo = String(item.resumo || '').trim();\n  if (!titulo || resumo.length < 80 || /https?:\\/\\//i.test(resumo)) continue;\n  const link = source.link || source.id;\n  const texto = (item.emoji || 'ðŸ“°') + ' *' + titulo + '*\\n\\n' + resumo + (input.config.enviarLinksFontes !== false ? '\\n\\n' + link : '');\n  messages.push({ json: { tipo: 'noticia', titulo, resumo, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });\n}\nreturn messages.length ? messages : [{ json: { ...input, semNoticias: true, motivo: 'Nenhuma mensagem valida' } }];"
+        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [{ json: input }];\nif (input.historico) {\n  const limpar = v => String(v || '')\n    .replaceAll(String.fromCharCode(10), ' ')\n    .replaceAll(String.fromCharCode(13), ' ')\n    .replaceAll(String.fromCharCode(9), ' ')\n    .trim()\n    .split(' ')\n    .filter(Boolean)\n    .join(' ');\n  const horaFmt = valor => {\n    const s = String(valor || '').trim();\n    if (s.length >= 5 && s[2] === ':') return s.slice(0, 5);\n    const d = new Date(s);\n    return Number.isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });\n  };\n  const linhas = input.noticias.map((n, i) => {\n    const titulo = limpar(n.titulo || n.link || 'Sem titulo');\n    return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo;\n  }).join(String.fromCharCode(10));\n  const dataBr = String(input.plano.dia || '').replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/, '$3/$2/$1');\n  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: String.fromCodePoint(0x1F5C2) + String.fromCharCode(0xFE0F) + ' *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];\n}\nconst result = input.ia;\nif (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];\nif (input.plano.acao === 'resumao') {\n  const resumo = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();\n  if (resumo.length < 80 || /https?:\\/\\//i.test(resumo)) throw new Error('Resumao invalido');\n  return [{ json: { tipo: 'resumao', titulo: 'Resumo de hoje', resumo, texto: String.fromCodePoint(0x1F6A8) + ' *Resumo de hoje*' + String.fromCharCode(10) + String.fromCharCode(10) + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];\n}\nconst sources = new Map(input.noticias.map(item => [item.id, item]));\nconst messages = [];\nfor (const item of result.itens) {\n  const source = sources.get(item.id);\n  if (!source) continue;\n  const titulo = String(item.titulo || '').replace(/\\*/g, '').trim().toLocaleUpperCase('pt-BR');\n  const resumo = String(item.resumo || '').trim();\n  if (!titulo || resumo.length < 80 || /https?:\\/\\//i.test(resumo)) continue;\n  const link = source.link || source.id;\n  const texto = (item.emoji || String.fromCodePoint(0x1F4F0)) + ' *' + titulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumo + (input.config.enviarLinksFontes !== false ? String.fromCharCode(10) + String.fromCharCode(10) + link : '');\n  messages.push({ json: { tipo: 'noticia', titulo, resumo, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });\n}\nreturn messages.length ? messages : [{ json: { ...input, semNoticias: true, motivo: 'Nenhuma mensagem valida' } }];"
       }
     },
     {
-      "id": "splitInBatches-a4407ecc2c",
+      "id": "splitInBatches-d72f407b2b",
       "name": "Uma mensagem por vez",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -502,7 +502,7 @@
       }
     },
     {
-      "id": "code-b471920572",
+      "id": "code-b2e8681e13",
       "name": "Enviar e Registrar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -516,7 +516,7 @@
       }
     },
     {
-      "id": "wait-1a9bc148b6",
+      "id": "wait-f4420ccdc4",
       "name": "Aguardar 8-10s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -529,7 +529,7 @@
       }
     },
     {
-      "id": "noOp-8b912b8bc8",
+      "id": "noOp-1ea2ba7331",
       "name": "Fim",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
@@ -540,7 +540,7 @@
       "parameters": {}
     },
     {
-      "id": "manualTrigger-83ec9a2cae",
+      "id": "manualTrigger-a936ec30bf",
       "name": "IDs - Iniciar Consulta",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -551,7 +551,7 @@
       "parameters": {}
     },
     {
-      "id": "set-9368d490c5",
+      "id": "set-d4322dee78",
       "name": "Marcar Consulta IDs",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -563,7 +563,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "field-311d6c52b9",
+              "id": "field-e9b6cba45c",
               "name": "fluxo",
               "value": "ids",
               "type": "string"
@@ -574,7 +574,7 @@
       }
     },
     {
-      "id": "wait-8344246389",
+      "id": "wait-91cb0712f0",
       "name": "IDs - O que Consultar?",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -588,7 +588,7 @@
         "formFields": {
           "values": [
             {
-              "fieldLabel": "O que vocÃª quer consultar?",
+              "fieldLabel": "O que vocÃƒÂª quer consultar?",
               "fieldType": "dropdown",
               "defaultValue": "Todos os grupos e comunidades",
               "fieldOptions": {
@@ -606,7 +606,7 @@
                     "option": "Grupos de avisos"
                   },
                   {
-                    "option": "InstÃ¢ncia e conexÃ£o"
+                    "option": "InstÃƒÂ¢ncia e conexÃƒÂ£o"
                   }
                 ]
               },
@@ -628,7 +628,7 @@
       "webhookId": "ids-v3-compact-form"
     },
     {
-      "id": "code-0603bbf516",
+      "id": "code-79d0af37b8",
       "name": "IDs - Preparar Consulta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -638,11 +638,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const form = $input.first().json;\nconst config = $('Configurar Cliente').first().json;\nconst choice = String(form.opcao ?? form['O que vocÃª quer consultar?'] ?? '').trim();\nconst filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();\nconst map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'InstÃ¢ncia e conexÃ£o': 'instancia' };\nconst tipo = map[choice] || 'todos';\nconst base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');\nconst instancia = String(config.instancia || '').trim();\nconst url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=false';\nreturn [{ json: { tipo, filtro: filter, url, config } }];"
+        "jsCode": "const form = $input.first().json;\nconst config = $('Configurar Cliente').first().json;\nconst choice = String(form.opcao ?? form['O que vocÃƒÂª quer consultar?'] ?? '').trim();\nconst filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();\nconst map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'InstÃƒÂ¢ncia e conexÃƒÂ£o': 'instancia' };\nconst tipo = map[choice] || 'todos';\nconst base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');\nconst instancia = String(config.instancia || '').trim();\nconst url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=false';\nreturn [{ json: { tipo, filtro: filter, url, config } }];"
       }
     },
     {
-      "id": "code-787879ab14",
+      "id": "code-73b2e0ea20",
       "name": "IDs - Consultar Evolution",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -656,7 +656,7 @@
       }
     },
     {
-      "id": "code-96fd8bdc20",
+      "id": "code-0970e2eab6",
       "name": "IDs - Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -670,7 +670,7 @@
       }
     },
     {
-      "id": "stickyNote-b00666234e",
+      "id": "stickyNote-58c795b6a8",
       "name": "V3 - Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,

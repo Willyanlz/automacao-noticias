@@ -190,7 +190,7 @@ const noticias = [];
 for (const item of candidates) {
   try {
     const html = await http({ method: 'GET', url: item.link, timeout: 20000 });
-    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eÃ©]m|^veja tamb[eÃ©]m/i.test(text));
+    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eÃƒÂ©]m|^veja tamb[eÃƒÂ©]m/i.test(text));
     const image = attr(String(html), /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) || attr(String(html), /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) || item.imagemUrl;
     const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;
     if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });
@@ -208,7 +208,7 @@ const diario = input.plano.acao === 'resumao';
 const fontes = input.noticias.map(item => ({ id: item.id, titulo: item.titulo, texto: String(item.texto || '').slice(0, diario ? 1200 : 5000) }));
 const basePrompt = diario ? String(input.config.promptResumao || '').trim() : String(input.config.promptNoticias || '').trim();
 const outputInstruction = diario
-  ? ' Retorne apenas JSON no formato {"tipo":"resumao","itens":[{"titulo":"MERCADO HOJE","resumo":"texto corrido"}]}. FONTES: '
+  ? ' Retorne apenas JSON no formato {"tipo":"resumao","itens":[{"titulo":"Resumo de hoje","resumo":"texto corrido"}]}. FONTES: '
   : ' Retorne apenas JSON no formato {"tipo":"noticias","itens":[{"id":"copie o id exatamente","emoji":"emoji","titulo":"TITULO CURTO","resumo":"texto"}]}. Se nada for relevante, retorne itens vazio. FONTES: ';
 const prompt = (basePrompt || (diario ? 'Escreva um unico resumao do dia em portugues brasileiro.' : 'Selecione noticias relevantes e explique em linguagem simples.')) + outputInstruction + JSON.stringify(fontes);
 const schema = {
@@ -292,15 +292,15 @@ if (input.historico) {
     const titulo = limpar(n.titulo || n.link || 'Sem titulo');
     return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo;
   }).join(String.fromCharCode(10));
-  const dataBr = String(input.plano.dia || '').replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1');
-  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: 'ðŸ—‚ï¸ *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
+  const dataBr = String(input.plano.dia || '').replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/, '$3/$2/$1');
+  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: String.fromCodePoint(0x1F5C2) + String.fromCharCode(0xFE0F) + ' *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
 }
 const result = input.ia;
 if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];
 if (input.plano.acao === 'resumao') {
   const resumo = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();
   if (resumo.length < 80 || /https?:\\/\\//i.test(resumo)) throw new Error('Resumao invalido');
-  return [{ json: { tipo: 'resumao', titulo: 'MERCADO HOJE', resumo, texto: 'ðŸš¨ *MERCADO HOJE*\\n\\n' + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
+  return [{ json: { tipo: 'resumao', titulo: 'Resumo de hoje', resumo, texto: String.fromCodePoint(0x1F6A8) + ' *Resumo de hoje*' + String.fromCharCode(10) + String.fromCharCode(10) + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
 }
 const sources = new Map(input.noticias.map(item => [item.id, item]));
 const messages = [];
@@ -311,7 +311,7 @@ for (const item of result.itens) {
   const resumo = String(item.resumo || '').trim();
   if (!titulo || resumo.length < 80 || /https?:\\/\\//i.test(resumo)) continue;
   const link = source.link || source.id;
-  const texto = (item.emoji || 'ðŸ“°') + ' *' + titulo + '*\\n\\n' + resumo + (input.config.enviarLinksFontes !== false ? '\\n\\n' + link : '');
+  const texto = (item.emoji || String.fromCodePoint(0x1F4F0)) + ' *' + titulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumo + (input.config.enviarLinksFontes !== false ? String.fromCharCode(10) + String.fromCharCode(10) + link : '');
   messages.push({ json: { tipo: 'noticia', titulo, resumo, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });
 }
 return messages.length ? messages : [{ json: { ...input, semNoticias: true, motivo: 'Nenhuma mensagem valida' } }];
@@ -368,9 +368,9 @@ return [{ json: { enviado: true, titulo: item.titulo, link: item.link, messageId
 const idsPrepCode = `
 const form = $input.first().json;
 const config = $('Configurar Cliente').first().json;
-const choice = String(form.opcao ?? form['O que vocÃª quer consultar?'] ?? '').trim();
+const choice = String(form.opcao ?? form['O que vocÃƒÂª quer consultar?'] ?? '').trim();
 const filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();
-const map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'InstÃ¢ncia e conexÃ£o': 'instancia' };
+const map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'InstÃƒÂ¢ncia e conexÃƒÂ£o': 'instancia' };
 const tipo = map[choice] || 'todos';
 const base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');
 const instancia = String(config.instancia || '').trim();
@@ -425,13 +425,13 @@ const manualFlag = add('Marcar Envio Manual', 'n8n-nodes-base.set', 3.4, [-1460,
   assignments: { assignments: [{ id: id('field'), name: 'forcarAgora', value: true, type: 'boolean' }] },
   options: {},
 });
-const webhookNoticias = add('Webhook - Noticias Agora', 'n8n-nodes-base.webhook', 2, [-1600, 440], { httpMethod: 'GET', path: 'noticias-agora', responseMode: 'lastNode', options: {} }, { webhookId: 'noticias-agora-v3' });
+const webhookNoticias = add('Webhook - Noticias Agora', 'n8n-nodes-base.webhook', 2, [-1600, 440], { httpMethod: 'GET', path: 'noticias-agora', responseMode: 'onReceived', options: {} }, { webhookId: 'noticias-agora-v3' });
 const resumaoManual = add('Resumao - Rodar Manualmente', 'n8n-nodes-base.manualTrigger', 1, [-1600, 560], {});
 const resumaoFlag = add('Marcar Resumao Manual', 'n8n-nodes-base.set', 3.4, [-1460, 560], { assignments: { assignments: [{ id: id('field'), name: 'forcarResumao', value: true, type: 'boolean' }] }, options: {} });
-const webhookResumao = add('Webhook - Resumao Agora', 'n8n-nodes-base.webhook', 2, [-1600, 680], { httpMethod: 'GET', path: 'resumao-agora', responseMode: 'lastNode', options: {} }, { webhookId: 'resumao-agora-v3' });
+const webhookResumao = add('Webhook - Resumao Agora', 'n8n-nodes-base.webhook', 2, [-1600, 680], { httpMethod: 'GET', path: 'resumao-agora', responseMode: 'onReceived', options: {} }, { webhookId: 'resumao-agora-v3' });
 const historicoManual = add('Historico - Enviar Manualmente', 'n8n-nodes-base.manualTrigger', 1, [-1600, 800], {});
 const historicoFlag = add('Marcar Historico Manual', 'n8n-nodes-base.set', 3.4, [-1460, 800], { assignments: { assignments: [{ id: id('field'), name: 'forcarHistorico', value: true, type: 'boolean' }] }, options: {} });
-const webhookHistorico = add('Webhook - Historico Agora', 'n8n-nodes-base.webhook', 2, [-1600, 920], { httpMethod: 'GET', path: 'historico-agora', responseMode: 'lastNode', options: {} }, { webhookId: 'historico-agora-v3' });
+const webhookHistorico = add('Webhook - Historico Agora', 'n8n-nodes-base.webhook', 2, [-1600, 920], { httpMethod: 'GET', path: 'historico-agora', responseMode: 'onReceived', options: {} }, { webhookId: 'historico-agora-v3' });
 const config = add('Configurar Cliente', 'n8n-nodes-base.set', 3.4, [-1320, 200], {
   assignments: { assignments: configFields.map(([name, value, type]) => ({ id: id('field'), name, value, type })) },
   options: {},
@@ -463,7 +463,7 @@ const idsForm = add('IDs - O que Consultar?', 'n8n-nodes-base.wait', 1.1, [-1040
   resume: 'form',
   formTitle: 'Consultar IDs do WhatsApp',
   formFields: { values: [
-    { fieldLabel: 'O que vocÃª quer consultar?', fieldType: 'dropdown', defaultValue: 'Todos os grupos e comunidades', fieldOptions: { values: ['Todos os grupos e comunidades', 'Grupos comuns', 'Comunidades', 'Grupos de avisos', 'InstÃ¢ncia e conexÃ£o'].map(option => ({ option })) }, requiredField: true },
+    { fieldLabel: 'O que vocÃƒÂª quer consultar?', fieldType: 'dropdown', defaultValue: 'Todos os grupos e comunidades', fieldOptions: { values: ['Todos os grupos e comunidades', 'Grupos comuns', 'Comunidades', 'Grupos de avisos', 'InstÃƒÂ¢ncia e conexÃƒÂ£o'].map(option => ({ option })) }, requiredField: true },
     { fieldLabel: 'Filtrar por nome (opcional)', placeholder: 'Ex.: XP, familia, trabalho' },
   ] },
   limitWaitTime: true,

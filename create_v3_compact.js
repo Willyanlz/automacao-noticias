@@ -89,8 +89,6 @@ if (plano.acao === 'resumao') {
   return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];
 }
 const feeds = [
-  'https://www.infomoney.com.br/feed/',
-  'https://www.moneytimes.com.br/feed/',
   'https://braziljournal.com/feed/',
   'https://veja.abril.com.br/feed/',
 ];

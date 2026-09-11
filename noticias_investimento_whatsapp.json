@@ -184,7 +184,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ($json.evolutionUrl.endsWith('/') ? $json.evolutionUrl.slice(0, -1) : $json.evolutionUrl) + '/message/sendText/' + encodeURIComponent($json.instancia) }}",
+        "url": "={{ ( $('Configurar Cliente').item.json.evolutionUrl + '').replace(/\\/$/, '') + '/message/sendText/' + encodeURIComponent( $('Configurar Cliente').item.json.instancia)) }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -572,7 +572,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ($json.evolutionUrl.endsWith('/') ? $json.evolutionUrl.slice(0, -1) : $json.evolutionUrl) + '/message/sendMedia/' + encodeURIComponent($json.instancia) }}",
+        "url": "={{ ( $('Configurar Cliente').item.json.evolutionUrl + '').replace(/\\/$/, '') + '/message/sendMedia/' + encodeURIComponent( $('Configurar Cliente').item.json.instancia)) }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

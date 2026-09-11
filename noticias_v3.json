@@ -1,0 +1,747 @@
+{
+  "name": "Noticias de Investimento -> IA -> WhatsApp v3 compacta",
+  "nodes": [
+    {
+      "id": "scheduleTrigger-fa5aca4e1a",
+      "name": "Agenda - Verificar a cada minuto",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1600,
+        120
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "* * * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "manualTrigger-6798035f0b",
+      "name": "Noticias - Rodar Manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "set-6793fc9d7e",
+      "name": "Configurar Cliente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1320,
+        200
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-4591486608",
+              "name": "cliente",
+              "value": "Iguera",
+              "type": "string"
+            },
+            {
+              "id": "field-f4cd73e055",
+              "name": "numero",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "field-61775e01d2",
+              "name": "instancia",
+              "value": "iguera",
+              "type": "string"
+            },
+            {
+              "id": "field-537727e9af",
+              "name": "evolutionUrl",
+              "value": "http://evolution-api:8080",
+              "type": "string"
+            },
+            {
+              "id": "field-32c3020932",
+              "name": "evolutionApiKey",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "field-e7ff0476f0",
+              "name": "geminiApiKey",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "field-e6ad0caff1",
+              "name": "modeloGemini",
+              "value": "gemini-2.0-flash",
+              "type": "string"
+            },
+            {
+              "id": "field-d36200742f",
+              "name": "historicoUrl",
+              "value": "http://historico:8090",
+              "type": "string"
+            },
+            {
+              "id": "field-ff90600c91",
+              "name": "periodicidade",
+              "value": "intervalo",
+              "type": "string"
+            },
+            {
+              "id": "field-d74ecef95b",
+              "name": "intervaloMinutos",
+              "value": 60,
+              "type": "number"
+            },
+            {
+              "id": "field-21e530bce5",
+              "name": "inicioEnvios",
+              "value": "08:00",
+              "type": "string"
+            },
+            {
+              "id": "field-faa8f22b30",
+              "name": "fimEnvios",
+              "value": "19:00",
+              "type": "string"
+            },
+            {
+              "id": "field-30601f8e24",
+              "name": "horarioEnvioDiario",
+              "value": "08:00",
+              "type": "string"
+            },
+            {
+              "id": "field-27fe784230",
+              "name": "horarioResumao",
+              "value": "19:00",
+              "type": "string"
+            },
+            {
+              "id": "field-1320be785e",
+              "name": "resumaoAtivo",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "field-7396f71682",
+              "name": "maxNoticias",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "field-594d3c6858",
+              "name": "janelaHoras",
+              "value": 24,
+              "type": "number"
+            },
+            {
+              "id": "field-681658141b",
+              "name": "usarImagem",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "field-f2959ef1b1",
+              "name": "enviar",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "field-9a24bb3252",
+              "name": "enviarLinksFontes",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-5db140a949",
+      "name": "Decidir Acao",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const config = $input.first().json;\nconst now = new Date();\nconst hm = value => {\n  const [h, m] = String(value || '00:00').split(':').map(Number);\n  if (!Number.isInteger(h) || !Number.isInteger(m)) throw new Error('Horario invalido: ' + value);\n  return h * 60 + m;\n};\nconst current = now.getHours() * 60 + now.getMinutes();\nconst manual = $execution.mode === 'manual';\nconst start = hm(config.inicioEnvios || '08:00');\nconst end = hm(config.fimEnvios || '19:00');\nconst digestAt = hm(config.horarioResumao || '19:00');\nconst dailyAt = hm(config.horarioEnvioDiario || '08:00');\nconst interval = Math.max(5, Number(config.intervaloMinutos || 60));\nlet acao = 'nada';\nif (manual) acao = 'noticias';\nelse if (config.resumaoAtivo !== false && current >= digestAt && current < digestAt + 5) acao = 'resumao';\nelse if (current >= start && current <= end && current < digestAt) {\n  if (config.periodicidade === 'diario') acao = current >= dailyAt && current < dailyAt + 5 ? 'noticias' : 'nada';\n  else acao = ((current - start) % interval) < 5 ? 'noticias' : 'nada';\n}\nreturn [{ json: { acao, config, manual, jobId: $execution.id, dia: now.toISOString().slice(0, 10) } }];"
+      }
+    },
+    {
+      "id": "code-ebd346f7d7",
+      "name": "Coletar Fontes e Historico",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -760,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const plano = $('Decidir Acao').first().json;\nconst config = plano.config;\nconst baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');\nconst strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();\nconst tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');\nconst attr = (html, pattern) => (html.match(pattern) || [])[1] || '';\nconst normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nif (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];\nif (plano.acao === 'resumao') {\n  const rows = await $http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia, json: true });\n  const noticias = (Array.isArray(rows) ? rows : []).filter(row => row.link).map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.titulo || row.link, imagemUrl: '' }));\n  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];\n}\nconst feeds = [\n  'https://www.infomoney.com.br/feed/',\n  'https://www.moneytimes.com.br/feed/',\n  'https://braziljournal.com/feed/',\n  'https://veja.abril.com.br/feed/',\n];\nlet candidates = [];\nfor (const feed of feeds) {\n  try {\n    const xml = await $http({ method: 'GET', url: feed, timeout: 20000 });\n    const blocks = String(xml).match(/<item[\\s\\S]*?<\\/item>/gi) || [];\n    for (const block of blocks) {\n      const link = tag(block, 'link') || tag(block, 'guid');\n      const date = Date.parse(tag(block, 'pubDate') || tag(block, 'dc:date') || tag(block, 'updated') || '');\n      candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=[\"']([^\"']+)[\"']/i) });\n    }\n  } catch (error) {\n    console.log('Falha no RSS ' + feed + ': ' + error.message);\n  }\n}\nconst allowedDomains = /^https:\\/\\/(?:www\\.)?(?:infomoney\\.com\\.br|moneytimes\\.com\\.br|braziljournal\\.com|veja\\.abril\\.com\\.br)\\//i;\nconst keywords = ['banco','itau','bradesco','santander','btg','nubank','xp','fed','banco central','copom','selic','juros','ipca','inflacao','pib','dolar','cambio','ibovespa','bolsa','acoes','b3','dividendos','jcp','resultado','lucro','receita','ebitda','guidance','fato relevante','petrobras','vale','commodities','petroleo','minerio','tesouro','cdb','lci','lca','fii','fundos','renda fixa','credito','china','eua','s&p 500','nasdaq'];\nconst seen = new Set();\ncandidates = candidates.filter(item => {\n  if (!allowedDomains.test(item.link)) return false;\n  if (Number.isFinite(item.data) && Date.now() - item.data > Number(config.janelaHoras || 24) * 3600000) return false;\n  const key = normalize(item.titulo) + '|' + item.link;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n}).map(item => {\n  const text = normalize(item.titulo + ' ' + item.trecho);\n  const score = keywords.reduce((total, word) => total + (text.includes(normalize(word)) ? 1 : 0), 0);\n  return { ...item, score };\n}).filter(item => item.score > 0).sort((a, b) => b.score - a.score || b.data - a.data).slice(0, Math.max(12, Number(config.maxNoticias || 3) * 8));\nif (!plano.manual && candidates.length) {\n  try {\n    const response = await $http({ method: 'POST', url: baseHistorico + '/verifica', body: { links: candidates.map(item => item.link) }, json: true });\n    const allowed = new Set(response.links || []);\n    candidates = candidates.filter(item => allowed.has(item.link));\n  } catch (error) {\n    console.log('Historico indisponivel em /verifica: ' + error.message);\n  }\n}\nconst noticias = [];\nfor (const item of candidates) {\n  try {\n    const html = await $http({ method: 'GET', url: item.link, timeout: 20000 });\n    const textBlocks = [...String(html).matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)].map(match => strip(match[1])).filter(text => text.length > 45 && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[eé]m|^veja tamb[eé]m/i.test(text));\n    const image = attr(String(html), /<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || attr(String(html), /<meta[^>]+name=[\"']twitter:image[\"'][^>]+content=[\"']([^\"']+)[\"']/i) || item.imagemUrl;\n    const texto = [...new Set(textBlocks)].join('\\n').slice(0, 9000) || item.trecho;\n    if (texto.length >= 120) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? image : '' });\n  } catch (error) {\n    console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);\n  }\n}\nreturn noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias novas com texto suficiente', plano, config } }];"
+      }
+    },
+    {
+      "id": "code-0e424f0e3c",
+      "name": "Montar Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [input];\nconst diario = input.plano.acao === 'resumao';\nconst fontes = input.noticias.map(item => ({ id: item.id, titulo: item.titulo, texto: String(item.texto || '').slice(0, diario ? 1200 : 5000) }));\nconst prompt = diario\n  ? 'Escreva um unico resumao financeiro para WhatsApp, em portugues brasileiro, com ate tres paragrafos curtos. Use apenas as fontes. Sem links, listas numeradas ou markdown. Retorne {\"tipo\":\"resumao\",\"itens\":[{\"titulo\":\"MERCADO HOJE\",\"resumo\":\"texto\"}]}. FONTES: ' + JSON.stringify(fontes)\n  : 'Selecione noticias relevantes para investidores e explique em linguagem simples. Use apenas as fontes. Retorne {\"tipo\":\"noticias\",\"itens\":[{\"id\":\"copie o id\",\"emoji\":\"emoji\",\"titulo\":\"TITULO CURTO\",\"resumo\":\"75 a 130 palavras\"}]}. Se nada for relevante, retorne itens vazio. FONTES: ' + JSON.stringify(fontes);\nconst schema = {\n  type: 'OBJECT',\n  properties: {\n    tipo: { type: 'STRING' },\n    itens: {\n      type: 'ARRAY',\n      items: {\n        type: 'OBJECT',\n        properties: diario ? { titulo: { type: 'STRING' }, resumo: { type: 'STRING' } } : { id: { type: 'STRING' }, emoji: { type: 'STRING' }, titulo: { type: 'STRING' }, resumo: { type: 'STRING' } },\n        required: diario ? ['titulo', 'resumo'] : ['id', 'emoji', 'titulo', 'resumo'],\n      },\n    },\n  },\n  required: ['tipo', 'itens'],\n};\nreturn [{ json: { ...input, prompt, geminiBody: { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', responseSchema: schema } } } }];"
+      }
+    },
+    {
+      "id": "code-8419571651",
+      "name": "Gemini com Retry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [input];\nconst model = input.config.modeloGemini || 'gemini-2.0-flash';\nconst key = input.config.geminiApiKey;\nif (!key) throw new Error('geminiApiKey nao configurada');\nlet lastError;\nfor (let attempt = 1; attempt <= 3; attempt++) {\n  try {\n    const response = await $http({ method: 'POST', url: 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key), headers: { 'Content-Type': 'application/json' }, body: input.geminiBody, json: true, timeout: 120000 });\n    const candidate = response?.candidates?.[0];\n    if (!candidate || (candidate.finishReason && candidate.finishReason !== 'STOP')) throw new Error('Gemini nao concluiu');\n    const raw = candidate.content.parts.filter(part => !part.thought).map(part => part.text || '').join('');\n    const result = JSON.parse(raw);\n    return [{ json: { ...input, ia: result } }];\n  } catch (error) {\n    lastError = error;\n    if (!/timeout|ETIMEDOUT|ECONNRESET|429|50\\d|network/i.test(error.message || '') || attempt === 3) break;\n    await new Promise(resolve => setTimeout(resolve, 5000 * attempt));\n  }\n}\nthrow new Error('Gemini falhou: ' + (lastError?.message || 'erro desconhecido'));"
+      }
+    },
+    {
+      "id": "code-60318ae809",
+      "name": "Preparar Mensagens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const input = $input.first().json;\nif (input.semNoticias) return [{ json: input }];\nconst result = input.ia;\nif (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];\nif (input.plano.acao === 'resumao') {\n  const resumo = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();\n  if (resumo.length < 80 || /https?:\\/\\//i.test(resumo)) throw new Error('Resumao invalido');\n  return [{ json: { tipo: 'resumao', titulo: 'MERCADO HOJE', texto: '🚨 *MERCADO HOJE*\\n\\n' + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano } }];\n}\nconst sources = new Map(input.noticias.map(item => [item.id, item]));\nconst messages = [];\nfor (const item of result.itens) {\n  const source = sources.get(item.id);\n  if (!source) continue;\n  const titulo = String(item.titulo || '').replace(/\\*/g, '').trim().toLocaleUpperCase('pt-BR');\n  const resumo = String(item.resumo || '').trim();\n  if (!titulo || resumo.length < 80 || /https?:\\/\\//i.test(resumo)) continue;\n  const link = source.link || source.id;\n  const texto = (item.emoji || '📰') + ' *' + titulo + '*\\n\\n' + resumo + (input.config.enviarLinksFontes !== false ? '\\n\\n' + link : '');\n  messages.push({ json: { tipo: 'noticia', titulo, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: input.config, plano: input.plano } });\n}\nreturn messages.length ? messages : [{ json: { ...input, semNoticias: true, motivo: 'Nenhuma mensagem valida' } }];"
+      }
+    },
+    {
+      "id": "splitInBatches-186e8c8826",
+      "name": "Uma mensagem por vez",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        360,
+        200
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "code-74267b3ce1",
+      "name": "Enviar e Registrar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item = $input.first().json;\nif (item.semNoticias) return [{ json: item }];\nconst config = { ...item.config };\nif (config.enviar !== true) return [{ json: { preview: true, titulo: item.titulo, texto: item.texto } }];\nconst rawNumber = String(config.numero || '').trim();\nif (/^[0-9]+(?:-[0-9]+)?@g\\.us$/.test(rawNumber)) config.numero = rawNumber;\nelse {\n  config.numero = rawNumber.replace(/\\D/g, '');\n  if (!/^[1-9][0-9]{7,14}$/.test(config.numero)) throw new Error('Numero invalido');\n}\nconst base = String(config.evolutionUrl || '').replace(/\\/$/, '');\nif (!base) throw new Error('evolutionUrl nao configurada');\nconst path = item.imagemUrl ? '/message/sendMedia/' : '/message/sendText/';\nconst body = item.imagemUrl\n  ? { number: config.numero, mediatype: 'image', media: item.imagemUrl, caption: item.texto }\n  : { number: config.numero, text: item.texto, linkPreview: false };\nconst response = await $http({ method: 'POST', url: base + path + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body, json: true, timeout: 30000 });\nif (response?.status === 'ERROR') throw new Error('Evolution retornou erro');\nif (item.link) {\n  try {\n    await $http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { link: item.link, titulo: item.titulo, jobId: item.plano?.jobId }, json: true });\n  } catch (error) {\n    console.log('Falha ao registrar historico: ' + error.message);\n  }\n}\nreturn [{ json: { enviado: true, titulo: item.titulo, link: item.link, messageId: response?.key?.id || '' } }];"
+      }
+    },
+    {
+      "id": "wait-043b195671",
+      "name": "Aguardar 8-10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        920,
+        200
+      ],
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * 3) + 8 }}"
+      }
+    },
+    {
+      "id": "noOp-c08f56c920",
+      "name": "Fim",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        640,
+        420
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "manualTrigger-725be4c777",
+      "name": "IDs - Iniciar Consulta",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        760
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "set-4bc6c9cb59",
+      "name": "Configurar Cliente - IDs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1320,
+        760
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-3beeb68706",
+              "name": "cliente",
+              "value": "Iguera",
+              "type": "string"
+            },
+            {
+              "id": "field-8f01b72b9b",
+              "name": "numero",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "field-43da50f304",
+              "name": "instancia",
+              "value": "iguera",
+              "type": "string"
+            },
+            {
+              "id": "field-f6bdf39695",
+              "name": "evolutionUrl",
+              "value": "http://evolution-api:8080",
+              "type": "string"
+            },
+            {
+              "id": "field-1e84f13309",
+              "name": "evolutionApiKey",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "field-0b709e1dad",
+              "name": "geminiApiKey",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "field-0c33311c7a",
+              "name": "modeloGemini",
+              "value": "gemini-2.0-flash",
+              "type": "string"
+            },
+            {
+              "id": "field-1001619d49",
+              "name": "historicoUrl",
+              "value": "http://historico:8090",
+              "type": "string"
+            },
+            {
+              "id": "field-2439dd8f46",
+              "name": "periodicidade",
+              "value": "intervalo",
+              "type": "string"
+            },
+            {
+              "id": "field-dfc64bbfd0",
+              "name": "intervaloMinutos",
+              "value": 60,
+              "type": "number"
+            },
+            {
+              "id": "field-e206e2301c",
+              "name": "inicioEnvios",
+              "value": "08:00",
+              "type": "string"
+            },
+            {
+              "id": "field-2cad1a25cd",
+              "name": "fimEnvios",
+              "value": "19:00",
+              "type": "string"
+            },
+            {
+              "id": "field-dc1a50288a",
+              "name": "horarioEnvioDiario",
+              "value": "08:00",
+              "type": "string"
+            },
+            {
+              "id": "field-6f30ac7d9a",
+              "name": "horarioResumao",
+              "value": "19:00",
+              "type": "string"
+            },
+            {
+              "id": "field-ce263740bb",
+              "name": "resumaoAtivo",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "field-98855cb4e4",
+              "name": "maxNoticias",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "field-2df37c8e9c",
+              "name": "janelaHoras",
+              "value": 24,
+              "type": "number"
+            },
+            {
+              "id": "field-bd4b2548e1",
+              "name": "usarImagem",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "field-8d0df84057",
+              "name": "enviar",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "field-12fc0d209c",
+              "name": "enviarLinksFontes",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-1c11acaf09",
+      "name": "IDs - O que Consultar?",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1040,
+        760
+      ],
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Consultar IDs do WhatsApp",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "O que você quer consultar?",
+              "fieldType": "dropdown",
+              "defaultValue": "Todos os grupos e comunidades",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Todos os grupos e comunidades"
+                  },
+                  {
+                    "option": "Grupos comuns"
+                  },
+                  {
+                    "option": "Comunidades"
+                  },
+                  {
+                    "option": "Grupos de avisos"
+                  },
+                  {
+                    "option": "Instância e conexão"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Filtrar por nome (opcional)",
+              "placeholder": "Ex.: XP, familia, trabalho"
+            }
+          ]
+        },
+        "limitWaitTime": true,
+        "resumeAmount": 10,
+        "resumeUnit": "minutes",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "webhookId": "ids-v3-compact-form"
+    },
+    {
+      "id": "code-52534f969d",
+      "name": "IDs - Preparar Consulta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -760,
+        760
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const form = $input.first().json;\nconst config = $('Configurar Cliente - IDs').first().json;\nconst choice = String(form.opcao ?? form['O que você quer consultar?'] ?? '').trim();\nconst filter = String(form.filtro ?? form['Filtrar por nome (opcional)'] ?? '').trim();\nconst map = { 'Todos os grupos e comunidades': 'todos', 'Grupos comuns': 'grupos', 'Comunidades': 'comunidades', 'Grupos de avisos': 'avisos', 'Instância e conexão': 'instancia' };\nconst tipo = map[choice] || 'todos';\nconst base = String(config.evolutionUrl || 'http://evolution-api:8080').replace(/\\/$/, '');\nconst instancia = String(config.instancia || '').trim();\nconst url = tipo === 'instancia' ? base + '/instance/connectionState/' + encodeURIComponent(instancia) : base + '/group/fetchAllGroups/' + encodeURIComponent(instancia) + '?getParticipants=false';\nreturn [{ json: { tipo, filtro: filter, url, config } }];"
+      }
+    },
+    {
+      "id": "code-903a03ab05",
+      "name": "IDs - Consultar Evolution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        760
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const q = $input.first().json;\nconst rows = await $http({ method: 'GET', url: q.url, headers: { apikey: q.config.evolutionApiKey || q.config.apikey || '' }, json: true, timeout: 30000 });\nreturn [{ json: { ...q, rows } }];"
+      }
+    },
+    {
+      "id": "code-1cbf941ea1",
+      "name": "IDs - Resultados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        760
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst normalize = text => String(text || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nif (data.tipo === 'instancia') {\n  const info = data.rows?.instance || data.rows || {};\n  return [{ json: { nome: info.instanceName || 'Instancia', id: info.instanceName || '', tipo: 'Instancia', estado: info.state || '' } }];\n}\nconst source = Array.isArray(data.rows) ? data.rows : Array.isArray(data.rows?.groups) ? data.rows.groups : [data.rows];\nconst groups = source.filter(group => group?.id?.endsWith?.('@g.us'));\nconst result = groups.filter(group => {\n  if (data.tipo === 'grupos' && (group.isCommunity || group.isCommunityAnnounce)) return false;\n  if (data.tipo === 'comunidades' && !group.isCommunity) return false;\n  if (data.tipo === 'avisos' && !group.isCommunityAnnounce && !group.announce) return false;\n  return !data.filtro || normalize(group.subject).includes(normalize(data.filtro));\n}).map(group => ({ json: { nome: group.subject || 'Sem nome', id: group.id, tipo: group.isCommunity ? 'Comunidade' : group.isCommunityAnnounce ? 'Grupo de avisos' : group.announce ? 'Somente administradores' : 'Grupo comum', participantes: group.size ?? null } }));\nreturn result.length ? result : [{ json: { nome: 'Nenhum resultado', id: '', tipo: data.tipo } }];"
+      }
+    },
+    {
+      "id": "stickyNote-59d6ec4a50",
+      "name": "V3 - Como usar",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        -260
+      ],
+      "parameters": {
+        "width": 920,
+        "height": 260,
+        "content": "V3 compacta: 13 nos no fluxo de noticias e 5 nos no bloco de IDs. Mantem agenda, manual, intervalo/diario, janela de horario, resumao, RSS de 4 fontes, historico, Gemini com retry, imagem/texto, intervalo entre mensagens, registro e consulta de IDs. Configure Configurar Cliente; para Evolution em Code node use evolutionApiKey/apikey no proprio card se quiser enviar sem credencial HTTP."
+      }
+    }
+  ],
+  "connections": {
+    "Agenda - Verificar a cada minuto": {
+      "main": [
+        [
+          {
+            "node": "Configurar Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Noticias - Rodar Manualmente": {
+      "main": [
+        [
+          {
+            "node": "Configurar Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configurar Cliente": {
+      "main": [
+        [
+          {
+            "node": "Decidir Acao",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir Acao": {
+      "main": [
+        [
+          {
+            "node": "Coletar Fontes e Historico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coletar Fontes e Historico": {
+      "main": [
+        [
+          {
+            "node": "Montar Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Prompt": {
+      "main": [
+        [
+          {
+            "node": "Gemini com Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini com Retry": {
+      "main": [
+        [
+          {
+            "node": "Preparar Mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Mensagens": {
+      "main": [
+        [
+          {
+            "node": "Uma mensagem por vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Uma mensagem por vez": {
+      "main": [
+        [
+          {
+            "node": "Fim",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar e Registrar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar e Registrar": {
+      "main": [
+        [
+          {
+            "node": "Aguardar 8-10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguardar 8-10s": {
+      "main": [
+        [
+          {
+            "node": "Uma mensagem por vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IDs - Iniciar Consulta": {
+      "main": [
+        [
+          {
+            "node": "Configurar Cliente - IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configurar Cliente - IDs": {
+      "main": [
+        [
+          {
+            "node": "IDs - O que Consultar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IDs - O que Consultar?": {
+      "main": [
+        [
+          {
+            "node": "IDs - Preparar Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IDs - Preparar Consulta": {
+      "main": [
+        [
+          {
+            "node": "IDs - Consultar Evolution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IDs - Consultar Evolution": {
+      "main": [
+        [
+          {
+            "node": "IDs - Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timezone": "America/Sao_Paulo"
+  },
+  "pinData": {},
+  "tags": []
+}

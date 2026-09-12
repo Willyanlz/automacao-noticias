@@ -1,26 +1,70 @@
-# Noticias para WhatsApp - n8n + Evolution + Gemini
+# Automacao de conteudo para WhatsApp - n8n + Evolution + Gemini
 
-Automacao compacta de noticias de investimento para WhatsApp. A versao oficial e a V3 compacta em `noticias_v3.json`.
+Workflow generico para buscar conteudos em RSS, selecionar e resumir com Gemini, enviar pelo WhatsApp via Evolution API e registrar historico para evitar repeticao. Pode ser usado para noticias financeiras, pet shop, saude, varejo, educacao ou qualquer nicho baseado em fontes RSS.
 
-## O que fica
+A versao base gerada pelo repositorio e `noticias_v3.json`. O arquivo pode ser importado no n8n e adaptado no node `Configurar Cliente`.
 
-- `noticias_v3.json`: workflow principal para importar no n8n.
-- `create_v3_compact.js`: gerador reproduzivel do workflow V3.
-- `historico/`: servico SQLite minimo para deduplicacao e resumao do dia.
-- `evolution/docker-compose.yml`: stack Evolution API + historico.
+## Arquivos principais
+
+- `noticias_v3.json`: workflow base para importar no n8n.
+- `create_v3_compact.js`: gerador reproduzivel do workflow base.
+- `historico/`: servico HTTP simples com SQLite para deduplicacao, historico do dia e resumao.
+- `evolution/docker-compose.yml`: stack com Evolution API, Redis, Postgres e historico.
 - `manutencao/testes/test_v3_compact.cjs`: teste local de integridade do workflow.
 
-## Funcionalidades
+## O que o workflow faz
 
-- Agendamento a cada minuto e execucao manual.
-- Periodicidade por intervalo ou diaria.
-- Janela de envio e horario de resumao.
-- RSS de InfoMoney, Money Times, BrazilJournal e Veja.
-- Deduplicacao e historico persistente.
-- Gemini com retry interno.
-- Envio por texto ou imagem via Evolution API.
-- Intervalo de 8 a 10 segundos entre mensagens.
-- Consulta separada de IDs de grupos/instancia do WhatsApp.
+- Roda por agenda, manualmente ou por webhook.
+- Busca itens em uma ou mais fontes RSS.
+- Filtra por dominio, janela de tempo e palavras-chave.
+- Baixa o texto das paginas, limpa HTML/CSS/JS e rejeita conteudo sujo.
+- Pede ao Gemini para escolher e reescrever os melhores itens.
+- Envia texto ou imagem pelo WhatsApp usando Evolution API.
+- Registra o que foi enviado para evitar duplicidade.
+- Gera resumo do dia com base apenas no que ja foi enviado.
+- Consulta IDs de grupos, comunidades e instancia do WhatsApp.
+
+## Como configurar o node `Configurar Cliente`
+
+Campos principais:
+
+| Campo | Uso |
+| --- | --- |
+| `cliente` | Nome do cliente ou projeto. Entra no escopo do historico. |
+| `numero` | Destino padrao. Pode ser telefone com DDI/DDD ou ID de grupo `@g.us`. |
+| `instancia` | Nome da instancia na Evolution API. |
+| `evolutionUrl` | URL interna ou externa da Evolution API. No Docker normalmente `http://evolution-api:8080`. |
+| `evolutionApiKey` | API key geral da Evolution API. |
+| `geminiApiKey` | Chave da API do Gemini. |
+| `modeloGemini` | Modelo usado para gerar os resumos. |
+| `historicoUrl` | URL do servico de historico. No Docker normalmente `http://historico:8090`. |
+| `rssFeeds` | Lista de RSS, um por linha. |
+| `dominiosPermitidos` | Opcional. Se vazio, usa os dominios dos RSS. Preencha para restringir. |
+| `palavrasChave` | Termos usados para priorizar conteudos. Separe por virgula. |
+| `promptNoticias` | Instrucao do nicho para selecionar e reescrever cada conteudo. |
+| `promptResumao` | Instrucao para montar o resumo do dia. |
+| `periodicidade` | `intervalo` ou `diario`. |
+| `intervaloMinutos` | Intervalo entre buscas quando `periodicidade=intervalo`. |
+| `inicioEnvios` / `fimEnvios` | Janela diaria em que o envio automatico pode ocorrer. |
+| `horarioEnvioDiario` | Horario usado quando `periodicidade=diario`. |
+| `horarioResumao` | Horario do resumo do dia. |
+| `resumaoAtivo` | Liga/desliga o resumo automatico. |
+| `maxNoticias` | Quantidade maxima de mensagens por rodada. |
+| `janelaHoras` | Idade maxima dos itens RSS. |
+| `usarImagem` | Se `true`, tenta enviar imagem da materia quando houver. |
+| `enviar` | Se `false`, gera preview sem enviar. Se `true`, envia pelo WhatsApp. |
+| `enviarLinksFontes` | Se `true`, adiciona o link da fonte na mensagem. |
+| `numeroNoticias` | Destino especifico das noticias. Se vazio, usa `numero`. |
+| `numeroResumao` | Destino especifico do resumao. Se vazio, usa `numero`. |
+| `numeroHistorico` | Destino especifico do historico. Se vazio, usa `numero`. |
+
+## Fluxos de entrada
+
+- Manual `Noticias - Rodar Manualmente`: forca uma rodada de conteudos.
+- Webhook `noticias-agora`: forca uma rodada por URL.
+- Manual/Webhook de resumo: gera o resumo do dia com base no historico.
+- Manual/Webhook de historico: envia a lista do que ja foi enviado no dia.
+- `IDs - Iniciar Consulta`: consulta grupos, comunidades, broadcasts expostos pela API e estado da instancia.
 
 ## Teste local
 
@@ -31,9 +75,10 @@ node manutencao/testes/test_v3_compact.cjs
 
 ## Importacao no n8n
 
-1. Importe `noticias_v3.json`.
-2. Ajuste `Configurar Cliente` e `Configurar Cliente - IDs`.
-3. Preencha `geminiApiKey`, `evolutionApiKey`, `numero`, `instancia` e horarios.
-4. Use `enviar=false` para previa e `enviar=true` para envio real.
+1. Gere o workflow com `node create_v3_compact.js`.
+2. Importe `noticias_v3.json` no n8n.
+3. Ajuste os campos do node `Configurar Cliente` para o nicho e destino.
+4. Comece com `enviar=false` para validar texto e fontes.
+5. Troque para `enviar=true` somente quando a instancia e o destino estiverem corretos.
 
-Nao versione tokens, chaves, senhas, IPs privados de clientes ou exports com credenciais.
+Nunca versione tokens, chaves, senhas, IPs privados de clientes ou exports com credenciais reais.

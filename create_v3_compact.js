@@ -176,7 +176,7 @@ candidates = candidates.filter(item => {
 });
 const scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);
 const withScore = scored.filter(item => item.score > 0);
-candidates = (withScore.length ? withScore : scored).slice(0, Math.max(20, Number(config.maxNoticias || 3) * 10));
+candidates = (withScore.length ? withScore : scored).slice(0, Math.max(12, Number(config.maxNoticias || 3) * 4));
 if (candidates.length) {
   try {
     const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { escopo: escopoHistorico, links: candidates.map(item => item.link) }, json: true });
@@ -220,7 +220,7 @@ for (const item of candidates) {
     const textBlocks = [...html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)]
       .map(match => cleanArticleText(match[1]))
       .filter(text => text.length > 45 && !looksLikeNoise(text) && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[e?]m|^veja tamb[e?]m|newsletter|privacy policy|cookie/i.test(text));
-    const texto = [...new Set(textBlocks)].join('\n').slice(0, 9000);
+    const texto = [...new Set(textBlocks)].join('\n').slice(0, 5000);
     if (texto.length >= 120 && !looksLikeNoise(texto)) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\/\//i.test(image) ? image : '' });
   } catch (error) {
     console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);
@@ -232,7 +232,11 @@ const promptCode = `
 const input = $input.first().json;
 if (input.semNoticias) return [input];
 const diario = input.plano.acao === 'resumao';
-const fontes = input.noticias.map(item => ({ id: item.id, titulo: item.titulo, texto: String(item.texto || '').slice(0, diario ? 1200 : 5000) }));
+const fontes = input.noticias.map(item => ({
+  id: item.id,
+  titulo: item.titulo,
+  texto: String(item.texto || '').slice(0, diario ? 1000 : 2500),
+}));
 const basePrompt = diario ? String(input.config.promptResumao || '').trim() : String(input.config.promptNoticias || '').trim();
 const outputInstruction = diario
   ? ' Retorne apenas JSON no formato {"tipo":"resumao","itens":[{"titulo":"Resumo de hoje","resumo":"texto corrido"}]}. FONTES: '
@@ -253,7 +257,13 @@ const schema = {
   },
   required: ['tipo', 'itens'],
 };
-return [{ json: { ...input, prompt, geminiBody: { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', responseSchema: schema } } } }];
+const noticiasLeves = input.noticias.map(item => ({
+  id: item.id,
+  link: item.link,
+  titulo: item.titulo,
+  imagemUrl: item.imagemUrl || '',
+}));
+return [{ json: { plano: input.plano, config: input.config, noticias: noticiasLeves, geminiBody: { contents: [{ parts: [{ text: prompt }] }] }, generationConfig: { responseMimeType: 'application/json', responseSchema: schema }, debug: { fontes: fontes.length, promptChars: prompt.length } } }];
 `.trim();
 
 const geminiCode = `
@@ -276,7 +286,6 @@ const http = async ({ method = 'GET', url, headers = {}, body, json = false, tim
   if (json) return text ? JSON.parse(text) : null;
   return text;
 };
-// gemini helper inserted
 const key = input.config.geminiApiKey;
 if (!key) throw new Error('geminiApiKey nao configurada');
 let lastError;
@@ -287,10 +296,10 @@ for (let attempt = 1; attempt <= 3; attempt++) {
     if (!candidate || (candidate.finishReason && candidate.finishReason !== 'STOP')) throw new Error('Gemini nao concluiu');
     const raw = candidate.content.parts.filter(part => !part.thought).map(part => part.text || '').join('');
     const result = JSON.parse(raw);
-    return [{ json: { ...input, ia: result } }];
+    return [{ json: { plano: input.plano, config: input.config, noticias: input.noticias, ia: result, debug: { modelo: model, itensIA: Array.isArray(result.itens) ? result.itens.length : 0 } } }];
   } catch (error) {
     lastError = error;
-    if (!/timeout|ETIMEDOUT|ECONNRESET|429|50\\d|network/i.test(error.message || '') || attempt === 3) break;
+    if (!/timeout|ETIMEDOUT|ECONNRESET|429|50\d|network/i.test(error.message || '') || attempt === 3) break;
     await new Promise(resolve => setTimeout(resolve, 5000 * attempt));
   }
 }
@@ -299,6 +308,21 @@ throw new Error('Gemini falhou: ' + (lastError?.message || 'erro desconhecido'))
 
 const prepareMessagesCode = `
 const input = $input.first().json;
+const configEnvio = cfg => ({
+  cliente: cfg.cliente,
+  numero: cfg.numero,
+  instancia: cfg.instancia,
+  evolutionUrl: cfg.evolutionUrl,
+  evolutionApiKey: cfg.evolutionApiKey || cfg.apikey || '',
+  apikey: cfg.apikey || '',
+  historicoUrl: cfg.historicoUrl,
+  enviar: cfg.enviar,
+  enviarLinksFontes: cfg.enviarLinksFontes,
+  usarImagem: cfg.usarImagem,
+  numeroNoticias: cfg.numeroNoticias,
+  numeroResumao: cfg.numeroResumao,
+  numeroHistorico: cfg.numeroHistorico,
+});
 if (input.semNoticias) return [{ json: input }];
 if (input.historico) {
   const limpar = v => String(v || '')
@@ -315,19 +339,16 @@ if (input.historico) {
     const d = new Date(s);
     return Number.isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
   };
-  const linhas = input.noticias.map((n, i) => {
-    const titulo = limpar(n.titulo || n.link || 'Sem titulo');
-    return String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + titulo;
-  }).join(String.fromCharCode(10));
-  const dataBr = String(input.plano.dia || '').replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/, '$3/$2/$1');
-  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: String.fromCodePoint(0x1F5C2) + String.fromCharCode(0xFE0F) + ' *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
+  const linhas = input.noticias.map((n, i) => String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + limpar(n.titulo || n.link || 'Sem titulo')).join(String.fromCharCode(10));
+  const dataBr = String(input.plano.dia || '').replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1');
+  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: String.fromCodePoint(0x1F5C2) + String.fromCharCode(0xFE0F) + ' *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
 }
 const result = input.ia;
-if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { ...input, semNoticias: true, motivo: 'IA nao selecionou noticias' } }];
+if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { semNoticias: true, motivo: 'IA nao selecionou noticias', plano: input.plano } }];
 if (input.plano.acao === 'resumao') {
-  const resumo = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();
-  if (resumo.length < 80 || /https?:\\/\\//i.test(resumo)) throw new Error('Resumao invalido');
-  return [{ json: { tipo: 'resumao', titulo: 'Resumo de hoje', resumo, texto: String.fromCodePoint(0x1F6A8) + ' *Resumo de hoje*' + String.fromCharCode(10) + String.fromCharCode(10) + resumo, link: '', imagemUrl: '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
+  const resumoDiario = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();
+  if (resumoDiario.length < 80 || /https?:\\/\\//i.test(resumoDiario)) throw new Error('Resumao invalido');
+  return [{ json: { tipo: 'resumao', titulo: 'Resumo de hoje', resumo: resumoDiario, texto: String.fromCodePoint(0x1F6A8) + ' *Resumo de hoje*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoDiario, link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
 }
 const sources = new Map(input.noticias.map(item => [item.id, item]));
 const messages = [];
@@ -335,13 +356,13 @@ for (const item of result.itens) {
   const source = sources.get(item.id);
   if (!source) continue;
   const titulo = String(item.titulo || '').replace(/\\*/g, '').trim().toLocaleUpperCase('pt-BR');
-  const resumo = String(item.resumo || '').trim();
-  if (!titulo || resumo.length < 80 || /https?:\\/\\//i.test(resumo)) continue;
+  const resumoItem = String(item.resumo || '').trim();
+  if (!titulo || resumoItem.length < 80 || /https?:\\/\\//i.test(resumoItem)) continue;
   const link = source.link || source.id;
-  const texto = (item.emoji || String.fromCodePoint(0x1F4F0)) + ' *' + titulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumo + (input.config.enviarLinksFontes !== false ? String.fromCharCode(10) + String.fromCharCode(10) + link : '');
-  messages.push({ json: { tipo: 'noticia', titulo, resumo, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: input.config, plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });
+  const texto = (item.emoji || String.fromCodePoint(0x1F4F0)) + ' *' + titulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoItem + (input.config.enviarLinksFontes !== false ? String.fromCharCode(10) + String.fromCharCode(10) + link : '');
+  messages.push({ json: { tipo: 'noticia', titulo, resumo: resumoItem, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });
 }
-return messages.length ? messages : [{ json: { ...input, semNoticias: true, motivo: 'Nenhuma mensagem valida' } }];
+return messages.length ? messages : [{ json: { semNoticias: true, motivo: 'Nenhuma mensagem valida', plano: input.plano } }];
 `.trim();
 
 const sendCode = `

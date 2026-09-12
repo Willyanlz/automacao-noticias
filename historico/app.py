@@ -1,4 +1,4 @@
-﻿import html
+import html
 import json
 import os
 import sqlite3
@@ -53,6 +53,7 @@ def init_db():
             if name not in cols:
                 db.execute(ddl)
         db.execute('CREATE INDEX IF NOT EXISTS idx_envios_escopo_dia ON envios(escopo, dia)')
+        db.execute('CREATE INDEX IF NOT EXISTS idx_envios_escopo_link ON envios(escopo, link)')
         limite = (agora() - timedelta(days=RETENCAO_DIAS)).timestamp()
         db.execute('DELETE FROM envios WHERE criado_em < ?', (limite,))
 
@@ -110,14 +111,17 @@ def listar_dia(data, escopo='default'):
 def verificar(links, escopo='default'):
     if not links:
         return []
-    dia = hoje()
-    placeholders = ','.join('?' * len(links))
+    links_limpos = [str(link or '').strip() for link in links]
+    links_limpos = [link for link in links_limpos if link]
+    if not links_limpos:
+        return []
+    placeholders = ','.join('?' * len(links_limpos))
     with sqlite3.connect(DB) as db:
         enviados = set(r[0] for r in db.execute(
-            f'SELECT link FROM envios WHERE dia=? AND escopo=? AND link IN ({placeholders})',
-            (dia, escopo, *links)
+            f'SELECT DISTINCT link FROM envios WHERE escopo=? AND link IN ({placeholders})',
+            (escopo, *links_limpos)
         ).fetchall())
-    return [l for l in links if l not in enviados]
+    return [link for link in links_limpos if link not in enviados]
 
 
 def pagina_dia(data, escopo='default'):

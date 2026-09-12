@@ -230,7 +230,24 @@ return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { se
 
 const promptCode = `
 const input = $input.first().json;
-if (input.semNoticias) return [input];
+const configLeve = cfg => ({
+  cliente: cfg.cliente,
+  numero: cfg.numero,
+  instancia: cfg.instancia,
+  evolutionUrl: cfg.evolutionUrl,
+  evolutionApiKey: cfg.evolutionApiKey || cfg.apikey || '',
+  apikey: cfg.apikey || '',
+  geminiApiKey: cfg.geminiApiKey,
+  modeloGemini: cfg.modeloGemini,
+  historicoUrl: cfg.historicoUrl,
+  enviar: cfg.enviar,
+  enviarLinksFontes: cfg.enviarLinksFontes,
+  usarImagem: cfg.usarImagem,
+  numeroNoticias: cfg.numeroNoticias,
+  numeroResumao: cfg.numeroResumao,
+  numeroHistorico: cfg.numeroHistorico,
+});
+if (input.semNoticias || input.historico) return [{ json: { semNoticias: input.semNoticias === true, motivo: input.motivo || '', plano: input.plano, config: configLeve(input.config || {}), noticias: input.noticias || [], historico: input.historico === true } }];
 const diario = input.plano.acao === 'resumao';
 const fontes = input.noticias.map(item => ({
   id: item.id,
@@ -263,12 +280,12 @@ const noticiasLeves = input.noticias.map(item => ({
   titulo: item.titulo,
   imagemUrl: item.imagemUrl || '',
 }));
-return [{ json: { plano: input.plano, config: input.config, noticias: noticiasLeves, geminiBody: { contents: [{ parts: [{ text: prompt }] }] }, generationConfig: { responseMimeType: 'application/json', responseSchema: schema }, debug: { fontes: fontes.length, promptChars: prompt.length } } }];
+return [{ json: { plano: input.plano, config: configLeve(input.config || {}), noticias: noticiasLeves, geminiBody: { contents: [{ parts: [{ text: prompt }] }] }, generationConfig: { responseMimeType: 'application/json', responseSchema: schema }, debug: { fontes: fontes.length, promptChars: prompt.length } } }];
 `.trim();
 
 const geminiCode = `
 const input = $input.first().json;
-if (input.semNoticias) return [input];
+if (input.semNoticias || input.historico) return [{ json: { semNoticias: input.semNoticias === true, motivo: input.motivo || '', plano: input.plano, config: input.config, noticias: input.noticias || [], historico: input.historico === true } }];
 const model = input.config.modeloGemini || 'gemini-2.0-flash';
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
   if (this && this.helpers && this.helpers.httpRequest) {
@@ -295,15 +312,23 @@ for (let attempt = 1; attempt <= 3; attempt++) {
     const candidate = response?.candidates?.[0];
     if (!candidate || (candidate.finishReason && candidate.finishReason !== 'STOP')) throw new Error('Gemini nao concluiu');
     const raw = candidate.content.parts.filter(part => !part.thought).map(part => part.text || '').join('');
-    const result = JSON.parse(raw);
+    const parseGeminiJson = value => {
+      const text = String(value || '').trim();
+      try { return JSON.parse(text); } catch {}
+      const start = text.indexOf('{');
+      const end = text.lastIndexOf('}');
+      if (start >= 0 && end > start) return JSON.parse(text.slice(start, end + 1));
+      throw new Error('Resposta da IA nao veio em JSON valido');
+    };
+    const result = parseGeminiJson(raw);
     return [{ json: { plano: input.plano, config: input.config, noticias: input.noticias, ia: result, debug: { modelo: model, itensIA: Array.isArray(result.itens) ? result.itens.length : 0 } } }];
   } catch (error) {
     lastError = error;
-    if (!/timeout|ETIMEDOUT|ECONNRESET|429|50\d|network/i.test(error.message || '') || attempt === 3) break;
+    if (!/timeout|ETIMEDOUT|ECONNRESET|429|50\\d|network/i.test(error.message || '') || attempt === 3) break;
     await new Promise(resolve => setTimeout(resolve, 5000 * attempt));
   }
 }
-throw new Error('Gemini falhou: ' + (lastError?.message || 'erro desconhecido'));
+throw new Error('Gemini falhou: ' + (lastError?.message || 'erro desconhecido')); // erro simples para identificar o problema
 `.trim();
 
 const prepareMessagesCode = `

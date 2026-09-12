@@ -10,7 +10,7 @@ from urllib.parse import urlparse, parse_qs
 
 DB = os.environ.get('HISTORICO_DB', '/data/historico.sqlite')
 PORT = int(os.environ.get('HISTORICO_PORT', 8090))
-RETENCAO_DIAS = int(os.environ.get('HISTORICO_RETENCAO_DIAS', 60))
+RETENCAO_DIAS = int(os.environ.get('HISTORICO_RETENCAO_DIAS', 0))
 TZ = ZoneInfo(os.environ.get('TZ', 'America/Sao_Paulo'))
 
 
@@ -54,8 +54,9 @@ def init_db():
                 db.execute(ddl)
         db.execute('CREATE INDEX IF NOT EXISTS idx_envios_escopo_dia ON envios(escopo, dia)')
         db.execute('CREATE INDEX IF NOT EXISTS idx_envios_escopo_link ON envios(escopo, link)')
-        limite = (agora() - timedelta(days=RETENCAO_DIAS)).timestamp()
-        db.execute('DELETE FROM envios WHERE criado_em < ?', (limite,))
+        if RETENCAO_DIAS > 0:
+            limite = (agora() - timedelta(days=RETENCAO_DIAS)).timestamp()
+            db.execute('DELETE FROM envios WHERE criado_em < ?', (limite,))
 
 
 def registrar(dados):

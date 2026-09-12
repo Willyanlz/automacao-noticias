@@ -45,6 +45,7 @@ const configFields = [
   ['palavrasChave', palavrasChaveDefault, 'string'],
   ['promptNoticias', promptNoticiasDefault, 'string'],
   ['promptResumao', promptResumaoDefault, 'string'],
+  ['assinaturaMensagem', '', 'string'],
   ['periodicidade', 'intervalo', 'string'],
   ['intervaloMinutos', 60, 'number'],
   ['inicioEnvios', '08:00', 'string'],
@@ -246,6 +247,7 @@ const configLeve = cfg => ({
   numeroNoticias: cfg.numeroNoticias,
   numeroResumao: cfg.numeroResumao,
   numeroHistorico: cfg.numeroHistorico,
+  assinaturaMensagem: cfg.assinaturaMensagem || '',
 });
 if (input.semNoticias || input.historico) return [{ json: { semNoticias: input.semNoticias === true, motivo: input.motivo || '', plano: input.plano, config: configLeve(input.config || {}), noticias: input.noticias || [], historico: input.historico === true } }];
 const diario = input.plano.acao === 'resumao';
@@ -347,7 +349,15 @@ const configEnvio = cfg => ({
   numeroNoticias: cfg.numeroNoticias,
   numeroResumao: cfg.numeroResumao,
   numeroHistorico: cfg.numeroHistorico,
+  assinaturaMensagem: cfg.assinaturaMensagem || '',
 });
+const comAssinatura = (texto, cfg) => {
+  const assinatura = String(cfg?.assinaturaMensagem || '').trim();
+  const base = String(texto || '').trimEnd();
+  if (!assinatura) return base;
+  const resumo = base.split(assinatura).join('').trimEnd();
+  return (resumo ? resumo + String.fromCharCode(10) + String.fromCharCode(10) : '') + assinatura;
+};
 if (input.semNoticias) return [{ json: input }];
 if (input.historico) {
   const limpar = v => String(v || '')
@@ -365,15 +375,15 @@ if (input.historico) {
     return Number.isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
   };
   const linhas = input.noticias.map((n, i) => String(i + 1) + '. ' + horaFmt(n.hora) + ' - ' + limpar(n.titulo || n.link || 'Sem titulo')).join(String.fromCharCode(10));
-  const dataBr = String(input.plano.dia || '').replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1');
-  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: String.fromCodePoint(0x1F5C2) + String.fromCharCode(0xFE0F) + ' *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
+  const dataBr = String(input.plano.dia || '').replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/, '$3/$2/$1');
+  return [{ json: { tipo: 'historico', titulo: 'HISTORICO DO DIA', resumo: linhas, texto: comAssinatura(String.fromCodePoint(0x1F5C2) + String.fromCharCode(0xFE0F) + ' *HISTORICO DE NOTICIAS - ' + dataBr + '*' + String.fromCharCode(10) + String.fromCharCode(10) + linhas, input.config), link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroHistorico || input.config.numero } }];
 }
 const result = input.ia;
 if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { semNoticias: true, motivo: 'IA nao selecionou noticias', plano: input.plano } }];
 if (input.plano.acao === 'resumao') {
   const resumoDiario = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();
   if (resumoDiario.length < 80 || /https?:\\/\\//i.test(resumoDiario)) throw new Error('Resumao invalido');
-  return [{ json: { tipo: 'resumao', titulo: 'Resumo de hoje', resumo: resumoDiario, texto: String.fromCodePoint(0x1F6A8) + ' *Resumo de hoje*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoDiario, link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
+  return [{ json: { tipo: 'resumao', titulo: 'Resumo de hoje', resumo: resumoDiario, texto: comAssinatura(String.fromCodePoint(0x1F6A8) + ' *Resumo de hoje*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoDiario, input.config), link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
 }
 const sources = new Map(input.noticias.map(item => [item.id, item]));
 const messages = [];
@@ -384,7 +394,7 @@ for (const item of result.itens) {
   const resumoItem = String(item.resumo || '').trim();
   if (!titulo || resumoItem.length < 80 || /https?:\\/\\//i.test(resumoItem)) continue;
   const link = source.link || source.id;
-  const texto = (item.emoji || String.fromCodePoint(0x1F4F0)) + ' *' + titulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoItem + (input.config.enviarLinksFontes !== false ? String.fromCharCode(10) + String.fromCharCode(10) + link : '');
+  const texto = comAssinatura((item.emoji || String.fromCodePoint(0x1F4F0)) + ' *' + titulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoItem + (input.config.enviarLinksFontes !== false ? String.fromCharCode(10) + String.fromCharCode(10) + link : ''), input.config);
   messages.push({ json: { tipo: 'noticia', titulo, resumo: resumoItem, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });
 }
 return messages.length ? messages : [{ json: { semNoticias: true, motivo: 'Nenhuma mensagem valida', plano: input.plano } }];

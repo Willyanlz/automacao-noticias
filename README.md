@@ -7,7 +7,7 @@ A versao base gerada pelo repositorio e `noticias_v3.json`. O arquivo pode ser i
 ## Arquivos principais
 
 - `noticias_v3.json`: workflow base para importar no n8n.
-- `create_v3_compact.js`: gerador reproduzivel do workflow base.
+- `create_v3_compact.js`: gerador antigo desativado para evitar recriar exports incompatíveis.
 - `historico/`: servico HTTP simples com SQLite para deduplicacao, historico do dia e resumao.
 - `evolution/docker-compose.yml`: stack com Evolution API, Redis, Postgres e historico.
 - `manutencao/testes/test_v3_compact.cjs`: teste local de integridade do workflow.
@@ -60,25 +60,23 @@ Campos principais:
 
 ## Fluxos de entrada
 
-- Manual `Noticias - Rodar Manualmente`: forca uma rodada de conteudos.
+- Manual `Manual - Iniciar`: abre um formulario para escolher `Enviar noticias agora`, `Enviar resumao agora`, `Enviar historico agora` ou `Consultar IDs`.
 - Webhook `noticias-agora`: forca uma rodada por URL.
-- Manual/Webhook de resumo: gera o resumo do dia com base no historico.
-- Manual/Webhook de historico: envia a lista do que ja foi enviado no dia.
-- `IDs - Iniciar Consulta`: consulta grupos, comunidades, broadcasts expostos pela API e estado da instancia.
+- Webhook `resumao-agora`: gera o resumo do dia com base no historico.
+- Webhook `historico-agora`: envia a lista do que ja foi enviado no dia.
+- Opcao manual `Consultar IDs`: consulta grupos, comunidades, broadcasts expostos pela API e estado da instancia.
 
 ## Teste local
 
 ```bash
-node create_v3_compact.js
 node manutencao/testes/test_v3_compact.cjs
 ```
 
 ## Importacao no n8n
 
-1. Gere o workflow com `node create_v3_compact.js`.
-2. Importe `noticias_v3.json` no n8n.
-3. Ajuste os campos do node `Configurar Cliente` para o nicho e destino.
-4. Comece com `enviar=false` para validar texto e fontes.
-5. Troque para `enviar=true` somente quando a instancia e o destino estiverem corretos.
+1. Importe `noticias_v3.json` no n8n.
+2. Ajuste os campos do node `Configurar Cliente` para o nicho e destino.
+3. Comece com `enviar=false` para validar texto e fontes.
+4. Troque para `enviar=true` somente quando a instancia e o destino estiverem corretos.
 
 Nunca versione tokens, chaves, senhas, IPs privados de clientes ou exports com credenciais reais.

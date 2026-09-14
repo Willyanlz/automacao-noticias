@@ -692,8 +692,5 @@ const workflow = {
   tags: [],
 };
 
-fs.writeFileSync('noticias_v3.json', JSON.stringify(workflow, null, 2) + '\n');
-const importWorkflow = { ...workflow };
-delete importWorkflow.id;
-fs.writeFileSync('noticias_v3_importar_novo.json', JSON.stringify(importWorkflow, null, 2) + '\n');
-console.log(`V3 compacta criada: ${nodes.length} nos, ${Object.keys(connections).length} conexoes`);
+console.error('Gerador antigo desativado. Use noticias_v3.json como arquivo unico canonico e funcional.');
+process.exit(1);

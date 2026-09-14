@@ -23,16 +23,16 @@ for (const node of workflow.nodes.filter(node => node.type === 'n8n-nodes-base.c
 
 for (const required of [
   'Agenda - Verificar a cada minuto',
-  'Noticias - Rodar Manualmente',
+  'Manual - Iniciar',
+  'Manual - Escolher Acao',
+  'Manual - Marcar Acao',
   'Webhook - Noticias Agora',
-  'Resumao - Rodar Manualmente',
   'Webhook - Resumao Agora',
-  'Historico - Enviar Manualmente',
   'Webhook - Historico Agora',
   'Coletar Fontes e Historico',
   'Gemini com Retry',
   'Enviar e Registrar',
-  'IDs - Iniciar Consulta',
+  'IDs - O que Consultar?',
   'IDs - Resultados',
 ]) {
   assert.ok(names.has(required), `node obrigatorio ausente: ${required}`);
@@ -71,5 +71,9 @@ const sendCode = workflow.nodes.find(node => node.name === 'Enviar e Registrar')
 assert.ok(sendCode.includes('escopoHistorico'), 'registro deve calcular escopo do historico');
 assert.ok(sendCode.includes('escopo: escopoHistorico'), 'registro deve salvar escopo no historico');
 
+
+const manualTriggers = workflow.nodes.filter(node => node.type === 'n8n-nodes-base.manualTrigger');
+assert.equal(manualTriggers.length, 1, 'deve existir apenas um botao manual para importacao estavel no n8n');
+assert.equal(manualTriggers[0].name, 'Manual - Iniciar');
 
 console.log(`PASS V3 compacta importavel com ${workflow.nodes.length} nodes.`);

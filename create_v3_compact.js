@@ -453,19 +453,45 @@ for (const item of result.itens) {
 return messages.length ? messages : [{ json: { semNoticias: true, motivo: 'Nenhuma mensagem valida', plano: input.plano } }];
 `.trim();
 
-const sendCode = `
-const item = $input.first().json;
+const sendCode = `const item = $input.first().json;
 if (item.semNoticias) return [{ json: item }];
 const config = { ...item.config };
 const escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia'].map(v => String(v).trim()).join('|');
 if (config.enviar !== true) return [{ json: { preview: true, titulo: item.titulo, texto: item.texto } }];
-const rawNumber = String(item.numeroDestino || config.numero || '').trim();
-let destino;
-if (/^[0-9]+(?:-[0-9]+)?@g\\.us$/.test(rawNumber)) destino = rawNumber;
-else {
-  destino = rawNumber.replace(/\\D/g, '');
-  if (!/^[1-9][0-9]{7,14}$/.test(destino)) throw new Error('Numero invalido');
+
+// DESTINOS multiplos: array, JSON em string, um por linha, virgula ou ponto e virgula
+let destinosRaw = item.numeroDestino ?? config.numero ?? '';
+let destinos = [];
+if (Array.isArray(destinosRaw)) {
+  destinos = destinosRaw;
+} else {
+  const textoDest = String(destinosRaw).trim();
+  if (!textoDest) throw new Error('Nenhum destinatario configurado');
+  if (textoDest.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(textoDest);
+      if (!Array.isArray(parsed)) throw new Error('O campo numero precisa conter um array');
+      destinos = parsed;
+    } catch (error) {
+      throw new Error('O campo numero contém JSON inválido. Exemplo: ["5511999999999","120363123@g.us"]');
+    }
+  } else {
+    destinos = textoDest.split(/[\\n,;]+/).map(v => String(v).trim()).filter(Boolean);
+  }
 }
+const normalizarDestino = valor => {
+  const raw = String(valor ?? '').trim();
+  if (!raw) throw new Error('Destino vazio');
+  if (/^[0-9]+(?:-[0-9]+)?@g\\.us$/.test(raw)) return raw;
+  if (/^[0-9]+@broadcast$/.test(raw)) return raw;
+  if (raw === 'status@broadcast') return raw;
+  const numero = raw.replace(/\\D/g, '');
+  if (!/^[1-9][0-9]{7,14}$/.test(numero)) throw new Error('Destino invalido: ' + raw);
+  return numero;
+};
+const destinosUnicos = [...new Set(destinos.map(normalizarDestino))];
+if (!destinosUnicos.length) throw new Error('Nenhum destinatario valido encontrado');
+
 const base = String(config.evolutionUrl || '').replace(/\\/$/, '');
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
   if (this && this.helpers && this.helpers.httpRequest) {
@@ -485,11 +511,12 @@ const http = async ({ method = 'GET', url, headers = {}, body, json = false, tim
 };
 // send helper inserted
 if (!base) throw new Error('evolutionUrl nao configurada');
+// Corrige URLs de imagem com entidades HTML (ex.: &#039;) e caracteres especiais
 const decodificar = value => String(value || '').replace(/&#0?39;|&#x27;/gi, "'").replace(/&quot;/gi, '"').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&');
 const encUri = str => String(str).split(/(%[0-9A-Fa-f]{2})/g).map(p => /^%[0-9A-Fa-f]{2}$/.test(p) ? p : encodeURI(p)).join('');
 const urlImagem = raw => {
   const limpa = decodificar(raw);
-  if (!/^https?:\/\//i.test(limpa)) return '';
+  if (!/^https?:\\/\\//i.test(limpa)) return '';
   try {
     const u = new URL(limpa);
     u.pathname = u.pathname.split('/').map(seg => encUri(seg).replace(/'/g, '%27').replace(/&/g, '%26')).join('/');
@@ -500,31 +527,47 @@ const urlImagem = raw => {
   }
 };
 const imagem = urlImagem(item.imagemUrl);
-const path = imagem ? '/message/sendMedia/' : '/message/sendText/';
-let tentativa = null;
-if (imagem) {
+const enviarPara = async (destino) => {
+  const headers = { apikey: config.evolutionApiKey || config.apikey || '' };
+  let tentativa = null;
+  if (imagem) {
+    try {
+      tentativa = await http({ method: 'POST', url: base + '/message/sendMedia/' + encodeURIComponent(config.instancia), headers, body: { number: destino, mediatype: 'image', media: imagem, caption: item.texto }, json: true, timeout: 30000 });
+      if (tentativa?.status === 'ERROR') throw new Error('Evolution retornou erro no sendMedia');
+    } catch (error) {
+      console.log('sendMedia falhou (' + error.message + '), reenviando como texto');
+      tentativa = null;
+    }
+  }
+  if (!tentativa) {
+    tentativa = await http({ method: 'POST', url: base + '/message/sendText/' + encodeURIComponent(config.instancia), headers, body: { number: destino, text: item.texto, linkPreview: false }, json: true, timeout: 30000 });
+    if (tentativa?.status === 'ERROR') throw new Error('Evolution retornou erro');
+  }
+  return tentativa;
+};
+
+const resultados = [];
+for (const destino of destinosUnicos) {
   try {
-    tentativa = await http({ method: 'POST', url: base + path + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body: { number: destino, mediatype: 'image', media: imagem, caption: item.texto }, json: true, timeout: 30000 });
-    if (tentativa?.status === 'ERROR') throw new Error('Evolution retornou erro no sendMedia');
+    const response = await enviarPara(destino);
+    resultados.push({ destino, enviado: true, messageId: response?.key?.id || response?.messageId || '' });
   } catch (error) {
-    console.log('sendMedia falhou (' + error.message + '), reenviando como texto');
-    tentativa = null;
+    console.log('Falha ao enviar para ' + destino + ': ' + error.message);
+    resultados.push({ destino, enviado: false, erro: error.message });
   }
 }
-if (!tentativa) {
-  tentativa = await http({ method: 'POST', url: base + '/message/sendText/' + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body: { number: destino, text: item.texto, linkPreview: false }, json: true, timeout: 30000 });
-  if (tentativa?.status === 'ERROR') throw new Error('Evolution retornou erro');
+if (!resultados.some(r => r.enviado)) {
+  throw new Error('Nenhum destinatario recebeu a mensagem');
 }
-const response = tentativa;
+
 if (item.link || item.tipo === 'resumao' || item.tipo === 'historico') {
   try {
-    await http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { escopo: escopoHistorico, link: item.link || (item.tipo + ':' + item.plano?.dia + ':' + item.plano?.jobId), titulo: item.titulo, resumo: item.resumo || item.texto, tipo: item.tipo, dia: item.plano?.dia, jobId: item.plano?.jobId, messageId: response?.key?.id || response?.messageId || '' }, json: true });
+    await http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { escopo: escopoHistorico, link: item.link || (item.tipo + ':' + item.plano?.dia + ':' + item.plano?.jobId), titulo: item.titulo, resumo: item.resumo || item.texto, tipo: item.tipo, dia: item.plano?.dia, jobId: item.plano?.jobId, messageId: resultados.filter(r => r.enviado).map(r => r.messageId).filter(Boolean).join(',') }, json: true });
   } catch (error) {
     console.log('Falha ao registrar historico: ' + error.message);
   }
 }
-return [{ json: { enviado: true, titulo: item.titulo, link: item.link, messageId: response?.key?.id || '' } }];
-`.trim();
+return [{ json: { enviado: true, titulo: item.titulo, link: item.link, totalDestinos: destinosUnicos.length, enviados: resultados.filter(r => r.enviado).length, falhas: resultados.filter(r => !r.enviado).length, resultados } }];`.trim();
 
 const idsPrepCode = `
 const form = $input.first().json;

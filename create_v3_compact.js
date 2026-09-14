@@ -3,7 +3,11 @@ const crypto = require('node:crypto');
 
 const nodes = [];
 const connections = {};
-const id = prefix => `${prefix}-${crypto.randomBytes(5).toString('hex')}`;
+const idCounters = {};
+const id = prefix => {
+  idCounters[prefix] = (idCounters[prefix] || 0) + 1;
+  return `${prefix}-${String(idCounters[prefix]).padStart(3, '0')}`;
+};
 
 const rssFeedsDefault = "https://www.infomoney.com.br/feed/\nhttps://www.moneytimes.com.br/feed/\nhttps://braziljournal.com/feed/\nhttps://veja.abril.com.br/feed/";
 const dominiosPermitidosDefault = "";

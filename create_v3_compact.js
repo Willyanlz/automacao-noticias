@@ -129,7 +129,7 @@ const jsonFeedItems = value => {
       link: item.url || item.external_url || item.id || '',
       trecho: item.summary || item.content_text || strip(item.content_html || ''),
       data: Date.parse(item.date_published || item.date_modified || ''),
-      imagemUrl: item.image || item.banner_image || '',
+      imagemUrl: urlImagem(item.image || item.banner_image),
     }));
   } catch {
     return [];
@@ -151,6 +151,20 @@ const http = async ({ method = 'GET', url, headers = {}, body, json = false, tim
   if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));
   if (json) return text ? JSON.parse(text) : null;
   return text;
+};
+const decodificar = value => String(value || '').replace(/&#0?39;|&#x27;/gi, "'").replace(/&quot;/gi, '"').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&');
+const encUri = str => String(str).split(/(%[0-9A-Fa-f]{2})/g).map(p => /^%[0-9A-Fa-f]{2}$/.test(p) ? p : encodeURI(p)).join('');
+const urlImagem = raw => {
+  const limpa = decodificar(raw);
+  if (!/^https?:\/\//i.test(limpa)) return '';
+  try {
+    const u = new URL(limpa);
+    u.pathname = u.pathname.split('/').map(seg => encUri(seg).replace(/'/g, '%27').replace(/&/g, '%26')).join('/');
+    if (u.search) u.search = encUri(u.search).replace(/'/g, '%27');
+    return u.href;
+  } catch {
+    return limpa;
+  }
 };
 // collect helper inserted
 if (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];
@@ -260,7 +274,7 @@ for (const item of candidates) {
       .map(match => cleanArticleText(match[1]))
       .filter(text => text.length > 45 && !looksLikeNoise(text) && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[e?]m|^veja tamb[e?]m|newsletter|privacy policy|cookie/i.test(text));
     const texto = [...new Set(textBlocks)].join('\n').slice(0, 5000);
-    if (texto.length >= 120 && !looksLikeNoise(texto)) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\/\//i.test(image) ? image : '' });
+    if (texto.length >= 120 && !looksLikeNoise(texto)) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\/\//i.test(image) ? urlImagem(image) : '' });
   } catch (error) {
     console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);
   }
@@ -471,12 +485,37 @@ const http = async ({ method = 'GET', url, headers = {}, body, json = false, tim
 };
 // send helper inserted
 if (!base) throw new Error('evolutionUrl nao configurada');
-const path = item.imagemUrl ? '/message/sendMedia/' : '/message/sendText/';
-const body = item.imagemUrl
-  ? { number: destino, mediatype: 'image', media: item.imagemUrl, caption: item.texto }
-  : { number: destino, text: item.texto, linkPreview: false };
-const response = await http({ method: 'POST', url: base + path + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body, json: true, timeout: 30000 });
-if (response?.status === 'ERROR') throw new Error('Evolution retornou erro');
+const decodificar = value => String(value || '').replace(/&#0?39;|&#x27;/gi, "'").replace(/&quot;/gi, '"').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&');
+const encUri = str => String(str).split(/(%[0-9A-Fa-f]{2})/g).map(p => /^%[0-9A-Fa-f]{2}$/.test(p) ? p : encodeURI(p)).join('');
+const urlImagem = raw => {
+  const limpa = decodificar(raw);
+  if (!/^https?:\/\//i.test(limpa)) return '';
+  try {
+    const u = new URL(limpa);
+    u.pathname = u.pathname.split('/').map(seg => encUri(seg).replace(/'/g, '%27').replace(/&/g, '%26')).join('/');
+    if (u.search) u.search = encUri(u.search).replace(/'/g, '%27');
+    return u.href;
+  } catch {
+    return limpa;
+  }
+};
+const imagem = urlImagem(item.imagemUrl);
+const path = imagem ? '/message/sendMedia/' : '/message/sendText/';
+let tentativa = null;
+if (imagem) {
+  try {
+    tentativa = await http({ method: 'POST', url: base + path + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body: { number: destino, mediatype: 'image', media: imagem, caption: item.texto }, json: true, timeout: 30000 });
+    if (tentativa?.status === 'ERROR') throw new Error('Evolution retornou erro no sendMedia');
+  } catch (error) {
+    console.log('sendMedia falhou (' + error.message + '), reenviando como texto');
+    tentativa = null;
+  }
+}
+if (!tentativa) {
+  tentativa = await http({ method: 'POST', url: base + '/message/sendText/' + encodeURIComponent(config.instancia), headers: { apikey: config.evolutionApiKey || config.apikey || '' }, body: { number: destino, text: item.texto, linkPreview: false }, json: true, timeout: 30000 });
+  if (tentativa?.status === 'ERROR') throw new Error('Evolution retornou erro');
+}
+const response = tentativa;
 if (item.link || item.tipo === 'resumao' || item.tipo === 'historico') {
   try {
     await http({ method: 'POST', url: String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '') + '/registrar', body: { escopo: escopoHistorico, link: item.link || (item.tipo + ':' + item.plano?.dia + ':' + item.plano?.jobId), titulo: item.titulo, resumo: item.resumo || item.texto, tipo: item.tipo, dia: item.plano?.dia, jobId: item.plano?.jobId, messageId: response?.key?.id || response?.messageId || '' }, json: true });

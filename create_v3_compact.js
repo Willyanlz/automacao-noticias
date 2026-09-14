@@ -100,7 +100,7 @@ const config = plano.config;
 const baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\/$/, '');
 const escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia'].map(v => String(v).trim()).join('|');
 const strip = value => String(value || '').replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
-const tag = (xml, name) => strip((xml.match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)<\\\\/' + name + '>', 'i')) || [])[1] || '');
+const tag = (xml, name) => strip((String(xml || '').match(new RegExp('<' + name + '[^>]*>([\\s\\S]*?)</' + name + '>', 'i')) || [])[1] || '');
 const attr = (html, pattern) => (html.match(pattern) || [])[1] || '';
 const normalize = value => strip(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {

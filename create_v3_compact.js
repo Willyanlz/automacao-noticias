@@ -101,7 +101,17 @@ const baseHistorico = String(config.historicoUrl || 'http://historico:8090').rep
 const escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia'].map(v => String(v).trim()).join('|');
 const strip = value => String(value || '').replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 const tag = (xml, name) => strip((String(xml || '').match(new RegExp('<' + name + '[^>]*>([\\s\\S]*?)</' + name + '>', 'i')) || [])[1] || '');
-const attr = (html, pattern) => (html.match(pattern) || [])[1] || '';
+const tagRaw = (xml, name) => (String(xml || '').match(new RegExp('<' + name + '[^>]*>([\\s\\S]*?)</' + name + '>', 'i')) || [])[1] || '';
+const attr = (html, pattern) => (String(html || '').match(pattern) || [])[1] || '';
+const first = (...values) => values.map(v => String(v || '').trim()).find(Boolean) || '';
+const linkFromBlock = block => {
+  const linkText = tag(block, 'link');
+  if (/^https?:\/\//i.test(linkText)) return linkText;
+  return attr(block, /<link[^>]+href=["']([^"']+)["'][^>]*>/i) || tag(block, 'guid') || linkText;
+};
+const imageFromBlock = block => attr(block, /<(?:media:content|media:thumbnail|enclosure)[^>]+url=["']([^"']+)["'][^>]*>/i);
+const dateFromBlock = block => Date.parse(first(tag(block, 'pubDate'), tag(block, 'dc:date'), tag(block, 'published'), tag(block, 'updated')));
+const textFromBlock = block => first(tag(block, 'description'), strip(tagRaw(block, 'content:encoded')), tag(block, 'summary'), tag(block, 'content'));
 const normalize = value => strip(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
   if (this && this.helpers && this.helpers.httpRequest) {
@@ -136,12 +146,12 @@ let candidates = [];
 let feedErrors = [];
 for (const feed of feeds) {
   try {
-    const xml = await http({ method: 'GET', url: feed, timeout: 20000 });
-    const blocks = String(xml).match(/<item[\s\S]*?<\/item>/gi) || [];
+    const xml = await http({ method: 'GET', url: feed, headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' }, timeout: 20000 });
+    const blocks = String(xml).match(/<item\b[\s\S]*?<\/item>/gi) || String(xml).match(/<entry\b[\s\S]*?<\/entry>/gi) || [];
     for (const block of blocks) {
-      const link = tag(block, 'link') || tag(block, 'guid');
-      const date = Date.parse(tag(block, 'pubDate') || tag(block, 'dc:date') || tag(block, 'updated') || '');
-      candidates.push({ titulo: tag(block, 'title'), link, trecho: tag(block, 'description'), data: date, imagemUrl: attr(block, /url=["']([^"']+)["']/i) });
+      const link = linkFromBlock(block);
+      const date = dateFromBlock(block);
+      candidates.push({ titulo: tag(block, 'title'), link, trecho: textFromBlock(block), data: date, imagemUrl: imageFromBlock(block) });
     }
   } catch (error) {
     feedErrors.push(feed + ': ' + error.message);

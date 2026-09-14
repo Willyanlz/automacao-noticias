@@ -65,6 +65,7 @@ assert.ok(collectCode.includes('escopo: escopoHistorico'), 'deduplicacao deve en
 const promptCode = workflow.nodes.find(node => node.name === 'Montar Prompt').parameters.jsCode;
 assert.ok(promptCode.includes('config.promptNoticias'), 'prompt de noticias deve vir do card Configurar Cliente');
 assert.ok(promptCode.includes('config.promptResumao'), 'prompt de resumao deve vir do card Configurar Cliente');
+assert.ok(promptCode.includes('link: item.link'), 'fontes enviadas ao Gemini devem incluir link da noticia');
 
 
 const sendCode = workflow.nodes.find(node => node.name === 'Enviar e Registrar').parameters.jsCode;

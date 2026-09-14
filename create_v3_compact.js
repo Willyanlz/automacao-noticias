@@ -291,6 +291,7 @@ if (input.semNoticias || input.historico) return [{ json: { semNoticias: input.s
 const diario = input.plano.acao === 'resumao';
 const fontes = input.noticias.map(item => ({
   id: item.id,
+  link: item.link,
   titulo: item.titulo,
   texto: String(item.texto || '').slice(0, diario ? 1000 : 2500),
 }));

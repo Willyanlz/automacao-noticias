@@ -4,9 +4,13 @@ const crypto = require('node:crypto');
 const nodes = [];
 const connections = {};
 const idCounters = {};
+const stableUuid = value => {
+  const hex = crypto.createHash('sha1').update(value).digest('hex').slice(0, 32);
+  return [hex.slice(0, 8), hex.slice(8, 12), '4' + hex.slice(13, 16), ((parseInt(hex[16], 16) & 3) | 8).toString(16) + hex.slice(17, 20), hex.slice(20, 32)].join('-');
+};
 const id = prefix => {
   idCounters[prefix] = (idCounters[prefix] || 0) + 1;
-  return `${prefix}-${String(idCounters[prefix]).padStart(3, '0')}`;
+  return stableUuid(prefix + ':' + idCounters[prefix]);
 };
 
 const rssFeedsDefault = "https://www.infomoney.com.br/feed/\nhttps://www.moneytimes.com.br/feed/\nhttps://braziljournal.com/feed/\nhttps://veja.abril.com.br/feed/";
@@ -689,4 +693,7 @@ const workflow = {
 };
 
 fs.writeFileSync('noticias_v3.json', JSON.stringify(workflow, null, 2) + '\n');
+const importWorkflow = { ...workflow };
+delete importWorkflow.id;
+fs.writeFileSync('noticias_v3_importar_novo.json', JSON.stringify(importWorkflow, null, 2) + '\n');
 console.log(`V3 compacta criada: ${nodes.length} nos, ${Object.keys(connections).length} conexoes`);

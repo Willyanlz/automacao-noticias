@@ -112,6 +112,21 @@ const linkFromBlock = block => {
 const imageFromBlock = block => attr(block, /<(?:media:content|media:thumbnail|enclosure)[^>]+url=["']([^"']+)["'][^>]*>/i);
 const dateFromBlock = block => Date.parse(first(tag(block, 'pubDate'), tag(block, 'dc:date'), tag(block, 'published'), tag(block, 'updated')));
 const textFromBlock = block => first(tag(block, 'description'), strip(tagRaw(block, 'content:encoded')), tag(block, 'summary'), tag(block, 'content'));
+const jsonFeedItems = value => {
+  try {
+    const feed = JSON.parse(String(value || ''));
+    const items = Array.isArray(feed.items) ? feed.items : [];
+    return items.map(item => ({
+      titulo: item.title || '',
+      link: item.url || item.external_url || item.id || '',
+      trecho: item.summary || item.content_text || strip(item.content_html || ''),
+      data: Date.parse(item.date_published || item.date_modified || ''),
+      imagemUrl: item.image || item.banner_image || '',
+    }));
+  } catch {
+    return [];
+  }
+};
 const normalize = value => strip(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
   if (this && this.helpers && this.helpers.httpRequest) {
@@ -146,7 +161,12 @@ let candidates = [];
 let feedErrors = [];
 for (const feed of feeds) {
   try {
-    const xml = await http({ method: 'GET', url: feed, headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' }, timeout: 20000 });
+    const xml = await http({ method: 'GET', url: feed, headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml, application/atom+xml, application/feed+json, application/json, application/xml, text/xml, */*' }, timeout: 20000 });
+    const jsonItems = jsonFeedItems(xml);
+    if (jsonItems.length) {
+      candidates.push(...jsonItems);
+      continue;
+    }
     const blocks = String(xml).match(/<item\b[\s\S]*?<\/item>/gi) || String(xml).match(/<entry\b[\s\S]*?<\/entry>/gi) || [];
     for (const block of blocks) {
       const link = linkFromBlock(block);

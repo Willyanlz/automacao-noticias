@@ -49,8 +49,12 @@ Campos principais:
 | `horarioEnvioDiario` | Horario usado quando `periodicidade=diario`. |
 | `horarioResumao` | Horario do resumo do dia. |
 | `resumaoAtivo` | Liga/desliga o resumo automatico. |
-| `maxNoticias` | Quantidade maxima de mensagens por rodada. |
+| `maxNoticias` | Limite REAL de ENVIO por rodada (ex.: 5): a IA seleciona as melhores entre todas as noticias do periodo e o envio corta aqui; nao limita mais os candidatos. |
 | `janelaHoras` | Idade maxima dos itens RSS. |
+| `diasEnvio` | Dias da semana em que o envio automatico de noticias ocorre. Ex.: `seg a sex`, `seg qua sex`, `seg ter qua qui sex sab`. Vazio ou `todos` = todos os dias. |
+| `diaResumao` | Dia da semana do resumao automatico. Ex.: `dom` (resume o periodo D-6..D-1, ex.: segunda a sabado). Vazio = resumao diario. |
+| `resumaoPeriodoDias` | Quantos dias anteriores o resumao cobre (padrao 6). |
+| `maxResumaoItens` | Maximo de categorias/blocos no resumao (padrao 5). |
 | `usarImagem` | Se `true`, tenta enviar imagem da materia quando houver. |
 | `enviar` | Se `false`, gera preview sem enviar. Se `true`, envia pelo WhatsApp. |
 | `enviarLinksFontes` | Se `true`, adiciona o link da fonte na mensagem. |

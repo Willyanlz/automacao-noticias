@@ -90,7 +90,7 @@ def registrar(dados):
 def listar_dia(data, escopo='default'):
     with sqlite3.connect(DB) as db:
         rows = db.execute('''
-            SELECT link, titulo, job_id, criado_em, resumo, tipo, message_id, escopo
+            SELECT link, titulo, job_id, criado_em, resumo, tipo, message_id, escopo, dia
             FROM envios WHERE dia=? AND escopo=? ORDER BY criado_em
         ''', (data, escopo)).fetchall()
     return [
@@ -104,11 +104,35 @@ def listar_dia(data, escopo='default'):
             'tipo': r[5] or 'noticia',
             'messageId': r[6] or '',
             'escopo': r[7] or 'default',
+            'dia': r[8] or data,
         }
         for r in rows
     ]
 
 
+
+
+def listar_periodo(de, ate, escopo='default'):
+    with sqlite3.connect(DB) as db:
+        rows = db.execute('''
+            SELECT link, titulo, job_id, criado_em, resumo, tipo, message_id, escopo, dia
+            FROM envios WHERE dia BETWEEN ? AND ? AND escopo=? ORDER BY dia, criado_em
+        ''', (de, ate, escopo)).fetchall()
+    return [
+        {
+            'link': r[0],
+            'titulo': r[1] or '',
+            'jobId': r[2] or '',
+            'hora': datetime.fromtimestamp(r[3], TZ).strftime('%H:%M:%S'),
+            'criadoEm': datetime.fromtimestamp(r[3], TZ).isoformat(),
+            'resumo': r[4] or '',
+            'tipo': r[5] or 'noticia',
+            'messageId': r[6] or '',
+            'escopo': r[7] or 'default',
+            'dia': r[8] or de,
+        }
+        for r in rows
+    ]
 def verificar(links, escopo='default'):
     if not links:
         return []
@@ -184,6 +208,14 @@ class Handler(BaseHTTPRequestHandler):
             if len(parts) > 1 and parts[1] == 'html':
                 return self.responder_html(pagina_dia(data, escopo))
             return self.responder(listar_dia(data, escopo))
+        if path == '/periodo':
+            query = parse_qs(parsed.query)
+            de = (query.get('de') or [''])[0][:10]
+            ate = (query.get('ate') or [''])[0][:10]
+            if not de or not ate or de > ate:
+                return self.responder({'erro': 'informe de e ate no formato YYYY-MM-DD (de <= ate)'}, 400)
+            return self.responder(listar_periodo(de, ate, escopo))
+
         self.responder({'erro': 'Endpoint invalido'}, 404)
 
     def responder(self, dados, status=200):

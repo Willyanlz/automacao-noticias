@@ -16,3 +16,5 @@ manutencao/run_*.sh
 manutencao/wf-server.json
 manutencao/deploy-temp.json
 manutencao/tmp_*
+
+CONTROLE_*.md

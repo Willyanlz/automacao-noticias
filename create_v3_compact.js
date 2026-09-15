@@ -63,6 +63,10 @@ const configFields = [
   ['resumaoAtivo', true, 'boolean'],
   ['maxNoticias', 3, 'number'],
   ['janelaHoras', 24, 'number'],
+  ['maxResumaoItens', 5, 'number'],
+  ['resumaoPeriodoDias', 6, 'number'],
+  ['diasEnvio', '', 'string'],
+  ['diaResumao', 'dom', 'string'],
   ['usarImagem', true, 'boolean'],
   ['enviar', true, 'boolean'],
   ['enviarLinksFontes', false, 'boolean'],
@@ -75,9 +79,14 @@ const configFields = [
   ['fluxo', '={{ $json.fluxo || \"noticias\" }}', 'string'],
 ];
 
-const decideCode = `
-const config = $input.first().json;
-const now = new Date(); const fuso = 'America/Sao_Paulo'; const partes = new Intl.DateTimeFormat('pt-BR', { timeZone: fuso, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()); const pega = tipo => Number(partes.find(p => p.type === tipo)?.value ?? 0); const diaLocal = new Intl.DateTimeFormat('en-CA', { timeZone: fuso, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const decideCode = `const config = $input.first().json;
+const fuso = 'America/Sao_Paulo';
+const agora = new Date();
+const partes = new Intl.DateTimeFormat('pt-BR', { timeZone: fuso, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(agora);
+const pega = tipo => Number(partes.find(p => p.type === tipo)?.value ?? 0);
+const diaLocal = new Intl.DateTimeFormat('en-CA', { timeZone: fuso, year: 'numeric', month: '2-digit', day: '2-digit' }).format(agora);
+const semAcento = value => String(value || '').toLowerCase().replaceAll(String.fromCharCode(225), 'a').replaceAll(String.fromCharCode(233), 'e').replaceAll(String.fromCharCode(237), 'i').replaceAll(String.fromCharCode(243), 'o').replaceAll(String.fromCharCode(250), 'u').replaceAll(String.fromCharCode(226), 'a').replaceAll(String.fromCharCode(234), 'e').replaceAll(String.fromCharCode(244), 'o').replaceAll(String.fromCharCode(227), 'a').replaceAll(String.fromCharCode(231), 'c');
+const diaSemana = semAcento(new Intl.DateTimeFormat('pt-BR', { timeZone: fuso, weekday: 'short' }).format(agora)).replaceAll('.', '');
 const hm = value => {
   const [h, m] = String(value || '00:00').split(':').map(Number);
   if (!Number.isInteger(h) || !Number.isInteger(m)) throw new Error('Horario invalido: ' + value);
@@ -90,17 +99,39 @@ const end = hm(config.fimEnvios || '19:00');
 const digestAt = hm(config.horarioResumao || '19:00');
 const dailyAt = hm(config.horarioEnvioDiario || '08:00');
 const interval = Math.max(5, Number(config.intervaloMinutos || 60));
+const somaDia = (base, dias) => {
+  const [y, m, d] = String(base).split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + dias)).toISOString().slice(0, 10);
+};
+const parseDias = raw => {
+  const texto = semAcento(raw).replaceAll(',', ' ').replaceAll(';', ' ').split(' ').filter(Boolean).join(' ').trim();
+  if (!texto || texto === 'todos') return null;
+  const ordem = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+  const mapa = { seg: 0, segunda: 0, segundas: 0, ter: 1, terca: 1, tercas: 1, qua: 2, quarta: 2, quartas: 2, qui: 3, quinta: 3, quintas: 3, sex: 4, sexta: 4, sextas: 4, sab: 5, sabado: 5, sabados: 5, dom: 6, domingo: 6, domingos: 6 };
+  const toks = texto.split(' ').filter(Boolean);
+  const set = new Set();
+  for (let i = 0; i < toks.length; i++) {
+    const a = mapa[toks[i]]; if (a === undefined) continue;
+    const b = mapa[toks[i + 2]];
+    if (b !== undefined && (toks[i + 1] === 'a' || toks[i + 1] === 'ate')) { for (let d = Math.min(a, b); d <= Math.max(a, b); d++) set.add(ordem[d]); i += 2; } else { set.add(ordem[a]); }
+  }
+  return set.size ? set : null;
+};
+const diasEnvio = parseDias(config.diasEnvio);
+const diasResumao = parseDias(config.diaResumao);
+const periodoDias = Math.max(1, Number(config.resumaoPeriodoDias || 6));
+const diaInicio = somaDia(diaLocal, -periodoDias);
+const diaFim = somaDia(diaLocal, -1);
 let acao = 'nada';
 if (config.forcarHistorico === true) acao = 'historico';
 else if (config.forcarResumao === true) acao = 'resumao';
 else if (manualNoticias) acao = 'noticias';
-else if (config.resumaoAtivo !== false && current >= digestAt && current < digestAt + 5) acao = 'resumao';
-else if (current >= start && current <= end && current < digestAt) {
+else if (config.resumaoAtivo !== false && (!diasResumao || diasResumao.has(diaSemana)) && current >= digestAt && current < digestAt + 5) acao = 'resumao';
+else if ((!diasEnvio || diasEnvio.has(diaSemana)) && current >= start && current <= end && current < digestAt) {
   if (config.periodicidade === 'diario') acao = current >= dailyAt && current < dailyAt + 5 ? 'noticias' : 'nada';
   else acao = ((current - start) % interval) < 5 ? 'noticias' : 'nada';
 }
-return [{ json: { acao, config, manual: manualNoticias || config.forcarResumao === true || config.forcarHistorico === true, jobId: $execution.id, dia: diaLocal } }];
-`.trim();
+return [{ json: { acao, config, manual: manualNoticias || config.forcarResumao === true || config.forcarHistorico === true, jobId: $execution.id, dia: diaLocal, diaInicio, diaFim, periodoDias, diaSemana, rotuloPeriodo: String(config.diaResumao || '') } }];`.trim();
 
 const collectCode = String.raw`
 const plano = $('Decidir Acao').first().json;
@@ -169,12 +200,16 @@ const urlImagem = raw => {
 // collect helper inserted
 if (plano.acao === 'nada') return [{ json: { semNoticias: true, motivo: 'Nada a executar agora', plano, config } }];
 if (plano.acao === 'resumao' || plano.acao === 'historico') {
-  const rows = await http({ method: 'GET', url: baseHistorico + '/dia/' + plano.dia + '?escopo=' + encodeURIComponent(escopoHistorico), json: true });
-  const noticias = (Array.isArray(rows) ? rows : [])
-    .filter(row => row.link && row.tipo !== 'resumao' && row.tipo !== 'historico')
-    .map(row => ({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.resumo || row.titulo || row.link, resumo: row.resumo || '', hora: row.hora || '', imagemUrl: '' }));
-  if (plano.acao === 'historico') return noticias.length ? [{ json: { plano, config, noticias, historico: true } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias enviadas hoje no historico', plano, config } }];
-  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada hoje', plano, config } }];
+  const diaSoma = (base, dias) => { const [y, m, d] = String(base).split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + dias)).toISOString().slice(0, 10); };
+  const de = plano.diaInicio || plano.dia;
+  const ate = (plano.diaFim || plano.dia) >= de ? (plano.diaFim || plano.dia) : de;
+  const rows = await http({ method: 'GET', url: baseHistorico + '/periodo?de=' + de + '&ate=' + ate + '&escopo=' + encodeURIComponent(escopoHistorico), json: true });
+  const bruta = (Array.isArray(rows) ? rows : []).filter(row => row.link && row.tipo !== 'resumao' && row.tipo !== 'historico');
+  const vistos = new Set();
+  const noticias = [];
+  for (const row of bruta) { if (!vistos.has(row.link)) { vistos.add(row.link); noticias.push({ id: row.link, link: row.link, titulo: row.titulo || row.link, texto: row.resumo || row.titulo || row.link, resumo: row.resumo || '', hora: row.hora || '', dia: row.dia || de, imagemUrl: '' }); } }
+  if (plano.acao === 'historico') return noticias.length ? [{ json: { plano, config, noticias, historico: true } }] : [{ json: { semNoticias: true, motivo: 'Sem noticias enviadas no periodo no historico', plano, config } }];
+  return noticias.length ? [{ json: { plano, config, noticias } }] : [{ json: { semNoticias: true, motivo: 'Nenhuma noticia enviada no periodo', plano, config } }];
 }
 const parseList = value => String(value || '').split(String.fromCharCode(10)).flatMap(line => line.split(/[;,]+/)).map(v => { const text = strip(v); const close = text.indexOf(']('); return text.startsWith('[') && close > 1 && text.endsWith(')') ? text.slice(1, close) : text; }).filter(Boolean);
 const feeds = parseList(config.rssFeeds);
@@ -229,7 +264,7 @@ candidates = candidates.filter(item => {
 });
 const scored = candidates.sort((a, b) => b.score - a.score || b.data - a.data);
 const withScore = scored.filter(item => item.score > 0);
-candidates = (withScore.length ? withScore : scored).slice(0, Math.max(12, Number(config.maxNoticias || 3) * 4));
+candidates = (withScore.length ? withScore : scored).slice(0, 80); // teto tecnico p/ caber no prompt: a IA valida tudo (janelaHoras + palavras-chave) e maxNoticias vale apenas no envio
 if (candidates.length) {
   try {
     const response = await http({ method: 'POST', url: baseHistorico + '/verifica', body: { escopo: escopoHistorico, links: candidates.map(item => item.link) }, json: true });
@@ -300,18 +335,22 @@ const configLeve = cfg => ({
   numeroResumao: cfg.numeroResumao,
   numeroHistorico: cfg.numeroHistorico,
   assinaturaMensagem: cfg.assinaturaMensagem || '',
+  maxNoticias: cfg.maxNoticias,
+  maxResumaoItens: cfg.maxResumaoItens,
 });
 if (input.semNoticias || input.historico) return [{ json: { semNoticias: input.semNoticias === true, motivo: input.motivo || '', plano: input.plano, config: configLeve(input.config || {}), noticias: input.noticias || [], historico: input.historico === true } }];
 const diario = input.plano.acao === 'resumao';
+const maxR = Math.max(1, Number(input.config.maxResumaoItens || 5));
 const fontes = input.noticias.map(item => ({
   id: item.id,
   link: item.link,
   titulo: item.titulo,
-  texto: String(item.texto || '').slice(0, diario ? 1000 : 2500),
+  dia: item.dia || input.plano.dia || '',
+  texto: String(item.texto || '').slice(0, diario ? 1200 : 2500),
 }));
 const basePrompt = diario ? String(input.config.promptResumao || '').trim() : String(input.config.promptNoticias || '').trim();
 const outputInstruction = diario
-  ? ' Retorne apenas JSON no formato {"tipo":"resumao","itens":[{"titulo":"Resumo de hoje","resumo":"texto corrido"}]}. FONTES: '
+  ? ' Retorne apenas JSON no formato {"tipo":"resumao","itens":[{"titulo":"CATEGORIA/ASSUNTO","resumo":"texto corrido consolidado"}]}. As noticias abaixo foram enviadas em dias diferentes (campo dia). AGRUPE noticias do mesmo assunto/empresa/evento em UM unico item, unindo complementos e desdobramentos de dias diferentes. Retorne no maximo ' + maxR + ' itens (categorias) relevantes e ineditas. Sem links, sem markdown. FONTES: '
   : ' Retorne apenas JSON no formato {"tipo":"noticias","itens":[{"id":"copie o id exatamente","emoji":"emoji","titulo":"TITULO CURTO","resumo":"texto"}]}. Se nada for relevante, retorne itens vazio. FONTES: ';
 const prompt = (basePrompt || (diario ? 'Escreva um unico resumao do dia em portugues brasileiro.' : 'Selecione noticias relevantes e explique em linguagem simples.')) + outputInstruction + JSON.stringify(fontes);
 const schema = {
@@ -434,9 +473,16 @@ if (input.historico) {
 const result = input.ia;
 if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { semNoticias: true, motivo: 'IA nao selecionou noticias', plano: input.plano } }];
 if (input.plano.acao === 'resumao') {
-  const resumoDiario = String(result.itens[0].resumo || '').replace(/\\*/g, '').trim();
-  if (resumoDiario.length < 80 || /https?:\\/\\//i.test(resumoDiario)) throw new Error('Resumao invalido');
-  return [{ json: { tipo: 'resumao', titulo: 'Resumo de hoje', resumo: resumoDiario, texto: comAssinatura(String.fromCodePoint(0x1F6A8) + ' *Resumo de hoje*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoDiario, input.config), link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
+  const maxItens = Math.max(1, Number(input.config.maxResumaoItens || 5));
+  const mensagens = [];
+  for (const it of result.itens.slice(0, maxItens)) {
+    const resumoItem = String(it.resumo || '').replaceAll('*', '').trim();
+    const categoria = String(it.titulo || '').replaceAll('*', '').trim().toLocaleUpperCase('pt-BR');
+    if (resumoItem.length < 80 || resumoItem.indexOf('http:') !== -1 || resumoItem.indexOf('https:') !== -1) continue;
+    const rotulo = categoria || 'RESUMO DA SEMANA';
+    mensagens.push({ json: { tipo: 'resumao', titulo: rotulo, resumo: resumoItem, texto: comAssinatura(String.fromCodePoint(0x1F4CA) + ' *' + rotulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoItem, input.config), link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } });
+  }
+  return mensagens.length ? mensagens : [{ json: { semNoticias: true, motivo: 'Nenhum resumo valido', plano: input.plano } }];
 }
 const sources = new Map(input.noticias.map(item => [item.id, item]));
 const messages = [];
@@ -450,7 +496,9 @@ for (const item of result.itens) {
   const texto = comAssinatura((item.emoji || String.fromCodePoint(0x1F4F0)) + ' *' + titulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoItem + (input.config.enviarLinksFontes !== false ? String.fromCharCode(10) + String.fromCharCode(10) + link : ''), input.config);
   messages.push({ json: { tipo: 'noticia', titulo, resumo: resumoItem, texto, link, imagemUrl: input.config.usarImagem !== false ? source.imagemUrl || '' : '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroNoticias || input.config.numero } });
 }
-return messages.length ? messages : [{ json: { semNoticias: true, motivo: 'Nenhuma mensagem valida', plano: input.plano } }];
+const limiteEnvio = Math.max(1, Number(input.config.maxNoticias || 3));
+const finalMessages = messages.slice(0, limiteEnvio);
+return finalMessages.length ? finalMessages : [{ json: { semNoticias: true, motivo: 'Nenhuma mensagem valida', plano: input.plano } }];
 `.trim();
 
 const sendCode = `const item = $input.first().json;

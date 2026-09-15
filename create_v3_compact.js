@@ -467,9 +467,39 @@ for (let attempt = 1; attempt <= 5; attempt++) {
     await new Promise(resolve => setTimeout(resolve, waits[attempt] || 45000));
   }
 }
+const notificarErroManualGemini = async (mensagem) => {
+  if ($execution.mode !== 'manual') return { enviado: false, motivo: 'nao_manual' };
+  const destinos = String(input.config?.numeroErros || '').split(/[\n,;]+/).map(v => v.trim()).filter(Boolean);
+  if (!destinos.length) return { enviado: false, motivo: 'numeroErros vazio' };
+  const base = String(input.config?.evolutionUrl || '').replace(/\/$/, '');
+  const instancia = String(input.config?.instancia || '').trim();
+  const apikey = String(input.config?.evolutionApiKey || input.config?.apikey || '').trim();
+  if (!base || !instancia || !apikey) return { enviado: false, motivo: 'configuracao Evolution incompleta' };
+  const texto = String.fromCodePoint(0x1F6A8) + ' *ALERTA*' + String.fromCharCode(10) +
+    'Ola Willyan, o sistema falhou.' + String.fromCharCode(10) + String.fromCharCode(10) +
+    '*Workflow:* ' + (input.config?.cliente || 'Noticias v3') + String.fromCharCode(10) +
+    '*Execucao:* ' + ($execution.id || '') + String.fromCharCode(10) +
+    '*Node:* Gemini com Retry' + String.fromCharCode(10) +
+    '*Falha:* ' + mensagem.slice(0, 1800);
+  const resultados = [];
+  for (const raw of destinos) {
+    const number = /^[0-9]+(?:-[0-9]+)?@g\.us$/.test(raw) ? raw : raw.replace(/\D/g, '');
+    if (!number) { resultados.push({ destino: raw, enviado: false, erro: 'destino invalido' }); continue; }
+    try {
+      const resp = await http({ method: 'POST', url: base + '/message/sendText/' + encodeURIComponent(instancia), headers: { apikey }, body: { number, text: texto, linkPreview: false }, json: true, timeout: 30000 });
+      resultados.push({ destino: raw, enviado: true, messageId: resp?.key?.id || resp?.messageId || '' });
+    } catch (e) {
+      resultados.push({ destino: raw, enviado: false, erro: e.message });
+    }
+  }
+  console.log('[NOTICIAS_V3_ALERTA_MANUAL_GEMINI] ' + JSON.stringify(resultados));
+  return { enviado: resultados.some(r => r.enviado), resultados };
+};
 const statusTxt = lastInfo.status ? 'status=' + lastInfo.status + ' | ' : '';
 const corpoTxt = lastInfo.corpo ? ' | corpo=' + lastInfo.corpo : '';
-throw new Error('Gemini falhou apos 5 tentativas | ' + statusTxt + 'modelo=' + model + ' | cliente=' + (contexto.cliente || '-') + ' | acao=' + (contexto.acao || '-') + ' | fontes=' + fontes + ' | promptChars=' + promptChars + ' | causa=' + (lastInfo.mensagem || lastError?.message || 'erro desconhecido') + corpoTxt + ' | acao sugerida: se for 503/UNAVAILABLE, o problema e instabilidade/sobrecarga da API Gemini; tente novamente depois ou troque modelo/chave.');
+const mensagemFinal = 'Gemini falhou apos 5 tentativas | ' + statusTxt + 'modelo=' + model + ' | cliente=' + (contexto.cliente || '-') + ' | acao=' + (contexto.acao || '-') + ' | fontes=' + fontes + ' | promptChars=' + promptChars + ' | causa=' + (lastInfo.mensagem || lastError?.message || 'erro desconhecido') + corpoTxt + ' | acao sugerida: se for 503/UNAVAILABLE, o problema e instabilidade/sobrecarga da API Gemini; tente novamente depois ou troque modelo/chave.';
+try { await notificarErroManualGemini(mensagemFinal); } catch (alertError) { console.log('[NOTICIAS_V3_ALERTA_MANUAL_GEMINI_FALHOU] ' + alertError.message); }
+throw new Error(mensagemFinal);
 `.trim();
 
 const prepareMessagesCode = `

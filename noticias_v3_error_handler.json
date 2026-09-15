@@ -1,0 +1,51 @@
+{
+  "id": "noticias_v3_error_handler",
+  "name": "Noticias v3 - Notificar erros",
+  "nodes": [
+    {
+      "id": "3f7dc78a-5f6f-4070-a3fd-1a7f56b73a9f",
+      "name": "Erro - Receber falha",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        160
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "496faab6-1567-42d9-9214-faa32e257c22",
+      "name": "Erro - Logar e Notificar numeroErros",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        160
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const input = $input.first().json || {};\nconst workflow = input.workflow || {};\nconst execution = input.execution || {};\nconst error = input.error || input;\nconst nodes = Array.isArray(workflow.nodes) ? workflow.nodes : [];\nconst getAssignments = nodeName => {\n  const node = nodes.find(n => n.name === nodeName);\n  return node?.parameters?.assignments?.assignments || [];\n};\nconst cfg = {};\nfor (const a of getAssignments('Configurar Cliente')) {\n  if (a && a.name) cfg[a.name] = a.value;\n}\nconst clean = value => String(value || '').replace(/^[(https?://[^]]+)]([^)]*)$/, '$1').trim();\nconst splitDestinos = value => String(value || '').split(/[\n;,]+/).map(v => v.trim()).filter(Boolean);\nconst nodeName = error.node?.name || error.nodeName || input.lastNodeExecuted || execution.lastNodeExecuted || '';\nconst mainMessage = error.message || input.message || 'Erro sem mensagem';\nconst falhas = [];\nfalhas.push({ node: nodeName, mensagem: mainMessage, stack: error.stack || '' });\nif (Array.isArray(input.errors)) {\n  for (const e of input.errors) {\n    falhas.push({ node: e.node?.name || e.nodeName || '', mensagem: e.message || String(e), stack: e.stack || '' });\n  }\n}\nconst dedup = new Set();\nconst falhasUnicas = falhas.filter(f => {\n  const key = [f.node, f.mensagem].join('|');\n  if (dedup.has(key)) return false;\n  dedup.add(key);\n  return true;\n});\nconst workflowNome = workflow.name || input.workflowName || 'Workflow desconhecido';\nconst workflowId = workflow.id || input.workflowId || '';\nconst executionId = execution.id || input.executionId || '';\nconst executionUrl = execution.url || input.executionUrl || '';\nconst detalhes = falhasUnicas.map((f, index) => {\n  const local = f.node ? ' no node ' + f.node : '';\n  return String(index + 1) + '.' + local + ': ' + String(f.mensagem || 'Erro sem mensagem').slice(0, 900);\n}).join(String.fromCharCode(10));\nconst texto = [\n  String.fromCodePoint(0x1F6A8) + ' *ALERTA*',\n  'Ola Willyan, o sistema falhou.',\n  '',\n  '*Workflow:* ' + workflowNome + (workflowId ? ' (' + workflowId + ')' : ''),\n  executionId ? '*Execucao:* ' + executionId : '',\n  '*Falhas:*',\n  detalhes || '1. Erro sem detalhes no payload do n8n.',\n  executionUrl ? '' : '',\n  executionUrl || '',\n].filter(v => v !== '').join(String.fromCharCode(10));\nconst diag = { workflow: workflowNome, workflowId, executionId, node: nodeName, falhas: falhasUnicas.map(f => ({ node: f.node, mensagem: f.mensagem })), numeroErrosConfigurado: Boolean(cfg.numeroErros) };\nconsole.log('[NOTICIAS_V3_ERRO] ' + JSON.stringify(diag));\nconst numeroErros = splitDestinos(cfg.numeroErros);\nif (!numeroErros.length) return [{ json: { enviado: false, motivo: 'numeroErros vazio no workflow que falhou', texto, diagnostico: diag } }];\nconst base = clean(cfg.evolutionUrl || 'http://evolution-api:8080').replace(//$/, '');\nconst instancia = clean(cfg.instancia || '');\nconst apikey = clean(cfg.evolutionApiKey || cfg.apikey || '');\nif (!base || !instancia || !apikey) return [{ json: { enviado: false, motivo: 'Configuracao de envio incompleta no workflow que falhou', texto, diagnostico: { ...diag, temBase: Boolean(base), temInstancia: Boolean(instancia), temApiKey: Boolean(apikey) } } }];\nconst http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {\n  if (this && this.helpers && this.helpers.httpRequest) return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });\n  if (typeof fetch !== 'function') throw new Error('Nenhum cliente HTTP disponivel no Code node');\n  const init = { method, headers: { ...headers }, signal: AbortSignal.timeout(timeout) };\n  if (body !== undefined) {\n    init.body = typeof body === 'string' ? body : JSON.stringify(body);\n    if (!init.headers['Content-Type'] && !init.headers['content-type']) init.headers['Content-Type'] = 'application/json';\n  }\n  const response = await fetch(url, init);\n  const text = await response.text();\n  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));\n  return json ? (text ? JSON.parse(text) : null) : text;\n};\nconst resultados = [];\nfor (const raw of numeroErros) {\n  const number = /^[0-9]+(?:-[0-9]+)?@g\\.us$/.test(raw) ? raw : raw.replace(/D/g, '');\n  if (!number) {\n    resultados.push({ destino: raw, enviado: false, erro: 'Destino vazio/invalido' });\n    continue;\n  }\n  try {\n    const resp = await http({ method: 'POST', url: base + '/message/sendText/' + encodeURIComponent(instancia), headers: { apikey }, body: { number, text: texto, linkPreview: false }, json: true, timeout: 30000 });\n    resultados.push({ destino: raw, enviado: true, messageId: resp?.key?.id || resp?.messageId || '' });\n  } catch (e) {\n    resultados.push({ destino: raw, enviado: false, erro: e.message });\n  }\n}\nreturn [{ json: { enviado: resultados.some(r => r.enviado), texto, resultados, diagnostico: diag } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Erro - Receber falha": {
+      "main": [
+        [
+          {
+            "node": "Erro - Logar e Notificar numeroErros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo"
+  },
+  "pinData": {},
+  "tags": []
+}

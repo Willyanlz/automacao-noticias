@@ -851,7 +851,7 @@ const workflow = {
   nodes,
   connections,
   active: false,
-  settings: { executionOrder: 'v1', binaryMode: 'separate', timezone: 'America/Sao_Paulo' },
+  settings: { executionOrder: 'v1', binaryMode: 'separate', timezone: 'America/Sao_Paulo', errorWorkflow: 'noticias_v3_error_handler' },
   pinData: {},
   tags: [],
 };

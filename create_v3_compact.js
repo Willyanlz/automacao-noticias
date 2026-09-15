@@ -72,7 +72,7 @@ const configFields = [
   ['numeroNoticias', '', 'string'],
   ['numeroResumao', '', 'string'],
   ['numeroHistorico', '', 'string'],
-  ['numeroErros', '', 'string'],
+  ['numeroErros', '5516997760515', 'string'],
   ['forcarAgora', '={{ Boolean($json.forcarAgora) }}', 'boolean'],
   ['forcarResumao', '={{ Boolean($json.forcarResumao) }}', 'boolean'],
   ['forcarHistorico', '={{ Boolean($json.forcarHistorico) }}', 'boolean'],

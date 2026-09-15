@@ -401,6 +401,12 @@
               "type": "string"
             },
             {
+              "id": "campo-numeroErros",
+              "name": "numeroErros",
+              "value": "",
+              "type": "string"
+            },
+            {
               "id": "b1da45c3-67a3-4e4f-81f3-dedbea7235c6",
               "name": "forcarAgora",
               "value": "={{ Boolean($json.forcarAgora) }}",

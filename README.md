@@ -60,6 +60,7 @@ Campos principais:
 | `numeroNoticias` | Destino especifico das noticias. Se vazio, usa `numero`. |
 | `numeroResumao` | Destino especifico do resumao. Se vazio, usa `numero`. |
 | `numeroHistorico` | Destino especifico do historico. Se vazio, usa `numero`. |
+| `numeroErros` | Destino para alertas de erro do workflow. Pode ser numero individual, grupo `@g.us`, ou varios separados por linha, virgula ou ponto e virgula. Se vazio, o erro fica apenas no log do n8n. |
 
 ## Fluxos de entrada
 
@@ -83,3 +84,10 @@ node manutencao/testes/test_v3_compact.cjs
 4. Troque para `enviar=true` somente quando a instancia e o destino estiverem corretos.
 
 Nunca versione tokens, chaves, senhas, IPs privados de clientes ou exports com credenciais reais.
+
+
+## Logs e alertas de erro
+
+Os workflows principais apontam para o workflow global `Noticias v3 - Notificar erros`. Quando qualquer workflow falha, o n8n registra no log a entrada `[NOTICIAS_V3_ERRO]` com workflow, node, execucao e mensagem do erro.
+
+Se o campo `numeroErros` estiver preenchido no node `Configurar Cliente` do workflow que falhou, o workflow global tambem tenta enviar um alerta pelo WhatsApp via Evolution API. Se `numeroErros` estiver vazio, nada e enviado no WhatsApp e o diagnostico fica apenas nos logs/output do n8n.

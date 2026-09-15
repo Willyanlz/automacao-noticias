@@ -54,7 +54,6 @@ Campos principais:
 | `diasEnvio` | Dias da semana em que o envio automatico de noticias ocorre. Ex.: `seg a sex`, `seg qua sex`, `seg ter qua qui sex sab`. Vazio ou `todos` = todos os dias. |
 | `diaResumao` | Dia da semana do resumao automatico. Ex.: `dom` (resume o periodo D-6..D-1, ex.: segunda a sabado). Vazio = resumao diario. |
 | `resumaoPeriodoDias` | Quantos dias anteriores o resumao cobre (padrao 6). |
-| `maxResumaoItens` | Maximo de categorias/blocos no resumao (padrao 5). |
 | `usarImagem` | Se `true`, tenta enviar imagem da materia quando houver. |
 | `enviar` | Se `false`, gera preview sem enviar. Se `true`, envia pelo WhatsApp. |
 | `enviarLinksFontes` | Se `true`, adiciona o link da fonte na mensagem. |

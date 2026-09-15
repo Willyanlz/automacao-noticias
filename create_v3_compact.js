@@ -135,16 +135,16 @@ return [{ json: { acao, config, manual: manualNoticias || config.forcarResumao =
 const collectCode = String.raw`
 const plano = $('Decidir Acao').first().json;
 const config = plano.config;
-const baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\/$/, '');
+const baseHistorico = String(config.historicoUrl || 'http://historico:8090').replace(/\\/$/, '');
 const escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia'].map(v => String(v).trim()).join('|');
-const strip = value => String(value || '').replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
-const tag = (xml, name) => strip((String(xml || '').match(new RegExp('<' + name + '[^>]*>([\\s\\S]*?)</' + name + '>', 'i')) || [])[1] || '');
-const tagRaw = (xml, name) => (String(xml || '').match(new RegExp('<' + name + '[^>]*>([\\s\\S]*?)</' + name + '>', 'i')) || [])[1] || '';
+const strip = value => String(value || '').replace(/<!\\[CDATA\\[|\\]\\]>/g, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\\s+/g, ' ').trim();
+const tag = (xml, name) => strip((String(xml || '').match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)</' + name + '>', 'i')) || [])[1] || '');
+const tagRaw = (xml, name) => (String(xml || '').match(new RegExp('<' + name + '[^>]*>([\\\\s\\\\S]*?)</' + name + '>', 'i')) || [])[1] || '';
 const attr = (html, pattern) => (String(html || '').match(pattern) || [])[1] || '';
 const first = (...values) => values.map(v => String(v || '').trim()).find(Boolean) || '';
 const linkFromBlock = block => {
   const linkText = tag(block, 'link');
-  if (/^https?:\/\//i.test(linkText)) return linkText;
+  if (/^https?:\\/\\//i.test(linkText)) return linkText;
   return attr(block, /<link[^>]+href=["']([^"']+)["'][^>]*>/i) || tag(block, 'guid') || linkText;
 };
 const imageFromBlock = block => attr(block, /<(?:media:content|media:thumbnail|enclosure)[^>]+url=["']([^"']+)["'][^>]*>/i);
@@ -165,7 +165,7 @@ const jsonFeedItems = value => {
     return [];
   }
 };
-const normalize = value => strip(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const normalize = value => strip(value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
 const http = async ({ method = 'GET', url, headers = {}, body, json = false, timeout = 30000 }) => {
   if (this && this.helpers && this.helpers.httpRequest) {
     return await this.helpers.httpRequest({ method, url, headers, body, json, timeout });
@@ -186,7 +186,7 @@ const decodificar = value => String(value || '').replace(/&#0?39;|&#x27;/gi, "'"
 const encUri = str => String(str).split(/(%[0-9A-Fa-f]{2})/g).map(p => /^%[0-9A-Fa-f]{2}$/.test(p) ? p : encodeURI(p)).join('');
 const urlImagem = raw => {
   const limpa = decodificar(raw);
-  if (!/^https?:\/\//i.test(limpa)) return '';
+  if (!/^https?:\\/\\//i.test(limpa)) return '';
   try {
     const u = new URL(limpa);
     u.pathname = u.pathname.split('/').map(seg => encUri(seg).replace(/'/g, '%27').replace(/&/g, '%26')).join('/');
@@ -202,7 +202,20 @@ if (plano.acao === 'resumao' || plano.acao === 'historico') {
   const diaSoma = (base, dias) => { const [y, m, d] = String(base).split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + dias)).toISOString().slice(0, 10); };
   const de = plano.diaInicio || plano.dia;
   const ate = (plano.diaFim || plano.dia) >= de ? (plano.diaFim || plano.dia) : de;
-  const rows = await http({ method: 'GET', url: baseHistorico + '/periodo?de=' + de + '&ate=' + ate + '&escopo=' + encodeURIComponent(escopoHistorico), json: true });
+  let rows = [];
+  try {
+    rows = await http({ method: 'GET', url: baseHistorico + '/periodo?de=' + de + '&ate=' + ate + '&escopo=' + encodeURIComponent(escopoHistorico), json: true });
+  } catch (error) {
+    console.log('Historico /periodo indisponivel, usando fallback /dia: ' + error.message);
+    for (let dia = de; dia <= ate; dia = diaSoma(dia, 1)) {
+      try {
+        const parte = await http({ method: 'GET', url: baseHistorico + '/dia/' + dia + '?escopo=' + encodeURIComponent(escopoHistorico), json: true });
+        if (Array.isArray(parte)) rows.push(...parte.map(row => ({ ...row, dia: row.dia || dia })));
+      } catch (fallbackError) {
+        console.log('Falha no fallback /dia/' + dia + ': ' + fallbackError.message);
+      }
+    }
+  }
   const bruta = (Array.isArray(rows) ? rows : []).filter(row => row.link && row.tipo !== 'resumao' && row.tipo !== 'historico');
   const vistos = new Set();
   const noticias = [];
@@ -223,7 +236,7 @@ for (const feed of feeds) {
       candidates.push(...jsonItems);
       continue;
     }
-    const blocks = String(xml).match(/<item\b[\s\S]*?<\/item>/gi) || String(xml).match(/<entry\b[\s\S]*?<\/entry>/gi) || [];
+    const blocks = String(xml).match(/<item\\b[\\s\\S]*?<\\/item>/gi) || String(xml).match(/<entry\\b[\\s\\S]*?<\\/entry>/gi) || [];
     for (const block of blocks) {
       const link = linkFromBlock(block);
       const date = dateFromBlock(block);
@@ -274,16 +287,16 @@ if (candidates.length) {
   }
 }
 const cleanArticleHtml = value => String(value || '')
-  .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-  .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-  .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
-  .replace(/<!--[\s\S]*?-->/g, ' ');
+  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')
+  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')
+  .replace(/<noscript[\\s\\S]*?<\\/noscript>/gi, ' ')
+  .replace(/<!--[\\s\\S]*?-->/g, ' ');
 const cleanArticleText = value => strip(value)
-  .replace(/@\s*property\s+--[\s\S]*?(?=\s[A-Za-z0-9]|$)/gi, ' ')
+  .replace(/@\\s*property\\s+--[\\s\\S]*?(?=\\s[A-Za-z0-9]|$)/gi, ' ')
   .replace(/--tw-[a-z0-9-]+/gi, ' ')
-  .replace(/\b(initial-value|inherits|syntax|rgba?|var|calc|transform|transition|font-face)\b\s*[:;{][^.!?]{0,300}/gi, ' ')
-  .replace(/[{}[\];]{2,}/g, ' ')
-  .replace(/\s+/g, ' ')
+  .replace(/\\b(initial-value|inherits|syntax|rgba?|var|calc|transform|transition|font-face)\\b\\s*[:;{][^.!?]{0,300}/gi, ' ')
+  .replace(/[{}[\\];]{2,}/g, ' ')
+  .replace(/\\s+/g, ' ')
   .trim();
 const looksLikeNoise = value => {
   const text = String(value || '').trim();
@@ -294,7 +307,7 @@ const looksLikeNoise = value => {
   const letters = (text.match(/[a-z]/gi) || []).length;
   const symbols = (text.match(/[{};:=<>]/g) || []).length;
   if (letters && symbols / letters > 0.12) return true;
-  const words = text.split(/\s+/).filter(Boolean);
+  const words = text.split(/\\s+/).filter(Boolean);
   if (words.length < 18) return true;
   return false;
 };
@@ -304,11 +317,11 @@ for (const item of candidates) {
     const rawHtml = await http({ method: 'GET', url: item.link, timeout: 20000 });
     const html = cleanArticleHtml(rawHtml);
     const image = attr(String(rawHtml), /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) || attr(String(rawHtml), /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) || item.imagemUrl;
-    const textBlocks = [...html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)]
+    const textBlocks = [...html.matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)]
       .map(match => cleanArticleText(match[1]))
       .filter(text => text.length > 45 && !looksLikeNoise(text) && !/todos os direitos reservados|^compartilh|^assine|^leia tamb[e?]m|^veja tamb[e?]m|newsletter|privacy policy|cookie/i.test(text));
-    const texto = [...new Set(textBlocks)].join('\n').slice(0, 5000);
-    if (texto.length >= 120 && !looksLikeNoise(texto)) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\/\//i.test(image) ? urlImagem(image) : '' });
+    const texto = [...new Set(textBlocks)].join('\\n').slice(0, 5000);
+    if (texto.length >= 120 && !looksLikeNoise(texto)) noticias.push({ id: item.link, link: item.link, titulo: item.titulo, texto, imagemUrl: /^https?:\\/\\//i.test(image) ? urlImagem(image) : '' });
   } catch (error) {
     console.log('Falha ao buscar materia ' + item.link + ': ' + error.message);
   }
@@ -470,15 +483,18 @@ if (input.historico) {
 const result = input.ia;
 if (!result || !Array.isArray(result.itens) || !result.itens.length) return [{ json: { semNoticias: true, motivo: 'IA nao selecionou noticias', plano: input.plano } }];
 if (input.plano.acao === 'resumao') {
-  const mensagens = [];
+  const blocos = [];
   for (const it of result.itens) {
     const resumoItem = String(it.resumo || '').replaceAll('*', '').trim();
     const categoria = String(it.titulo || '').replaceAll('*', '').trim().toLocaleUpperCase('pt-BR');
     if (resumoItem.length < 80 || resumoItem.indexOf('http:') !== -1 || resumoItem.indexOf('https:') !== -1) continue;
     const rotulo = categoria || 'RESUMO DA SEMANA';
-    mensagens.push({ json: { tipo: 'resumao', titulo: rotulo, resumo: resumoItem, texto: comAssinatura(String.fromCodePoint(0x1F4CA) + ' *' + rotulo + '*' + String.fromCharCode(10) + String.fromCharCode(10) + resumoItem, input.config), link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } });
+    blocos.push('*' + rotulo + '*' + String.fromCharCode(10) + resumoItem);
   }
-  return mensagens.length ? mensagens : [{ json: { semNoticias: true, motivo: 'Nenhum resumo valido', plano: input.plano } }];
+  if (!blocos.length) return [{ json: { semNoticias: true, motivo: 'Nenhum resumo valido', plano: input.plano } }];
+  const periodo = input.plano.diaInicio && input.plano.diaFim ? ' (' + String(input.plano.diaInicio).replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/, '$3/$2') + ' a ' + String(input.plano.diaFim).replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/, '$3/$2') + ')' : '';
+  const resumoUnico = blocos.join(String.fromCharCode(10) + String.fromCharCode(10));
+  return [{ json: { tipo: 'resumao', titulo: 'RESUMO DA SEMANA', resumo: resumoUnico, texto: comAssinatura(String.fromCodePoint(0x1F4CA) + ' *RESUMO DA SEMANA*' + periodo + String.fromCharCode(10) + String.fromCharCode(10) + resumoUnico, input.config), link: '', imagemUrl: '', config: configEnvio(input.config), plano: input.plano, numeroDestino: input.config.numeroResumao || input.config.numero } }];
 }
 const sources = new Map(input.noticias.map(item => [item.id, item]));
 const messages = [];

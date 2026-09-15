@@ -121,7 +121,7 @@ const diasEnvio = parseDias(config.diasEnvio);
 const diasResumao = parseDias(config.diaResumao);
 const periodoDias = Math.max(1, Number(config.resumaoPeriodoDias || 6));
 const diaInicio = somaDia(diaLocal, -periodoDias);
-const diaFim = somaDia(diaLocal, -1);
+const diaFim = diaLocal;
 let acao = 'nada';
 if (config.forcarHistorico === true) acao = 'historico';
 else if (config.forcarResumao === true) acao = 'resumao';

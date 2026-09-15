@@ -125,10 +125,10 @@ let acao = 'nada';
 if (config.forcarHistorico === true) acao = 'historico';
 else if (config.forcarResumao === true) acao = 'resumao';
 else if (manualNoticias) acao = 'noticias';
-else if (config.resumaoAtivo !== false && (!diasResumao || diasResumao.has(diaSemana)) && current >= digestAt && current < digestAt + 5) acao = 'resumao';
+else if (config.resumaoAtivo !== false && (!diasResumao || diasResumao.has(diaSemana)) && current === digestAt) acao = 'resumao';
 else if ((!diasEnvio || diasEnvio.has(diaSemana)) && current >= start && current <= end && current < digestAt) {
-  if (config.periodicidade === 'diario') acao = current >= dailyAt && current < dailyAt + 5 ? 'noticias' : 'nada';
-  else acao = ((current - start) % interval) < 5 ? 'noticias' : 'nada';
+  if (config.periodicidade === 'diario') acao = current === dailyAt ? 'noticias' : 'nada';
+  else acao = ((current - start) % interval) === 0 ? 'noticias' : 'nada';
 }
 return [{ json: { acao, config, manual: manualNoticias || config.forcarResumao === true || config.forcarHistorico === true, jobId: $execution.id, dia: diaLocal, diaInicio, diaFim, periodoDias, diaSemana, rotuloPeriodo: String(config.diaResumao || '') } }];`.trim();
 

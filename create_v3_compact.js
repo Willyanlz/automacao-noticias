@@ -405,36 +405,71 @@ const http = async ({ method = 'GET', url, headers = {}, body, json = false, tim
   }
   const response = await fetch(url, init);
   const text = await response.text();
-  if (!response.ok) throw new Error(method + ' ' + url + ' -> HTTP ' + response.status + ': ' + text.slice(0, 300));
+  if (!response.ok) {
+    const err = new Error(method + ' ' + url.replace(/key=[^&]+/, 'key=***') + ' -> HTTP ' + response.status + ': ' + text.slice(0, 600));
+    err.status = response.status;
+    err.responseText = text;
+    throw err;
+  }
   if (json) return text ? JSON.parse(text) : null;
   return text;
 };
+const describeError = error => {
+  const status = error?.status || error?.response?.status || error?.cause?.status || '';
+  const data = error?.response?.data || error?.cause?.response?.data || error?.responseText || '';
+  const body = typeof data === 'string' ? data : JSON.stringify(data || '');
+  return {
+    status,
+    mensagem: error?.message || 'erro desconhecido',
+    corpo: String(body || '').replace(/key=[^&\s]+/g, 'key=***').slice(0, 700),
+  };
+};
 const key = input.config.geminiApiKey;
-if (!key) throw new Error('geminiApiKey nao configurada');
+if (!key) throw new Error('geminiApiKey nao configurada no Configurar Cliente');
+const requestBody = { ...(input.geminiBody || {}) };
+if (input.generationConfig) requestBody.generationConfig = input.generationConfig;
+const promptChars = input.debug?.promptChars || JSON.stringify(input.geminiBody || {}).length;
+const fontes = input.debug?.fontes ?? (Array.isArray(input.noticias) ? input.noticias.length : 0);
+const contexto = {
+  provedor: 'Gemini',
+  modelo: model,
+  cliente: input.config?.cliente || '',
+  acao: input.plano?.acao || '',
+  dia: input.plano?.dia || '',
+  fontes,
+  promptChars,
+};
+const transient = message => /timeout|ETIMEDOUT|ECONNRESET|ECONNABORTED|429|503|502|504|500|status code 5\d\d|HTTP 5\d\d|network|unavailable|overloaded/i.test(String(message || ''));
+const parseGeminiJson = value => {
+  const text = String(value || '').trim();
+  try { return JSON.parse(text); } catch {}
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start >= 0 && end > start) return JSON.parse(text.slice(start, end + 1));
+  throw new Error('Resposta da IA nao veio em JSON valido. Inicio da resposta: ' + text.slice(0, 300));
+};
 let lastError;
-for (let attempt = 1; attempt <= 3; attempt++) {
+let lastInfo = {};
+for (let attempt = 1; attempt <= 5; attempt++) {
   try {
-    const response = await http({ method: 'POST', url: 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key), headers: { 'Content-Type': 'application/json' }, body: input.geminiBody, json: true, timeout: 120000 });
+    const response = await http({ method: 'POST', url: 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key), headers: { 'Content-Type': 'application/json' }, body: requestBody, json: true, timeout: 120000 });
     const candidate = response?.candidates?.[0];
-    if (!candidate || (candidate.finishReason && candidate.finishReason !== 'STOP')) throw new Error('Gemini nao concluiu');
-    const raw = candidate.content.parts.filter(part => !part.thought).map(part => part.text || '').join('');
-    const parseGeminiJson = value => {
-      const text = String(value || '').trim();
-      try { return JSON.parse(text); } catch {}
-      const start = text.indexOf('{');
-      const end = text.lastIndexOf('}');
-      if (start >= 0 && end > start) return JSON.parse(text.slice(start, end + 1));
-      throw new Error('Resposta da IA nao veio em JSON valido');
-    };
+    if (!candidate || (candidate.finishReason && candidate.finishReason !== 'STOP')) throw new Error('Gemini nao concluiu: ' + (candidate?.finishReason || 'sem candidato'));
+    const raw = (candidate.content?.parts || []).filter(part => !part.thought).map(part => part.text || '').join('');
     const result = parseGeminiJson(raw);
-    return [{ json: { plano: input.plano, config: input.config, noticias: input.noticias, ia: result, debug: { modelo: model, itensIA: Array.isArray(result.itens) ? result.itens.length : 0 } } }];
+    return [{ json: { plano: input.plano, config: input.config, noticias: input.noticias, ia: result, debug: { ...contexto, itensIA: Array.isArray(result.itens) ? result.itens.length : 0, tentativasGemini: attempt } } }];
   } catch (error) {
     lastError = error;
-    if (!/timeout|ETIMEDOUT|ECONNRESET|429|50\\d|network/i.test(error.message || '') || attempt === 3) break;
-    await new Promise(resolve => setTimeout(resolve, 5000 * attempt));
+    lastInfo = describeError(error);
+    console.log('[NOTICIAS_V3_GEMINI_TENTATIVA_FALHOU] ' + JSON.stringify({ ...contexto, tentativa: attempt, erro: lastInfo }));
+    if (!transient(lastInfo.mensagem + ' ' + lastInfo.status) || attempt === 5) break;
+    const waits = [0, 5000, 12000, 25000, 45000];
+    await new Promise(resolve => setTimeout(resolve, waits[attempt] || 45000));
   }
 }
-throw new Error('Gemini falhou: ' + (lastError?.message || 'erro desconhecido')); // erro simples para identificar o problema
+const statusTxt = lastInfo.status ? 'status=' + lastInfo.status + ' | ' : '';
+const corpoTxt = lastInfo.corpo ? ' | corpo=' + lastInfo.corpo : '';
+throw new Error('Gemini falhou apos 5 tentativas | ' + statusTxt + 'modelo=' + model + ' | cliente=' + (contexto.cliente || '-') + ' | acao=' + (contexto.acao || '-') + ' | fontes=' + fontes + ' | promptChars=' + promptChars + ' | causa=' + (lastInfo.mensagem || lastError?.message || 'erro desconhecido') + corpoTxt + ' | acao sugerida: se for 503/UNAVAILABLE, o problema e instabilidade/sobrecarga da API Gemini; tente novamente depois ou troque modelo/chave.');
 `.trim();
 
 const prepareMessagesCode = `

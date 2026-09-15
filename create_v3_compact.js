@@ -351,17 +351,18 @@ const configLeve = cfg => ({
 });
 if (input.semNoticias || input.historico) return [{ json: { semNoticias: input.semNoticias === true, motivo: input.motivo || '', plano: input.plano, config: configLeve(input.config || {}), noticias: input.noticias || [], historico: input.historico === true } }];
 const diario = input.plano.acao === 'resumao';
+const maxNoticiasIA = Math.max(1, Number(input.config.maxNoticias || 3));
 const fontes = input.noticias.map(item => ({
   id: item.id,
   link: item.link,
   titulo: item.titulo,
   dia: item.dia || input.plano.dia || '',
-  texto: String(item.texto || '').slice(0, diario ? 1200 : 2500),
+  texto: String(item.texto || '').slice(0, diario ? 1200 : 1000),
 }));
 const basePrompt = diario ? String(input.config.promptResumao || '').trim() : String(input.config.promptNoticias || '').trim();
 const outputInstruction = diario
   ? ' Retorne apenas JSON no formato {"tipo":"resumao","itens":[{"titulo":"CATEGORIA/ASSUNTO","resumo":"texto corrido consolidado"}]}. As noticias abaixo foram enviadas em dias diferentes (campo dia). AGRUPE noticias do mesmo assunto/empresa/evento em UM unico item, unindo complementos e desdobramentos de dias diferentes. Retorne as categorias relevantes e ineditas, sem limite artificial de quantidade. Sem links, sem markdown. FONTES: '
-  : ' Retorne apenas JSON no formato {"tipo":"noticias","itens":[{"id":"copie o id exatamente","emoji":"emoji","titulo":"TITULO CURTO","resumo":"texto"}]}. Se nada for relevante, retorne itens vazio. FONTES: ';
+  : ' Retorne apenas JSON no formato {"tipo":"noticias","itens":[{"id":"copie o id exatamente","emoji":"emoji","titulo":"TITULO CURTO","resumo":"texto"}]}. As FONTES ja foram pre-filtradas por RSS, dominio, janela de tempo, historico e palavras-chave. Retorne o maior numero possivel de noticias relevantes ate o limite dinamico de ' + maxNoticiasIA + ' itens. O limite vem de config.maxNoticias; nao e numero fixo. Nao escolha apenas uma noticia por padrao. Para cada fonte com fato economico, de mercado, empresas ou investimento, crie um item separado. Exclua somente fonte claramente irrelevante, propaganda ou sem fato novo. Se nada for relevante, retorne itens vazio. FONTES: ';
 const prompt = (basePrompt || (diario ? 'Escreva um unico resumao do dia em portugues brasileiro.' : 'Selecione noticias relevantes e explique em linguagem simples.')) + outputInstruction + JSON.stringify(fontes);
 const schema = {
   type: 'OBJECT',
@@ -384,7 +385,7 @@ const noticiasLeves = input.noticias.map(item => ({
   titulo: item.titulo,
   imagemUrl: item.imagemUrl || '',
 }));
-return [{ json: { plano: input.plano, config: configLeve(input.config || {}), noticias: noticiasLeves, geminiBody: { contents: [{ parts: [{ text: prompt }] }] }, generationConfig: { responseMimeType: 'application/json', responseSchema: schema }, debug: { fontes: fontes.length, promptChars: prompt.length } } }];
+return [{ json: { plano: input.plano, config: configLeve(input.config || {}), noticias: noticiasLeves, geminiBody: { contents: [{ parts: [{ text: prompt }] }] }, generationConfig: { responseMimeType: 'application/json', responseSchema: schema, maxOutputTokens: diario ? 8192 : Math.min(6144, 1024 + maxNoticiasIA * 300) }, debug: { fontes: fontes.length, promptChars: prompt.length } } }];
 `.trim();
 
 const geminiCode = `

@@ -515,7 +515,24 @@ return finalMessages.length ? finalMessages : [{ json: { semNoticias: true, moti
 `.trim();
 
 const sendCode = `const item = $input.first().json;
-if (item.semNoticias) return [{ json: item }];
+if (item.semNoticias) {
+  const diag = {
+    evento: 'SEM_ENVIO',
+    acao: item.plano?.acao || '',
+    manual: item.plano?.manual === true,
+    motivo: item.motivo || 'Sem motivo detalhado',
+    dia: item.plano?.dia || '',
+    diaInicio: item.plano?.diaInicio || '',
+    diaFim: item.plano?.diaFim || '',
+    jobId: item.plano?.jobId || '',
+    tipo: item.tipo || '',
+    noticias: Array.isArray(item.noticias) ? item.noticias.length : undefined,
+    debug: item.debug || undefined,
+    dica: 'Abra o output do no anterior para ver fontes, resposta da IA e motivo detalhado. Se acao=nada em execucao agendada, era apenas fora do horario exato.'
+  };
+  if (diag.manual || diag.acao !== 'nada') console.log('[NOTICIAS_V3_DIAGNOSTICO] ' + JSON.stringify(diag));
+  return [{ json: { ...item, diagnostico: diag } }];
+}
 const config = { ...item.config };
 const escopoHistorico = [config.cliente || 'cliente', config.instancia || 'instancia'].map(v => String(v).trim()).join('|');
 if (config.enviar !== true) return [{ json: { preview: true, titulo: item.titulo, texto: item.texto } }];
@@ -628,7 +645,9 @@ if (item.link || item.tipo === 'resumao' || item.tipo === 'historico') {
     console.log('Falha ao registrar historico: ' + error.message);
   }
 }
-return [{ json: { enviado: true, titulo: item.titulo, link: item.link, totalDestinos: destinosUnicos.length, enviados: resultados.filter(r => r.enviado).length, falhas: resultados.filter(r => !r.enviado).length, resultados } }];`.trim();
+const resumoEnvio = { enviado: true, titulo: item.titulo, link: item.link, totalDestinos: destinosUnicos.length, enviados: resultados.filter(r => r.enviado).length, falhas: resultados.filter(r => !r.enviado).length, resultados };
+console.log('[NOTICIAS_V3_ENVIADO] ' + JSON.stringify({ tipo: item.tipo, titulo: item.titulo, link: item.link, totalDestinos: resumoEnvio.totalDestinos, enviados: resumoEnvio.enviados, falhas: resumoEnvio.falhas }));
+return [{ json: resumoEnvio }];`.trim();
 
 const idsPrepCode = `
 const form = $input.first().json;

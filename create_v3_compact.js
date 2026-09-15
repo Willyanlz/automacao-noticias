@@ -450,9 +450,9 @@ const parseGeminiJson = value => {
 };
 let lastError;
 let lastInfo = {};
-for (let attempt = 1; attempt <= 5; attempt++) {
+for (let attempt = 1; attempt <= 3; attempt++) {
   try {
-    const response = await http({ method: 'POST', url: 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key), headers: { 'Content-Type': 'application/json' }, body: requestBody, json: true, timeout: 120000 });
+    const response = await http({ method: 'POST', url: 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key), headers: { 'Content-Type': 'application/json' }, body: requestBody, json: true, timeout: 75000 });
     const candidate = response?.candidates?.[0];
     if (!candidate || (candidate.finishReason && candidate.finishReason !== 'STOP')) throw new Error('Gemini nao concluiu: ' + (candidate?.finishReason || 'sem candidato'));
     const raw = (candidate.content?.parts || []).filter(part => !part.thought).map(part => part.text || '').join('');
@@ -462,9 +462,9 @@ for (let attempt = 1; attempt <= 5; attempt++) {
     lastError = error;
     lastInfo = describeError(error);
     console.log('[NOTICIAS_V3_GEMINI_TENTATIVA_FALHOU] ' + JSON.stringify({ ...contexto, tentativa: attempt, erro: lastInfo }));
-    if (!transient(lastInfo.mensagem + ' ' + lastInfo.status) || attempt === 5) break;
-    const waits = [0, 5000, 12000, 25000, 45000];
-    await new Promise(resolve => setTimeout(resolve, waits[attempt] || 45000));
+    if (!transient(lastInfo.mensagem + ' ' + lastInfo.status) || attempt === 3) break;
+    const waits = [0, 3000, 8000];
+    await new Promise(resolve => setTimeout(resolve, waits[attempt] || 8000));
   }
 }
 const notificarErroManualGemini = async (mensagem) => {
@@ -497,7 +497,7 @@ const notificarErroManualGemini = async (mensagem) => {
 };
 const statusTxt = lastInfo.status ? 'status=' + lastInfo.status + ' | ' : '';
 const corpoTxt = lastInfo.corpo ? ' | corpo=' + lastInfo.corpo : '';
-const mensagemFinal = 'Gemini falhou apos 5 tentativas | ' + statusTxt + 'modelo=' + model + ' | cliente=' + (contexto.cliente || '-') + ' | acao=' + (contexto.acao || '-') + ' | fontes=' + fontes + ' | promptChars=' + promptChars + ' | causa=' + (lastInfo.mensagem || lastError?.message || 'erro desconhecido') + corpoTxt + ' | acao sugerida: se for 503/UNAVAILABLE, o problema e instabilidade/sobrecarga da API Gemini; tente novamente depois ou troque modelo/chave.';
+const mensagemFinal = 'Gemini falhou apos 3 tentativas | ' + statusTxt + 'modelo=' + model + ' | cliente=' + (contexto.cliente || '-') + ' | acao=' + (contexto.acao || '-') + ' | fontes=' + fontes + ' | promptChars=' + promptChars + ' | causa=' + (lastInfo.mensagem || lastError?.message || 'erro desconhecido') + corpoTxt + ' | acao sugerida: se for 503/UNAVAILABLE, o problema e instabilidade/sobrecarga da API Gemini; tente novamente depois ou troque modelo/chave.';
 try { await notificarErroManualGemini(mensagemFinal); } catch (alertError) { console.log('[NOTICIAS_V3_ALERTA_MANUAL_GEMINI_FALHOU] ' + alertError.message); }
 throw new Error(mensagemFinal);
 `.trim();
